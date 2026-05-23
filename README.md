@@ -35,15 +35,19 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 ├── backend/           # API REST (Go)
 │   ├── cmd/api/       # Entry point, rutas
 │   └── internal/
+│       ├── config/    # Variables de entorno
 │       ├── db/        # Conexión y migraciones SQLite
 │       ├── handlers/  # Handlers HTTP
-│       └── models/    # Modelos GORM
+│       ├── middleware/ # JWT authentication
+│       ├── models/    # Modelos GORM
+│       ├── repository/ # Acceso a datos
+│       └── service/   # Lógica de negocio
 └── frontend/          # App web (Astro) — en desarrollo
 ```
 
 ## Estado del proyecto
 
-MVP en construcción. Backend con esqueleto inicial:
+Backend funcional con API REST autenticada:
 
 ### API
 
@@ -51,12 +55,15 @@ MVP en construcción. Backend con esqueleto inicial:
 | :--- | :--- | :--- | :--- | :--- |
 | POST | `/register` | ❌ | Registrar usuario | ✅ |
 | POST | `/login` | ❌ | Iniciar sesión (JWT) | ✅ |
+| GET | `/symptoms` | ✅ | Listar síntomas del usuario | ✅ |
 | POST | `/symptoms` | ✅ | Reportar síntoma | ✅ |
+| GET | `/vaccines` | ✅ | Listar vacunas del usuario | ✅ |
+| POST | `/vaccines` | ✅ | Registrar vacuna | ✅ |
+| GET | `/appointments` | ✅ | Listar citas del usuario | ✅ |
 | POST | `/appointments` | ✅ | Agendar cita | ✅ |
 | GET | `/services` | ❌ | Listar centros de salud | ✅ |
 | — | `/events` | — | Jornadas y eventos de salud | ❌ |
 | — | `/alerts` | — | Alertas epidemiológicas | ❌ |
-| — | `/vaccines` | — | Registro de vacunas | ❌ |
 | — | `/ai/consult` | — | Consulta al asistente IA | ❌ |
 
 ### Modelos
