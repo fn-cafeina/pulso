@@ -33,7 +33,11 @@ func main() {
 	r.GET("/services", svcHandler.GetAll)
 
 	auth := r.Group("/", middleware.AuthMiddleware(cfg.JWTSecret))
+	auth.GET("/symptoms", healthHandler.GetSymptoms)
 	auth.POST("/symptoms", healthHandler.CreateSymptom)
+	auth.GET("/vaccines", healthHandler.GetVaccines)
+	auth.POST("/vaccines", healthHandler.CreateVaccine)
+	auth.GET("/appointments", apptHandler.GetAll)
 	auth.POST("/appointments", apptHandler.Create)
 
 	if err := r.Run(cfg.Port); err != nil {

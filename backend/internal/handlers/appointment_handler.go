@@ -16,6 +16,16 @@ func NewAppointmentHandler(apptRepo repository.AppointmentRepository) *Appointme
 	return &AppointmentHandler{apptRepo: apptRepo}
 }
 
+func (h *AppointmentHandler) GetAll(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	appts, err := h.apptRepo.FindByUserID(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, appts)
+}
+
 func (h *AppointmentHandler) Create(c *gin.Context) {
 	var appt models.Appointment
 	if err := c.ShouldBindJSON(&appt); err != nil {
