@@ -18,16 +18,19 @@ func main() {
 	apptRepo := repository.NewAppointmentRepository(db.DB)
 	healthRepo := repository.NewHealthRepository(db.DB)
 	serviceRepo := repository.NewServiceRepository(db.DB)
+	eventRepo := repository.NewEventRepository(db.DB)
 
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 	healthSvc := service.NewHealthService(healthRepo)
 	apptSvc := service.NewAppointmentService(apptRepo)
 	svcSvc := service.NewServiceService(serviceRepo)
+	eventSvc := service.NewEventService(eventRepo)
 
 	authHandler := handlers.NewAuthHandler(authSvc)
 	healthHandler := handlers.NewHealthHandler(healthSvc)
 	apptHandler := handlers.NewAppointmentHandler(apptSvc)
 	svcHandler := handlers.NewServiceHandler(svcSvc)
+	eventHandler := handlers.NewEventHandler(eventSvc)
 
 	r := gin.Default()
 
@@ -35,6 +38,8 @@ func main() {
 	r.POST("/login", authHandler.Login)
 	r.GET("/services", svcHandler.GetAll)
 	r.GET("/services/:id", svcHandler.GetByID)
+	r.GET("/events", eventHandler.GetAll)
+	r.GET("/events/:id", eventHandler.GetByID)
 
 	auth := r.Group("/", middleware.AuthMiddleware(cfg.JWTSecret))
 	auth.POST("/services", svcHandler.Create)
@@ -46,6 +51,9 @@ func main() {
 	auth.POST("/vaccines", healthHandler.CreateVaccine)
 	auth.GET("/appointments", apptHandler.GetAll)
 	auth.POST("/appointments", apptHandler.Create)
+	auth.POST("/events", eventHandler.Create)
+	auth.PUT("/events/:id", eventHandler.Update)
+	auth.DELETE("/events/:id", eventHandler.Delete)
 
 	if err := r.Run(cfg.Port); err != nil {
 		panic(err)

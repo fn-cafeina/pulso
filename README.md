@@ -66,7 +66,11 @@ Backend funcional con API REST autenticada:
 | POST | `/services` | ✅ | Registrar centro de salud | ✅ |
 | PUT | `/services/:id` | ✅ | Actualizar centro de salud | ✅ |
 | DELETE | `/services/:id` | ✅ | Eliminar centro de salud | ✅ |
-| — | `/events` | — | Jornadas y eventos de salud | ❌ |
+| GET | `/events` | ❌ | Listar eventos (con `?upcoming=true`, `?lat=&lng=&radius=`) | ✅ |
+| GET | `/events/:id` | ❌ | Obtener evento por ID | ✅ |
+| POST | `/events` | ✅ | Crear evento de salud | ✅ |
+| PUT | `/events/:id` | ✅ | Actualizar evento | ✅ |
+| DELETE | `/events/:id` | ✅ | Eliminar evento | ✅ |
 | — | `/alerts` | — | Alertas epidemiológicas | ❌ |
 | — | `/ai/consult` | — | Consulta al asistente IA | ❌ |
 
@@ -77,6 +81,7 @@ Backend funcional con API REST autenticada:
 - `SymptomReport` — reporte de síntomas (usuario, descripción, fecha)
 - `VaccinationRecord` — registro de vacuna (usuario, vacuna, fecha)
 - `HealthService` — centro de salud (nombre, tipo, ubicación, coordenadas)
+- `HealthEvent` — jornada/campaña/feria de salud (título, tipo, fechas, ubicación, coordenadas, organizador)
 
 ## Desarrollo
 

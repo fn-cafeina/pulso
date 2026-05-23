@@ -57,7 +57,7 @@ func (s *serviceService) GetNearby(lat, lng, radiusKm float64) ([]NearbyService,
 
 	var nearby []NearbyService
 	for _, svc := range all {
-		d := haversine(lat, lng, svc.Latitud, svc.Longitud)
+		d := Haversine(lat, lng, svc.Latitud, svc.Longitud)
 		if d <= radiusKm {
 			nearby = append(nearby, NearbyService{
 				HealthService: svc,
@@ -89,16 +89,4 @@ func (s *serviceService) Delete(id uint) error {
 		return err
 	}
 	return s.repo.Delete(id)
-}
-
-const earthRadiusKm = 6371.0
-
-func haversine(lat1, lon1, lat2, lon2 float64) float64 {
-	dLat := (lat2 - lat1) * math.Pi / 180
-	dLon := (lon2 - lon1) * math.Pi / 180
-	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
-		math.Cos(lat1*math.Pi/180)*math.Cos(lat2*math.Pi/180)*
-			math.Sin(dLon/2)*math.Sin(dLon/2)
-	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	return earthRadiusKm * c
 }
