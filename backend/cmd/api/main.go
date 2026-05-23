@@ -34,8 +34,12 @@ func main() {
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
 	r.GET("/services", svcHandler.GetAll)
+	r.GET("/services/:id", svcHandler.GetByID)
 
 	auth := r.Group("/", middleware.AuthMiddleware(cfg.JWTSecret))
+	auth.POST("/services", svcHandler.Create)
+	auth.PUT("/services/:id", svcHandler.Update)
+	auth.DELETE("/services/:id", svcHandler.Delete)
 	auth.GET("/symptoms", healthHandler.GetSymptoms)
 	auth.POST("/symptoms", healthHandler.CreateSymptom)
 	auth.GET("/vaccines", healthHandler.GetVaccines)
