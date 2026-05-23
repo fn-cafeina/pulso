@@ -2,13 +2,25 @@ package handlers
 
 import (
 	"net/http"
-	"github.com/fn-cafeina/pulso/backend/internal/db"
-	"github.com/fn-cafeina/pulso/backend/internal/models"
+
+	"github.com/fn-cafeina/pulso/backend/internal/repository"
 	"github.com/gin-gonic/gin"
 )
 
-func GetHealthServices(c *gin.Context) {
-	var services []models.HealthService
-	db.DB.Find(&services)
+type ServiceHandler struct {
+	serviceRepo repository.ServiceRepository
+}
+
+func NewServiceHandler(serviceRepo repository.ServiceRepository) *ServiceHandler {
+	return &ServiceHandler{serviceRepo: serviceRepo}
+}
+
+func (h *ServiceHandler) GetAll(c *gin.Context) {
+	services, err := h.serviceRepo.FindAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, services)
 }

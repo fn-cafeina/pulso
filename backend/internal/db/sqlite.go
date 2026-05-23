@@ -2,15 +2,15 @@ package db
 
 import (
 	"github.com/fn-cafeina/pulso/backend/internal/models"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
-func InitDB() {
+func InitDB(path string) {
 	var err error
-	DB, err = gorm.Open(sqlite.Open("pulso.db"), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

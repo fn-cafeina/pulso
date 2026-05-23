@@ -2,17 +2,34 @@ package handlers
 
 import (
 	"net/http"
-	"github.com/fn-cafeina/pulso/backend/internal/db"
+
 	"github.com/fn-cafeina/pulso/backend/internal/models"
+	"github.com/fn-cafeina/pulso/backend/internal/repository"
 	"github.com/gin-gonic/gin"
 )
 
-func CreateAppointment(c *gin.Context) {
+type AppointmentHandler struct {
+	apptRepo repository.AppointmentRepository
+}
+
+func NewAppointmentHandler(apptRepo repository.AppointmentRepository) *AppointmentHandler {
+	return &AppointmentHandler{apptRepo: apptRepo}
+}
+
+func (h *AppointmentHandler) Create(c *gin.Context) {
 	var appt models.Appointment
 	if err := c.ShouldBindJSON(&appt); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	db.DB.Create(&appt)
-	c.JSON(http.StatusOK, gin.H{"message": "Appointment created"})
+
+	userID, _ := c.Get("user_id")
+	appt.UserID = userID.(uint)
+
+	if err := h.apptRepo.Create(&appt); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Appointment created"})
 }
