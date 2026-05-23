@@ -61,7 +61,11 @@ Backend funcional con API REST autenticada:
 | POST | `/vaccines` | ✅ | Registrar vacuna | ✅ |
 | GET | `/appointments` | ✅ | Listar citas del usuario | ✅ |
 | POST | `/appointments` | ✅ | Agendar cita | ✅ |
-| GET | `/services` | ❌ | Listar centros de salud | ✅ |
+| GET | `/services` | ❌ | Listar centros de salud (con `?lat=&lng=&radius=` opcional) | ✅ |
+| GET | `/services/:id` | ❌ | Obtener centro de salud por ID | ✅ |
+| POST | `/services` | ✅ | Registrar centro de salud | ✅ |
+| PUT | `/services/:id` | ✅ | Actualizar centro de salud | ✅ |
+| DELETE | `/services/:id` | ✅ | Eliminar centro de salud | ✅ |
 | — | `/events` | — | Jornadas y eventos de salud | ❌ |
 | — | `/alerts` | — | Alertas epidemiológicas | ❌ |
 | — | `/ai/consult` | — | Consulta al asistente IA | ❌ |
@@ -72,7 +76,7 @@ Backend funcional con API REST autenticada:
 - `Appointment` — cita médica (usuario, fecha, descripción)
 - `SymptomReport` — reporte de síntomas (usuario, descripción, fecha)
 - `VaccinationRecord` — registro de vacuna (usuario, vacuna, fecha)
-- `HealthService` — centro de salud (nombre, tipo, ubicación)
+- `HealthService` — centro de salud (nombre, tipo, ubicación, coordenadas)
 
 ## Desarrollo
 
