@@ -47,17 +47,17 @@ MVP en construcción. Backend con esqueleto inicial:
 
 ### API
 
-| Método | Ruta | Descripción | Estado |
-| :--- | :--- | :--- | :--- |
-| POST | `/register` | Registrar usuario | ✅ |
-| POST | `/symptoms` | Reportar síntoma | ✅ |
-| POST | `/appointments` | Agendar cita | ✅ |
-| GET | `/services` | Listar centros de salud | ✅ |
-| — | `/login` | Iniciar sesión (JWT) | ❌ |
-| — | `/events` | Jornadas y eventos de salud | ❌ |
-| — | `/alerts` | Alertas epidemiológicas | ❌ |
-| — | `/vaccines` | Registro de vacunas | ❌ |
-| — | `/ai/consult` | Consulta al asistente IA | ❌ |
+| Método | Ruta | Auth | Descripción | Estado |
+| :--- | :--- | :--- | :--- | :--- |
+| POST | `/register` | ❌ | Registrar usuario | ✅ |
+| POST | `/login` | ❌ | Iniciar sesión (JWT) | ✅ |
+| POST | `/symptoms` | ✅ | Reportar síntoma | ✅ |
+| POST | `/appointments` | ✅ | Agendar cita | ✅ |
+| GET | `/services` | ❌ | Listar centros de salud | ✅ |
+| — | `/events` | — | Jornadas y eventos de salud | ❌ |
+| — | `/alerts` | — | Alertas epidemiológicas | ❌ |
+| — | `/vaccines` | — | Registro de vacunas | ❌ |
+| — | `/ai/consult` | — | Consulta al asistente IA | ❌ |
 
 ### Modelos
 
