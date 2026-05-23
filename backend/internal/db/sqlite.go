@@ -23,6 +23,7 @@ func InitDB(path string) {
 		&models.HealthService{},
 		&models.HealthEvent{},
 		&models.EpiAlert{},
+		&models.AIConsultation{},
 	); err != nil {
 		panic("failed to migrate database")
 	}

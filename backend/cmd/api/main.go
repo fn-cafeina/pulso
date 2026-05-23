@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"log"
+
+	"github.com/fn-cafeina/pulso/backend/internal/ai"
 	"github.com/fn-cafeina/pulso/backend/internal/config"
 	"github.com/fn-cafeina/pulso/backend/internal/db"
 	"github.com/fn-cafeina/pulso/backend/internal/handlers"
@@ -21,12 +25,24 @@ func main() {
 	eventRepo := repository.NewEventRepository(db.DB)
 	alertRepo := repository.NewAlertRepository(db.DB)
 
+	aiRepo := repository.NewAIRepository(db.DB)
+
+	var geminiClient *ai.Client
+	if cfg.GeminiAPIKey != "" {
+		var err error
+		geminiClient, err = ai.NewClient(context.Background(), cfg.GeminiAPIKey)
+		if err != nil {
+			log.Printf("warning: Gemini client failed: %v", err)
+		}
+	}
+
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
 	healthSvc := service.NewHealthService(healthRepo)
 	apptSvc := service.NewAppointmentService(apptRepo)
 	svcSvc := service.NewServiceService(serviceRepo)
 	eventSvc := service.NewEventService(eventRepo)
 	alertSvc := service.NewAlertService(alertRepo)
+	aiSvc := service.NewAIService(aiRepo, userRepo, healthRepo, apptRepo, geminiClient)
 
 	authHandler := handlers.NewAuthHandler(authSvc)
 	healthHandler := handlers.NewHealthHandler(healthSvc)
@@ -34,6 +50,7 @@ func main() {
 	svcHandler := handlers.NewServiceHandler(svcSvc)
 	eventHandler := handlers.NewEventHandler(eventSvc)
 	alertHandler := handlers.NewAlertHandler(alertSvc)
+	aiHandler := handlers.NewAIHandler(aiSvc)
 
 	r := gin.Default()
 
@@ -63,6 +80,8 @@ func main() {
 	auth.PUT("/alerts/:id", alertHandler.Update)
 	auth.DELETE("/alerts/:id", alertHandler.Delete)
 	auth.PATCH("/alerts/:id/deactivate", alertHandler.Deactivate)
+	auth.POST("/ai/consult", aiHandler.Consult)
+	auth.GET("/ai/history", aiHandler.GetHistory)
 
 	if err := r.Run(cfg.Port); err != nil {
 		panic(err)

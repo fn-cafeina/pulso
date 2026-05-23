@@ -35,6 +35,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 ├── backend/           # API REST (Go)
 │   ├── cmd/api/       # Entry point, rutas
 │   └── internal/
+│       ├── ai/        # Cliente Gemini API
 │       ├── config/    # Variables de entorno
 │       ├── db/        # Conexión y migraciones SQLite
 │       ├── handlers/  # Handlers HTTP
@@ -77,7 +78,8 @@ Backend funcional con API REST autenticada:
 | PUT | `/alerts/:id` | ✅ | Actualizar alerta | ✅ |
 | DELETE | `/alerts/:id` | ✅ | Eliminar alerta | ✅ |
 | PATCH | `/alerts/:id/deactivate` | ✅ | Desactivar alerta | ✅ |
-| — | `/ai/consult` | — | Consulta al asistente IA | ❌ |
+| POST | `/ai/consult` | ✅ | Consultar al asistente IA (Gemini) | ✅ |
+| GET | `/ai/history` | ✅ | Historial de consultas del usuario | ✅ |
 
 ### Modelos
 
@@ -88,6 +90,7 @@ Backend funcional con API REST autenticada:
 - `HealthService` — centro de salud (nombre, tipo, ubicación, coordenadas)
 - `HealthEvent` — jornada/campaña/feria de salud (título, tipo, fechas, ubicación, coordenadas, organizador)
 - `EpiAlert` — alerta epidemiológica (título, descripción, nivel, departamento, fuente, activa)
+- `AIConsultation` — consulta al asistente IA (pregunta, respuesta, usuario)
 
 ## Desarrollo
 
