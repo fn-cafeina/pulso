@@ -4,21 +4,21 @@ import (
 	"net/http"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
-	"github.com/fn-cafeina/pulso/backend/internal/repository"
+	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 type AppointmentHandler struct {
-	apptRepo repository.AppointmentRepository
+	apptSvc service.AppointmentService
 }
 
-func NewAppointmentHandler(apptRepo repository.AppointmentRepository) *AppointmentHandler {
-	return &AppointmentHandler{apptRepo: apptRepo}
+func NewAppointmentHandler(apptSvc service.AppointmentService) *AppointmentHandler {
+	return &AppointmentHandler{apptSvc: apptSvc}
 }
 
 func (h *AppointmentHandler) GetAll(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	appts, err := h.apptRepo.FindByUserID(userID.(uint))
+	appts, err := h.apptSvc.GetByUserID(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -36,7 +36,7 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	appt.UserID = userID.(uint)
 
-	if err := h.apptRepo.Create(&appt); err != nil {
+	if err := h.apptSvc.Create(&appt); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

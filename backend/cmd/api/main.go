@@ -20,11 +20,14 @@ func main() {
 	serviceRepo := repository.NewServiceRepository(db.DB)
 
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
+	healthSvc := service.NewHealthService(healthRepo)
+	apptSvc := service.NewAppointmentService(apptRepo)
+	svcSvc := service.NewServiceService(serviceRepo)
 
 	authHandler := handlers.NewAuthHandler(authSvc)
-	apptHandler := handlers.NewAppointmentHandler(apptRepo)
-	healthHandler := handlers.NewHealthHandler(healthRepo)
-	svcHandler := handlers.NewServiceHandler(serviceRepo)
+	healthHandler := handlers.NewHealthHandler(healthSvc)
+	apptHandler := handlers.NewAppointmentHandler(apptSvc)
+	svcHandler := handlers.NewServiceHandler(svcSvc)
 
 	r := gin.Default()
 

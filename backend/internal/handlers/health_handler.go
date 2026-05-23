@@ -4,21 +4,21 @@ import (
 	"net/http"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
-	"github.com/fn-cafeina/pulso/backend/internal/repository"
+	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
 type HealthHandler struct {
-	healthRepo repository.HealthRepository
+	healthSvc service.HealthService
 }
 
-func NewHealthHandler(healthRepo repository.HealthRepository) *HealthHandler {
-	return &HealthHandler{healthRepo: healthRepo}
+func NewHealthHandler(healthSvc service.HealthService) *HealthHandler {
+	return &HealthHandler{healthSvc: healthSvc}
 }
 
 func (h *HealthHandler) GetSymptoms(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	reports, err := h.healthRepo.FindSymptomsByUserID(userID.(uint))
+	reports, err := h.healthSvc.GetSymptoms(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -36,7 +36,7 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	record.UserID = userID.(uint)
 
-	if err := h.healthRepo.CreateVaccine(&record); err != nil {
+	if err := h.healthSvc.CreateVaccine(&record); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -46,7 +46,7 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 
 func (h *HealthHandler) GetVaccines(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	records, err := h.healthRepo.FindVaccinesByUserID(userID.(uint))
+	records, err := h.healthSvc.GetVaccines(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -64,7 +64,7 @@ func (h *HealthHandler) CreateSymptom(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	report.UserID = userID.(uint)
 
-	if err := h.healthRepo.CreateSymptom(&report); err != nil {
+	if err := h.healthSvc.CreateSymptom(&report); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
