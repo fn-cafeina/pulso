@@ -1,0 +1,6 @@
+# Binaries and temporaries
+**/bin/
+*.db
+
+# Go
+**/go.sum
