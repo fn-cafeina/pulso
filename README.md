@@ -71,7 +71,12 @@ Backend funcional con API REST autenticada:
 | POST | `/events` | ✅ | Crear evento de salud | ✅ |
 | PUT | `/events/:id` | ✅ | Actualizar evento | ✅ |
 | DELETE | `/events/:id` | ✅ | Eliminar evento | ✅ |
-| — | `/alerts` | — | Alertas epidemiológicas | ❌ |
+| GET | `/alerts` | ❌ | Listar alertas (con `?nivel=&departamento=&activas=true`) | ✅ |
+| GET | `/alerts/:id` | ❌ | Obtener alerta por ID | ✅ |
+| POST | `/alerts` | ✅ | Crear alerta epidemiológica | ✅ |
+| PUT | `/alerts/:id` | ✅ | Actualizar alerta | ✅ |
+| DELETE | `/alerts/:id` | ✅ | Eliminar alerta | ✅ |
+| PATCH | `/alerts/:id/deactivate` | ✅ | Desactivar alerta | ✅ |
 | — | `/ai/consult` | — | Consulta al asistente IA | ❌ |
 
 ### Modelos
@@ -82,6 +87,7 @@ Backend funcional con API REST autenticada:
 - `VaccinationRecord` — registro de vacuna (usuario, vacuna, fecha)
 - `HealthService` — centro de salud (nombre, tipo, ubicación, coordenadas)
 - `HealthEvent` — jornada/campaña/feria de salud (título, tipo, fechas, ubicación, coordenadas, organizador)
+- `EpiAlert` — alerta epidemiológica (título, descripción, nivel, departamento, fuente, activa)
 
 ## Desarrollo
 
