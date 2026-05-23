@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	"gorm.io/gorm"
+	"time"
 )
 
 type SymptomReport struct {
@@ -14,7 +14,7 @@ type SymptomReport struct {
 
 type VaccinationRecord struct {
 	gorm.Model
-	UserID        uint      `json:"user_id"`
-	NombreVacuna  string    `json:"nombre_vacuna"`
+	UserID          uint      `json:"user_id"`
+	NombreVacuna    string    `json:"nombre_vacuna"`
 	FechaAplicacion time.Time `json:"fecha_aplicacion"`
 }

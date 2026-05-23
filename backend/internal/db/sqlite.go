@@ -15,11 +15,13 @@ func InitDB(path string) {
 		panic("failed to connect database")
 	}
 
-	DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.SymptomReport{},
 		&models.VaccinationRecord{},
 		&models.Appointment{},
 		&models.HealthService{},
-	)
+	); err != nil {
+		panic("failed to migrate database")
+	}
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type mockUserRepo struct {
-	users []models.User
+	users  []models.User
 	nextID uint
 }
 
@@ -64,7 +64,7 @@ func TestRegister_Success(t *testing.T) {
 
 func TestRegister_DuplicateUsername(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret")
-	svc.Register(service.RegisterRequest{
+	_, _ = svc.Register(service.RegisterRequest{
 		Username: "testuser",
 		Password: "password123",
 	})
@@ -79,7 +79,7 @@ func TestRegister_DuplicateUsername(t *testing.T) {
 
 func TestLogin_Success(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "test-secret")
-	svc.Register(service.RegisterRequest{
+	_, _ = svc.Register(service.RegisterRequest{
 		Username: "testuser",
 		Password: "password123",
 	})
@@ -110,7 +110,7 @@ func TestLogin_Success(t *testing.T) {
 
 func TestLogin_InvalidCredentials(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret")
-	svc.Register(service.RegisterRequest{
+	_, _ = svc.Register(service.RegisterRequest{
 		Username: "testuser",
 		Password: "password123",
 	})

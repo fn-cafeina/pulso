@@ -36,5 +36,7 @@ func main() {
 	auth.POST("/symptoms", healthHandler.CreateSymptom)
 	auth.POST("/appointments", apptHandler.Create)
 
-	r.Run(cfg.Port)
+	if err := r.Run(cfg.Port); err != nil {
+		panic(err)
+	}
 }
