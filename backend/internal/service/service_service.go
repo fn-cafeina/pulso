@@ -18,7 +18,7 @@ type ServiceService interface {
 	GetByID(id uint) (*models.HealthService, error)
 	GetAll() ([]models.HealthService, error)
 	GetNearby(lat, lng, radiusKm float64) ([]NearbyService, error)
-	Update(svc *models.HealthService) error
+	Update(svc *models.HealthService) (*models.HealthService, error)
 	Delete(id uint) error
 }
 
@@ -68,8 +68,19 @@ func (s *serviceService) GetNearby(lat, lng, radiusKm float64) ([]NearbyService,
 	return nearby, nil
 }
 
-func (s *serviceService) Update(svc *models.HealthService) error {
-	return s.repo.Update(svc)
+func (s *serviceService) Update(svc *models.HealthService) (*models.HealthService, error) {
+	existing, err := s.repo.FindByID(svc.ID)
+	if err != nil {
+		return nil, err
+	}
+	existing.Nombre = svc.Nombre
+	existing.Tipo = svc.Tipo
+	existing.Latitud = svc.Latitud
+	existing.Longitud = svc.Longitud
+	if err := s.repo.Update(existing); err != nil {
+		return nil, err
+	}
+	return existing, nil
 }
 
 func (s *serviceService) Delete(id uint) error {

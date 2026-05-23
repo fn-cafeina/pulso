@@ -101,7 +101,8 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 	}
 
 	svc.ID = uint(id)
-	if err := h.svcSvc.Update(&svc); err != nil {
+	updated, err := h.svcSvc.Update(&svc)
+	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "service not found"})
 			return
@@ -110,7 +111,7 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, svc)
+	c.JSON(http.StatusOK, updated)
 }
 
 func (h *ServiceHandler) Delete(c *gin.Context) {
