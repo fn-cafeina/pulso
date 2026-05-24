@@ -32,20 +32,27 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 
 ```
 /
-├── backend/           # API REST (Go)
-│   ├── Makefile       # Comandos: make dev, make build, make clean
-│   ├── cmd/api/       # Entry point
+├── backend/             # API REST (Go)
+│   ├── .env.example     # Variables de entorno
+│   ├── Makefile         # Comandos: make dev, make build, make clean
+│   ├── cmd/api/         # Entry point
 │   └── internal/
-│       ├── ai/        # Cliente Gemini API
-│       ├── config/    # Variables de entorno
-│       ├── db/        # Conexión y migraciones SQLite
-│       ├── handlers/  # Handlers HTTP
-│       ├── middleware/ # JWT authentication
-│       ├── models/    # Modelos GORM
-│       ├── repository/ # Acceso a datos
-│       └── service/   # Lógica de negocio
-└── frontend/          # App web (Astro)
-    ├── package.json   # Comandos: npm run dev, npm run build
+│       ├── ai/          # Cliente Gemini API
+│       ├── config/      # Variables de entorno
+│       ├── db/          # Conexión y migraciones SQLite
+│       ├── handlers/    # Handlers HTTP
+│       │   ├── response.go   # Envoltorio uniforme de respuestas
+│       │   └── requests.go   # DTOs para crear/actualizar
+│       ├── middleware/   # JWT auth, roles, CORS
+│       │   ├── auth.go
+│       │   ├── role.go
+│       │   └── cors.go
+│       ├── models/      # Modelos GORM (heredan de BaseModel)
+│       │   └── base.go  # ID, timestamps en snake_case, deleted_at oculto
+│       ├── repository/  # Acceso a datos
+│       └── service/     # Lógica de negocio
+└── frontend/            # App web (Astro)
+    ├── package.json     # npm run dev, npm run build
     └── src/
 ```
 
@@ -89,8 +96,12 @@ Backend funcional con API REST autenticada:
 | PATCH | `/reminders/:id/read` | ✅ | Marcar recordatorio como leído | ✅ |
 
 > **Nota**: Endpoints marcados con `(role)` requieren rol `health_worker` (personal de salud). Al registrarse con un código secreto se obtiene este rol.
+>
+> **Formato de respuestas**: En éxito: `{"data": ..., "message": "..."}`. En error: `{"error": "..."}`. `POST /login` retorna `{"token": "...", "rol": "..."}` dentro de `data`. Todos los IDs y timestamps usan snake_case (`id`, `created_at`).
 
 ### Modelos
+
+Todos heredan de `BaseModel` (provee `id`, `created_at`, `updated_at` en snake_case; `deleted_at` no expuesto en JSON).
 
 - `User` — username, contraseña, historial médico, rol (family/health_worker)
 - `Appointment` — cita médica (usuario, fecha, descripción)
