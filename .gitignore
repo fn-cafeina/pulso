@@ -1,5 +1,2 @@
-# Binaries and temporaries
-**/bin/
-**/tmp/
-backend/api
-*.db
+.env
+.DS_Store
