@@ -33,7 +33,8 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 ```
 /
 ├── backend/           # API REST (Go)
-│   ├── cmd/api/       # Entry point, rutas
+│   ├── Makefile       # Comandos: make dev, make build, make clean
+│   ├── cmd/api/       # Entry point
 │   └── internal/
 │       ├── ai/        # Cliente Gemini API
 │       ├── config/    # Variables de entorno
@@ -43,7 +44,9 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 │       ├── models/    # Modelos GORM
 │       ├── repository/ # Acceso a datos
 │       └── service/   # Lógica de negocio
-└── frontend/          # App web (Astro) — en desarrollo
+└── frontend/          # App web (Astro)
+    ├── package.json   # Comandos: npm run dev, npm run build
+    └── src/
 ```
 
 ## Estado del proyecto
@@ -94,11 +97,17 @@ Backend funcional con API REST autenticada:
 
 ## Desarrollo
 
+### Backend
 ```bash
-# Backend
 cd backend
-go mod download
-go run ./cmd/api
+make dev           # Inicia con hot-reload (Air)
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev        # Inicia entorno de desarrollo Astro
 ```
 
 ## Licencia
