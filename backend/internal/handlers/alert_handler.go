@@ -19,18 +19,27 @@ func NewAlertHandler(alertSvc service.AlertService) *AlertHandler {
 }
 
 func (h *AlertHandler) Create(c *gin.Context) {
-	var alert models.EpiAlert
-	if err := c.ShouldBindJSON(&alert); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req CreateAlertRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := h.alertSvc.Create(&alert); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	alert := &models.EpiAlert{
+		Titulo:       req.Titulo,
+		Descripcion:  req.Descripcion,
+		Nivel:        req.Nivel,
+		Departamento: req.Departamento,
+		Fuente:       req.Fuente,
+		Activa:       true,
+	}
+
+	if err := h.alertSvc.Create(alert); err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, alert)
+	SuccessMsg(c, http.StatusCreated, "alerta creada", alert)
 }
 
 func (h *AlertHandler) GetAll(c *gin.Context) {
@@ -40,94 +49,118 @@ func (h *AlertHandler) GetAll(c *gin.Context) {
 
 	alerts, err := h.alertSvc.GetAll(nivel, departamento, soloActivas)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, alerts)
+	Success(c, http.StatusOK, alerts)
 }
 
 func (h *AlertHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	alert, err := h.alertSvc.GetByID(uint(id))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
+			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, alert)
+	Success(c, http.StatusOK, alert)
 }
 
 func (h *AlertHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	var alert models.EpiAlert
-	if err := c.ShouldBindJSON(&alert); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req UpdateAlertRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	alert.ID = uint(id)
-	updated, err := h.alertSvc.Update(&alert)
+	existing, err := h.alertSvc.GetByID(uint(id))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
+			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, updated)
+	if req.Titulo != "" {
+		existing.Titulo = req.Titulo
+	}
+	if req.Descripcion != "" {
+		existing.Descripcion = req.Descripcion
+	}
+	if req.Nivel != "" {
+		existing.Nivel = req.Nivel
+	}
+	if req.Departamento != "" {
+		existing.Departamento = req.Departamento
+	}
+	if req.Fuente != "" {
+		existing.Fuente = req.Fuente
+	}
+	if req.Activa != nil {
+		existing.Activa = *req.Activa
+	}
+
+	updated, err := h.alertSvc.Update(existing)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	SuccessMsg(c, http.StatusOK, "alerta actualizada", updated)
 }
 
 func (h *AlertHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	if err := h.alertSvc.Delete(uint(id)); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
+			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "alerta eliminada"})
+	Msg(c, http.StatusOK, "alerta eliminada")
 }
 
 func (h *AlertHandler) Deactivate(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	if err := h.alertSvc.Deactivate(uint(id)); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
+			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "alerta desactivada"})
+	Msg(c, http.StatusOK, "alerta desactivada")
 }

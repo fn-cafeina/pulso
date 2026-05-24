@@ -1,13 +1,9 @@
 package models
 
-import (
-	"time"
-
-	"gorm.io/gorm"
-)
+import "time"
 
 type HealthEvent struct {
-	gorm.Model
+	BaseModel
 	Titulo      string    `json:"titulo" binding:"required"`
 	Descripcion string    `json:"descripcion"`
 	Tipo        string    `json:"tipo" binding:"required,oneof=jornada campana feria"`

@@ -1,9 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type EpiAlert struct {
-	gorm.Model
+	BaseModel
 	Titulo       string `json:"titulo" binding:"required"`
 	Descripcion  string `json:"descripcion" binding:"required"`
 	Nivel        string `json:"nivel" binding:"required,oneof=bajo medio alto critico"`

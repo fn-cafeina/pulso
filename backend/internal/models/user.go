@@ -1,9 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type User struct {
-	gorm.Model
+	BaseModel
 	Username            string `json:"username" gorm:"unique"`
 	Password            string `json:"-"`
 	AntecedentesMedicos string `json:"antecedentes_medicos"`

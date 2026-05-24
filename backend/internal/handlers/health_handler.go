@@ -3,8 +3,8 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -22,58 +22,76 @@ func (h *HealthHandler) GetSymptoms(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	reports, err := h.healthSvc.GetSymptoms(userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, reports)
+	Success(c, http.StatusOK, reports)
 }
 
 func (h *HealthHandler) CreateVaccine(c *gin.Context) {
-	var record models.VaccinationRecord
-	if err := c.ShouldBindJSON(&record); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req CreateVaccineRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	record.UserID = userID.(uint)
+	fecha := time.Now()
+	if req.FechaAplicacion != "" {
+		var err error
+		fecha, err = parseTime(req.FechaAplicacion)
+		if err != nil {
+			Error(c, http.StatusBadRequest, "formato de fecha inválido")
+			return
+		}
+	}
 
-	if err := h.healthSvc.CreateVaccine(&record); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	record, err := h.healthSvc.CreateVaccine(userID.(uint), req.NombreVacuna, fecha)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if _, err := h.reminderSvc.Create(userID.(uint), "Vacuna: "+record.NombreVacuna, "Registro de vacunación", "vacuna", record.FechaAplicacion); err != nil {
+	if _, err := h.reminderSvc.Create(userID.(uint), "Vacuna: "+req.NombreVacuna, "Registro de vacunación", "vacuna", fecha); err != nil {
 		log.Printf("error: no se pudo crear recordatorio: %v", err)
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "vacuna registrada"})
+	SuccessMsg(c, http.StatusCreated, "vacuna registrada", record)
 }
 
 func (h *HealthHandler) GetVaccines(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	records, err := h.healthSvc.GetVaccines(userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, records)
+	Success(c, http.StatusOK, records)
 }
 
 func (h *HealthHandler) CreateSymptom(c *gin.Context) {
-	var report models.SymptomReport
-	if err := c.ShouldBindJSON(&report); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req CreateSymptomRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	report.UserID = userID.(uint)
+	fecha := time.Now()
+	if req.Fecha != "" {
+		var err error
+		fecha, err = parseTime(req.Fecha)
+		if err != nil {
+			Error(c, http.StatusBadRequest, "formato de fecha inválido")
+			return
+		}
+	}
 
-	if err := h.healthSvc.CreateSymptom(&report); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	report, err := h.healthSvc.CreateSymptom(userID.(uint), req.Descripcion, fecha)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "síntoma registrado"})
+	SuccessMsg(c, http.StatusCreated, "síntoma registrado", report)
 }

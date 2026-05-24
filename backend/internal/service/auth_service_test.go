@@ -83,7 +83,7 @@ func TestLogin_Success(t *testing.T) {
 		Username: "testuser",
 		Password: "password123",
 	})
-	token, err := svc.Login(service.LoginRequest{
+	token, _, err := svc.Login(service.LoginRequest{
 		Username: "testuser",
 		Password: "password123",
 	})
@@ -114,7 +114,7 @@ func TestLogin_InvalidCredentials(t *testing.T) {
 		Username: "testuser",
 		Password: "password123",
 	})
-	_, err := svc.Login(service.LoginRequest{
+	_, _, err := svc.Login(service.LoginRequest{
 		Username: "testuser",
 		Password: "wrongpassword",
 	})
@@ -125,7 +125,7 @@ func TestLogin_InvalidCredentials(t *testing.T) {
 
 func TestLogin_UserNotFound(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret", "")
-	_, err := svc.Login(service.LoginRequest{
+	_, _, err := svc.Login(service.LoginRequest{
 		Username: "nonexistent",
 		Password: "password123",
 	})

@@ -1,9 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type HealthService struct {
-	gorm.Model
+	BaseModel
 	Nombre   string  `json:"nombre" binding:"required"`
 	Tipo     string  `json:"tipo" binding:"required"`
 	Latitud  float64 `json:"latitud"`

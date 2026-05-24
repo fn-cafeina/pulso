@@ -1,12 +1,9 @@
 package models
 
-import (
-	"gorm.io/gorm"
-	"time"
-)
+import "time"
 
 type Appointment struct {
-	gorm.Model
+	BaseModel
 	UserID      uint      `json:"user_id"`
 	Fecha       time.Time `json:"fecha"`
 	Descripcion string    `json:"descripcion" binding:"required"`

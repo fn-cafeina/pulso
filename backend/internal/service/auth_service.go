@@ -13,7 +13,7 @@ import (
 
 type AuthService interface {
 	Register(req RegisterRequest) (*models.User, error)
-	Login(req LoginRequest) (string, error)
+	Login(req LoginRequest) (string, string, error)
 }
 
 type RegisterRequest struct {
@@ -63,17 +63,17 @@ func (s *authService) Register(req RegisterRequest) (*models.User, error) {
 	return user, nil
 }
 
-func (s *authService) Login(req LoginRequest) (string, error) {
+func (s *authService) Login(req LoginRequest) (string, string, error) {
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", errors.New("credenciales inválidas")
+			return "", "", errors.New("credenciales inválidas")
 		}
-		return "", err
+		return "", "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return "", errors.New("credenciales inválidas")
+		return "", "", errors.New("credenciales inválidas")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -83,5 +83,6 @@ func (s *authService) Login(req LoginRequest) (string, error) {
 		"exp":      time.Now().Add(72 * time.Hour).Unix(),
 	})
 
-	return token.SignedString([]byte(s.jwtSecret))
+	signed, err := token.SignedString([]byte(s.jwtSecret))
+	return signed, user.Rol, err
 }

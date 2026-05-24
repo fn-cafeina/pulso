@@ -1,13 +1,9 @@
 package models
 
-import (
-	"time"
-
-	"gorm.io/gorm"
-)
+import "time"
 
 type Reminder struct {
-	gorm.Model
+	BaseModel
 	UserID      uint      `json:"user_id"`
 	Titulo      string    `json:"titulo" binding:"required"`
 	Descripcion string    `json:"descripcion"`

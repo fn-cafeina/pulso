@@ -17,11 +17,9 @@ func NewAIHandler(aiSvc service.AIService) *AIHandler {
 }
 
 func (h *AIHandler) Consult(c *gin.Context) {
-	var req struct {
-		Pregunta string `json:"pregunta" binding:"required"`
-	}
+	var req AIConsultRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -30,24 +28,22 @@ func (h *AIHandler) Consult(c *gin.Context) {
 	result, err := h.aiSvc.Consult(userID.(uint), req.Pregunta)
 	if err != nil {
 		if strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "RESOURCE_EXHAUSTED") {
-			c.JSON(http.StatusServiceUnavailable, gin.H{
-				"error": "El asistente está saturado, intenta de nuevo en unos segundos.",
-			})
+			Error(c, http.StatusServiceUnavailable, "El asistente está saturado, intenta de nuevo en unos segundos.")
 			return
 		}
 		if strings.Contains(err.Error(), "no disponible") {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
+			Error(c, http.StatusServiceUnavailable, err.Error())
 			return
 		}
 		if strings.Contains(err.Error(), "context deadline") {
-			c.JSON(http.StatusGatewayTimeout, gin.H{"error": "El asistente tardó demasiado en responder."})
+			Error(c, http.StatusGatewayTimeout, "El asistente tardó demasiado en responder.")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, result)
+	SuccessMsg(c, http.StatusCreated, "consulta realizada", result)
 }
 
 func (h *AIHandler) GetHistory(c *gin.Context) {
@@ -55,9 +51,9 @@ func (h *AIHandler) GetHistory(c *gin.Context) {
 
 	history, err := h.aiSvc.GetHistory(userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, history)
+	Success(c, http.StatusOK, history)
 }

@@ -18,35 +18,37 @@ func NewAuthHandler(authSvc service.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req service.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := h.authSvc.Register(req)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		Error(c, http.StatusConflict, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "usuario registrado",
-		"user_id": user.ID,
-		"rol":     user.Rol,
+	SuccessMsg(c, http.StatusCreated, "usuario registrado", gin.H{
+		"id":  user.ID,
+		"rol": user.Rol,
 	})
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req service.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	token, err := h.authSvc.Login(req)
+	token, rol, err := h.authSvc.Login(req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		Error(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	SuccessMsg(c, http.StatusOK, "inicio de sesión exitoso", gin.H{
+		"token": token,
+		"rol":   rol,
+	})
 }

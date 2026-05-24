@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -22,30 +21,35 @@ func (h *AppointmentHandler) GetAll(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	appts, err := h.apptSvc.GetByUserID(userID.(uint))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, appts)
+	Success(c, http.StatusOK, appts)
 }
 
 func (h *AppointmentHandler) Create(c *gin.Context) {
-	var appt models.Appointment
-	if err := c.ShouldBindJSON(&appt); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req CreateAppointmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	fecha, err := parseTime(req.Fecha)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "formato de fecha inválido")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	appt.UserID = userID.(uint)
-
-	if err := h.apptSvc.Create(&appt); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	appt, err := h.apptSvc.Create(userID.(uint), req.Descripcion, fecha)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if _, err := h.reminderSvc.Create(userID.(uint), "Cita médica", appt.Descripcion, "cita", appt.Fecha); err != nil {
+	if _, err := h.reminderSvc.Create(userID.(uint), "Cita médica", req.Descripcion, "cita", fecha); err != nil {
 		log.Printf("error: no se pudo crear recordatorio: %v", err)
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "cita creada"})
+	SuccessMsg(c, http.StatusCreated, "cita creada", appt)
 }

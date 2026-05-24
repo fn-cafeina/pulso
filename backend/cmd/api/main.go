@@ -56,6 +56,7 @@ func main() {
 	reminderHandler := handlers.NewReminderHandler(reminderSvc)
 
 	r := gin.Default()
+	r.Use(middleware.CORS())
 
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)

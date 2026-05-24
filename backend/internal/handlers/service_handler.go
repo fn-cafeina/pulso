@@ -19,38 +19,45 @@ func NewServiceHandler(svcSvc service.ServiceService) *ServiceHandler {
 }
 
 func (h *ServiceHandler) Create(c *gin.Context) {
-	var svc models.HealthService
-	if err := c.ShouldBindJSON(&svc); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req CreateServiceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := h.svcSvc.Create(&svc); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	svc := &models.HealthService{
+		Nombre:   req.Nombre,
+		Tipo:     req.Tipo,
+		Latitud:  req.Latitud,
+		Longitud: req.Longitud,
+	}
+
+	if err := h.svcSvc.Create(svc); err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, svc)
+	SuccessMsg(c, http.StatusCreated, "servicio creado", svc)
 }
 
 func (h *ServiceHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	svc, err := h.svcSvc.GetByID(uint(id))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "servicio no encontrado"})
+			Error(c, http.StatusNotFound, "servicio no encontrado")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, svc)
+	Success(c, http.StatusOK, svc)
 }
 
 func (h *ServiceHandler) GetAll(c *gin.Context) {
@@ -64,71 +71,89 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 		radius, err3 := strconv.ParseFloat(radiusStr, 64)
 
 		if err1 != nil || err2 != nil || err3 != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "latitud, longitud o radio inválidos"})
+			Error(c, http.StatusBadRequest, "latitud, longitud o radio inválidos")
 			return
 		}
 
 		nearby, err := h.svcSvc.GetNearby(lat, lng, radius)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			Error(c, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		c.JSON(http.StatusOK, nearby)
+		Success(c, http.StatusOK, nearby)
 		return
 	}
 
 	services, err := h.svcSvc.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, services)
+	Success(c, http.StatusOK, services)
 }
 
 func (h *ServiceHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	var svc models.HealthService
-	if err := c.ShouldBindJSON(&svc); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req UpdateServiceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	svc.ID = uint(id)
-	updated, err := h.svcSvc.Update(&svc)
+	existing, err := h.svcSvc.GetByID(uint(id))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "servicio no encontrado"})
+			Error(c, http.StatusNotFound, "servicio no encontrado")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, updated)
+	if req.Nombre != "" {
+		existing.Nombre = req.Nombre
+	}
+	if req.Tipo != "" {
+		existing.Tipo = req.Tipo
+	}
+	if req.Latitud != nil {
+		existing.Latitud = *req.Latitud
+	}
+	if req.Longitud != nil {
+		existing.Longitud = *req.Longitud
+	}
+
+	updated, err := h.svcSvc.Update(existing)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	SuccessMsg(c, http.StatusOK, "servicio actualizado", updated)
 }
 
 func (h *ServiceHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
+		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	if err := h.svcSvc.Delete(uint(id)); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "servicio no encontrado"})
+			Error(c, http.StatusNotFound, "servicio no encontrado")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "servicio eliminado"})
+	Msg(c, http.StatusOK, "servicio eliminado")
 }
