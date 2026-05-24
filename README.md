@@ -67,26 +67,32 @@ Backend funcional con API REST autenticada:
 | POST | `/appointments` | ✅ | Agendar cita | ✅ |
 | GET | `/services` | ❌ | Listar centros de salud (con `?lat=&lng=&radius=` opcional) | ✅ |
 | GET | `/services/:id` | ❌ | Obtener centro de salud por ID | ✅ |
-| POST | `/services` | ✅ | Registrar centro de salud | ✅ |
-| PUT | `/services/:id` | ✅ | Actualizar centro de salud | ✅ |
-| DELETE | `/services/:id` | ✅ | Eliminar centro de salud | ✅ |
+| POST | `/services` | ✅ (role) | Registrar centro de salud | ✅ |
+| PUT | `/services/:id` | ✅ (role) | Actualizar centro de salud | ✅ |
+| DELETE | `/services/:id` | ✅ (role) | Eliminar centro de salud | ✅ |
 | GET | `/events` | ❌ | Listar eventos (con `?upcoming=true`, `?lat=&lng=&radius=`) | ✅ |
 | GET | `/events/:id` | ❌ | Obtener evento por ID | ✅ |
-| POST | `/events` | ✅ | Crear evento de salud | ✅ |
-| PUT | `/events/:id` | ✅ | Actualizar evento | ✅ |
-| DELETE | `/events/:id` | ✅ | Eliminar evento | ✅ |
+| POST | `/events` | ✅ (role) | Crear evento de salud | ✅ |
+| PUT | `/events/:id` | ✅ (role) | Actualizar evento | ✅ |
+| DELETE | `/events/:id` | ✅ (role) | Eliminar evento | ✅ |
 | GET | `/alerts` | ❌ | Listar alertas (con `?nivel=&departamento=&activas=true`) | ✅ |
 | GET | `/alerts/:id` | ❌ | Obtener alerta por ID | ✅ |
-| POST | `/alerts` | ✅ | Crear alerta epidemiológica | ✅ |
-| PUT | `/alerts/:id` | ✅ | Actualizar alerta | ✅ |
-| DELETE | `/alerts/:id` | ✅ | Eliminar alerta | ✅ |
-| PATCH | `/alerts/:id/deactivate` | ✅ | Desactivar alerta | ✅ |
+| POST | `/alerts` | ✅ (role) | Crear alerta epidemiológica | ✅ |
+| PUT | `/alerts/:id` | ✅ (role) | Actualizar alerta | ✅ |
+| DELETE | `/alerts/:id` | ✅ (role) | Eliminar alerta | ✅ |
+| PATCH | `/alerts/:id/deactivate` | ✅ (role) | Desactivar alerta | ✅ |
 | POST | `/ai/consult` | ✅ | Consultar al asistente IA (Gemini) | ✅ |
 | GET | `/ai/history` | ✅ | Historial de consultas del usuario | ✅ |
+| GET | `/reminders` | ✅ | Recordatorios pendientes del usuario | ✅ |
+| POST | `/reminders` | ✅ | Crear recordatorio manual | ✅ |
+| GET | `/reminders/history` | ✅ | Historial de recordatorios | ✅ |
+| PATCH | `/reminders/:id/read` | ✅ | Marcar recordatorio como leído | ✅ |
+
+> **Nota**: Endpoints marcados con `(role)` requieren rol `health_worker` (personal de salud). Al registrarse con un código secreto se obtiene este rol.
 
 ### Modelos
 
-- `User` — username, contraseña, historial médico
+- `User` — username, contraseña, historial médico, rol (family/health_worker)
 - `Appointment` — cita médica (usuario, fecha, descripción)
 - `SymptomReport` — reporte de síntomas (usuario, descripción, fecha)
 - `VaccinationRecord` — registro de vacuna (usuario, vacuna, fecha)
@@ -94,6 +100,7 @@ Backend funcional con API REST autenticada:
 - `HealthEvent` — jornada/campaña/feria de salud (título, tipo, fechas, ubicación, coordenadas, organizador)
 - `EpiAlert` — alerta epidemiológica (título, descripción, nivel, departamento, fuente, activa)
 - `AIConsultation` — consulta al asistente IA (pregunta, respuesta, usuario)
+- `Reminder` — recordatorio (usuario, título, descripción, fecha, leído, tipo)
 
 ## Desarrollo
 
