@@ -5,7 +5,6 @@ import (
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/repository"
-	"gorm.io/gorm"
 )
 
 type NearbyService struct {
@@ -35,14 +34,7 @@ func (s *serviceService) Create(svc *models.HealthService) error {
 }
 
 func (s *serviceService) GetByID(id uint) (*models.HealthService, error) {
-	svc, err := s.repo.FindByID(id)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, err
-		}
-		return nil, err
-	}
-	return svc, nil
+	return s.repo.FindByID(id)
 }
 
 func (s *serviceService) GetAll() ([]models.HealthService, error) {

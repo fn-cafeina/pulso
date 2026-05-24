@@ -7,4 +7,5 @@ type User struct {
 	Username            string `json:"username" gorm:"unique"`
 	Password            string `json:"-"`
 	AntecedentesMedicos string `json:"antecedentes_medicos"`
+	Rol                 string `json:"rol" gorm:"default:family"`
 }

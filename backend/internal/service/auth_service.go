@@ -20,6 +20,7 @@ type RegisterRequest struct {
 	Username            string `json:"username" binding:"required,min=3"`
 	Password            string `json:"password" binding:"required,min=6"`
 	AntecedentesMedicos string `json:"antecedentes_medicos"`
+	Codigo              string `json:"codigo"`
 }
 
 type LoginRequest struct {
@@ -28,12 +29,13 @@ type LoginRequest struct {
 }
 
 type authService struct {
-	userRepo  repository.UserRepository
-	jwtSecret string
+	userRepo            repository.UserRepository
+	jwtSecret           string
+	healthWorkerSecret string
 }
 
-func NewAuthService(userRepo repository.UserRepository, jwtSecret string) AuthService {
-	return &authService{userRepo: userRepo, jwtSecret: jwtSecret}
+func NewAuthService(userRepo repository.UserRepository, jwtSecret string, healthWorkerSecret string) AuthService {
+	return &authService{userRepo: userRepo, jwtSecret: jwtSecret, healthWorkerSecret: healthWorkerSecret}
 }
 
 func (s *authService) Register(req RegisterRequest) (*models.User, error) {
@@ -42,10 +44,16 @@ func (s *authService) Register(req RegisterRequest) (*models.User, error) {
 		return nil, err
 	}
 
+	rol := "family"
+	if s.healthWorkerSecret != "" && req.Codigo == s.healthWorkerSecret {
+		rol = "health_worker"
+	}
+
 	user := &models.User{
 		Username:            req.Username,
 		Password:            string(hash),
 		AntecedentesMedicos: req.AntecedentesMedicos,
+		Rol:                 rol,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -59,18 +67,19 @@ func (s *authService) Login(req LoginRequest) (string, error) {
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", errors.New("invalid credentials")
+			return "", errors.New("credenciales inválidas")
 		}
 		return "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return "", errors.New("invalid credentials")
+		return "", errors.New("credenciales inválidas")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
+		"rol":      user.Rol,
 		"exp":      time.Now().Add(72 * time.Hour).Unix(),
 	})
 

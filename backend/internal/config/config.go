@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	JWTSecret    string
-	Port         string
-	DBPath       string
-	GeminiAPIKey string
+	JWTSecret          string
+	Port               string
+	DBPath             string
+	GeminiAPIKey       string
+	HealthWorkerSecret string
 }
 
 func Load() *Config {
@@ -20,10 +21,11 @@ func Load() *Config {
 	}
 
 	return &Config{
-		JWTSecret:    getEnv("JWT_SECRET", "pulso-secret-key"),
-		Port:         getEnv("PORT", ":8080"),
-		DBPath:       getEnv("DB_PATH", "pulso.db"),
-		GeminiAPIKey: getEnv("GEMINI_API_KEY", ""),
+		JWTSecret:          getEnv("JWT_SECRET", "pulso-secret-key"),
+		Port:               getEnv("PORT", ":8080"),
+		DBPath:             getEnv("DB_PATH", "pulso.db"),
+		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
+		HealthWorkerSecret: getEnv("HEALTH_WORKER_SECRET", ""),
 	}
 }
 

@@ -36,14 +36,14 @@ func (h *EventHandler) Create(c *gin.Context) {
 func (h *EventHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
 	event, err := h.eventSvc.GetByID(uint(id))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "evento no encontrado"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -64,7 +64,7 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 		radius, err3 := strconv.ParseFloat(radiusStr, 64)
 
 		if err1 != nil || err2 != nil || err3 != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid lat, lng, or radius"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "latitud, longitud o radio inválidos"})
 			return
 		}
 
@@ -91,7 +91,7 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 func (h *EventHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
@@ -105,7 +105,7 @@ func (h *EventHandler) Update(c *gin.Context) {
 	updated, err := h.eventSvc.Update(&event)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "evento no encontrado"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -118,18 +118,18 @@ func (h *EventHandler) Update(c *gin.Context) {
 func (h *EventHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
 	if err := h.eventSvc.Delete(uint(id)); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "event not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "evento no encontrado"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Event deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "evento eliminado"})
 }

@@ -26,6 +26,7 @@ func main() {
 	alertRepo := repository.NewAlertRepository(db.DB)
 
 	aiRepo := repository.NewAIRepository(db.DB)
+	reminderRepo := repository.NewReminderRepository(db.DB)
 
 	var geminiClient *ai.Client
 	if cfg.GeminiAPIKey != "" {
@@ -36,21 +37,23 @@ func main() {
 		}
 	}
 
-	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret)
+	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.HealthWorkerSecret)
 	healthSvc := service.NewHealthService(healthRepo)
 	apptSvc := service.NewAppointmentService(apptRepo)
 	svcSvc := service.NewServiceService(serviceRepo)
 	eventSvc := service.NewEventService(eventRepo)
 	alertSvc := service.NewAlertService(alertRepo)
 	aiSvc := service.NewAIService(aiRepo, userRepo, healthRepo, apptRepo, geminiClient)
+	reminderSvc := service.NewReminderService(reminderRepo)
 
 	authHandler := handlers.NewAuthHandler(authSvc)
-	healthHandler := handlers.NewHealthHandler(healthSvc)
-	apptHandler := handlers.NewAppointmentHandler(apptSvc)
+	healthHandler := handlers.NewHealthHandler(healthSvc, reminderSvc)
+	apptHandler := handlers.NewAppointmentHandler(apptSvc, reminderSvc)
 	svcHandler := handlers.NewServiceHandler(svcSvc)
 	eventHandler := handlers.NewEventHandler(eventSvc)
 	alertHandler := handlers.NewAlertHandler(alertSvc)
 	aiHandler := handlers.NewAIHandler(aiSvc)
+	reminderHandler := handlers.NewReminderHandler(reminderSvc)
 
 	r := gin.Default()
 
@@ -64,24 +67,31 @@ func main() {
 	r.GET("/alerts/:id", alertHandler.GetByID)
 
 	auth := r.Group("/", middleware.AuthMiddleware(cfg.JWTSecret))
-	auth.POST("/services", svcHandler.Create)
-	auth.PUT("/services/:id", svcHandler.Update)
-	auth.DELETE("/services/:id", svcHandler.Delete)
+	hw := auth.Group("/", middleware.RoleRequired("health_worker"))
+
+	hw.POST("/services", svcHandler.Create)
+	hw.PUT("/services/:id", svcHandler.Update)
+	hw.DELETE("/services/:id", svcHandler.Delete)
+	hw.POST("/events", eventHandler.Create)
+	hw.PUT("/events/:id", eventHandler.Update)
+	hw.DELETE("/events/:id", eventHandler.Delete)
+	hw.POST("/alerts", alertHandler.Create)
+	hw.PUT("/alerts/:id", alertHandler.Update)
+	hw.DELETE("/alerts/:id", alertHandler.Delete)
+	hw.PATCH("/alerts/:id/deactivate", alertHandler.Deactivate)
+
 	auth.GET("/symptoms", healthHandler.GetSymptoms)
 	auth.POST("/symptoms", healthHandler.CreateSymptom)
 	auth.GET("/vaccines", healthHandler.GetVaccines)
 	auth.POST("/vaccines", healthHandler.CreateVaccine)
 	auth.GET("/appointments", apptHandler.GetAll)
 	auth.POST("/appointments", apptHandler.Create)
-	auth.POST("/events", eventHandler.Create)
-	auth.PUT("/events/:id", eventHandler.Update)
-	auth.DELETE("/events/:id", eventHandler.Delete)
-	auth.POST("/alerts", alertHandler.Create)
-	auth.PUT("/alerts/:id", alertHandler.Update)
-	auth.DELETE("/alerts/:id", alertHandler.Delete)
-	auth.PATCH("/alerts/:id/deactivate", alertHandler.Deactivate)
 	auth.POST("/ai/consult", aiHandler.Consult)
 	auth.GET("/ai/history", aiHandler.GetHistory)
+	auth.GET("/reminders", reminderHandler.GetPending)
+	auth.POST("/reminders", reminderHandler.Create)
+	auth.GET("/reminders/history", reminderHandler.GetHistory)
+	auth.PATCH("/reminders/:id/read", reminderHandler.MarkAsRead)
 
 	if err := r.Run(cfg.Port); err != nil {
 		panic(err)

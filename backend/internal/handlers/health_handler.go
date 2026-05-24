@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
@@ -9,11 +10,12 @@ import (
 )
 
 type HealthHandler struct {
-	healthSvc service.HealthService
+	healthSvc   service.HealthService
+	reminderSvc service.ReminderService
 }
 
-func NewHealthHandler(healthSvc service.HealthService) *HealthHandler {
-	return &HealthHandler{healthSvc: healthSvc}
+func NewHealthHandler(healthSvc service.HealthService, reminderSvc service.ReminderService) *HealthHandler {
+	return &HealthHandler{healthSvc: healthSvc, reminderSvc: reminderSvc}
 }
 
 func (h *HealthHandler) GetSymptoms(c *gin.Context) {
@@ -41,7 +43,11 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Vaccination record created"})
+	if _, err := h.reminderSvc.Create(userID.(uint), "Vacuna: "+record.NombreVacuna, "Registro de vacunación", "vacuna", record.FechaAplicacion); err != nil {
+		log.Printf("error: no se pudo crear recordatorio: %v", err)
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "vacuna registrada"})
 }
 
 func (h *HealthHandler) GetVaccines(c *gin.Context) {
@@ -69,5 +75,5 @@ func (h *HealthHandler) CreateSymptom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Symptom report created"})
+	c.JSON(http.StatusCreated, gin.H{"message": "síntoma registrado"})
 }

@@ -50,14 +50,14 @@ func (h *AlertHandler) GetAll(c *gin.Context) {
 func (h *AlertHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
 	alert, err := h.alertSvc.GetByID(uint(id))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alert not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -70,7 +70,7 @@ func (h *AlertHandler) GetByID(c *gin.Context) {
 func (h *AlertHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
@@ -84,7 +84,7 @@ func (h *AlertHandler) Update(c *gin.Context) {
 	updated, err := h.alertSvc.Update(&alert)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alert not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -97,37 +97,37 @@ func (h *AlertHandler) Update(c *gin.Context) {
 func (h *AlertHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
 	if err := h.alertSvc.Delete(uint(id)); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alert not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Alert deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "alerta eliminada"})
 }
 
 func (h *AlertHandler) Deactivate(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id inválido"})
 		return
 	}
 
 	if err := h.alertSvc.Deactivate(uint(id)); err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "alert not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "alerta no encontrada"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Alert deactivated"})
+	c.JSON(http.StatusOK, gin.H{"message": "alerta desactivada"})
 }
