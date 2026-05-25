@@ -1,47 +1,63 @@
-# Pulso — AGENTS.md
+# Pulso
 
-## Repo layout
-- `backend/` — Go 1.26.2 + Gin + GORM + pure-Go SQLite (no CGO)
-- `frontend/` — Astro 6 + Tailwind CSS 4
-- No root Makefile — `cd backend && make <target>`
+Virtual health assistant for Nicaraguan families. Monorepo: Go backend + Astro frontend.
 
-## Backend commands
+**Language**: UI/API responses in Spanish. Source code in English (variables, functions, technical comments).
+
+## Working on the project
+
+1. Branch naming: `feat/`, `fix/`, `docs/`, `chore/` + short description.
+2. Pull latest `main` before starting.
+3. Commit format: `type(scope): short description`. Scope optional.
+4. Do not edit README.md without explicit instruction.
+
+## Commands
+
 ```sh
+# Backend (Go 1.26.2 + Gin + pure-Go SQLite, no CGO)
 cd backend
-make dev      # air hot-reload (port 8080)
+make dev      # hot-reload on port 8080
 make build    # go build -o bin/api
 make test     # go test ./... -v
 make vet      # go vet ./...
 make lint     # golangci-lint run
-make tidy     # go mod tidy
-make clean    # rm -rf bin tmp pulso.db api
+
+# Frontend (Astro 6 + Tailwind CSS 4)
+cd frontend
+npm run dev   # astro dev on port 4321 (requires Node >= 22.12.0)
 ```
 
 ## Architecture
-- Layered: `handler → service → repository`. Interfaces at each layer.
-- Global DB: `db.DB` (`*gorm.DB`), AutoMigrate on startup (9 models).
-- All responses: `{"data": ..., "message": "..."}` success, `{"error": "..."}` error. Snake_case JSON.
-- Auth: JWT Bearer `Authorization`, 72h expiry. `user_id` + `rol` in context.
-- Roles: `family` (default) vs `health_worker`. Registration `codigo` must match `HEALTH_WORKER_SECRET` env var for health_worker role.
-- CUD for services/events/alerts gated by `middleware.RoleRequired("health_worker")`.
 
-## Key quirks
-- `.env` in `backend/`, loaded via `godotenv.Load()`. **System env vars override `.env`** (standard Go `os.Getenv` precedence).
-- `HEALTH_WORKER_SECRET` defaults to `""` → self-registration **disabled by default**. Set in `.env` to enable.
-- SQLite: `github.com/glebarez/sqlite` (pure Go, no CGO). No C compiler available.
-- Geo search (Haversine) computed in Go memory, not SQL — fine for hackathon scale.
-- `make dev` may panic if port 8080 busy — no `fuser -k` guard.
+- Layered: `handler → service → repository`. Interfaces at each layer.
+- API responses: `{"data": ..., "message": "..."}` success, `{"error": "..."}` error. Snake_case JSON.
+- JWT Bearer auth (72h expiry). Roles: `family` (default) vs `health_worker`.
+- Global `db.DB` (`*gorm.DB`), AutoMigrate on startup (9 models). SQLite via `github.com/glebarez/sqlite` (no C compiler needed).
+- Geo search (Haversine) filtered in Go memory, not SQL.
 - AI: Gemini 3.1 Flash Lite (`google.golang.org/genai`). Returns 503 if key unset or rate-limited.
-- Request DTOs in `handlers/requests.go` for all create/update. `parseTime()` accepts 3 formats: `2006-01-02T15:04:05Z`, `2006-01-02T15:04:05`, `2006-01-02`.
-- No pagination on list endpoints (all data at once).
-- `HealthService.Tipo` has no `oneof` validation — valid values still undefined.
+- Config in `backend/.env` via `godotenv.Load()`. System env vars override `.env`.
+
+## Project quirks
+
+- `HEALTH_WORKER_SECRET` defaults to `""` — health worker self-registration disabled by default.
 - CORS hardcoded to `http://localhost:4321` (not yet configurable).
+- `HealthService.Tipo` has no `oneof` validation (valid values TBD).
+- No pagination on list endpoints (all data at once).
+- Request DTOs in `backend/internal/handlers/requests.go`. `parseTime()` accepts 3 date formats.
+- `make dev` may panic if port 8080 is busy — no `fuser -k` guard.
+
+## AI guidelines
+
+1. Do NOT commit, push, or merge without explicit instruction.
+2. Do NOT modify git history or force push.
+3. Do NOT bump versions or edit README.md.
+4. Comments only for complex or non-obvious logic. Do not restate what the code says.
+5. Verify with `cd backend && make build && make vet && make test` before requesting review.
+6. If unsure about requirements or implementation, ask a human.
+7. Prioritize correctness, maintainability, and idiomatic Go.
 
 ## Tests
-- Only `service/auth_service_test.go` exists (5 tests).
-- Pattern: mock repo structs with inline methods.
-- Run: `make test`.
 
-## Frontend
-- `cd frontend && npm run dev` → port 4321
-- Requires Node >= 22.12.0
+- 62 tests across 9 files in `backend/internal/service/`.
+- Pattern: mock repo structs with inline methods.
+- Run: `cd backend && make test`.
