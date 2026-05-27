@@ -10,8 +10,7 @@ const { pageTitle } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{ pageTitle }</title>
 	</head>
-	<body class="min-h-dvh flex flex-col justify-center items-center bg-gradient-to-tr from-yellow-200 to-red-300">
-		<h1 class="text-4xl font-bold">{ pageTitle }</h1>
-		<p class="font-semibold">Su asistente de monitero de su salud</p>
+	<body>
+		<slot></slot>
 	</body>
 </html>
