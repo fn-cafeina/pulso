@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    @apply min-h-dvh bg-gradient-to-tr from-yellow-200 to-red-300;
+  }
+}

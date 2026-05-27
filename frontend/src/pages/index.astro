@@ -1,7 +1,10 @@
 ---
-import BaseLayout from '../layouts/baseLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 const pageTitle = "Pulso";
 ---
 
-<BaseLayout pageTitle={ pageTitle }></BaseLayout>
+<BaseLayout pageTitle={ pageTitle }>
+  <h1 class="text-4xl font-bold">{ pageTitle }</h1>
+	<p class="font-semibold">Su asistente de monitero de su salud</p>
+</BaseLayout>
 
