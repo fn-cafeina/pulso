@@ -13,6 +13,7 @@ type Config struct {
 	DBPath             string
 	GeminiAPIKey       string
 	HealthWorkerSecret string
+	CORSOrigin         string
 }
 
 func Load() *Config {
@@ -20,17 +21,24 @@ func Load() *Config {
 		log.Println("No se encontró archivo .env, usando variables de entorno del sistema")
 	}
 
+	jwt := getEnv("JWT_SECRET", "")
+	if jwt == "" {
+		log.Fatal("JWT_SECRET es requerido")
+	}
+
 	secret := getEnv("HEALTH_WORKER_SECRET", "")
-		if secret == "" {
-			log.Fatal("HEALTH_WORKER_SECRET es requerido")
-		}
-		return &Config{
-			JWTSecret:          getEnv("JWT_SECRET", "pulso-secret-key"),
-			Port:               getEnv("PORT", ":8080"),
-			DBPath:             getEnv("DB_PATH", "pulso.db"),
-			GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
-			HealthWorkerSecret: secret,
-		}
+	if secret == "" {
+		log.Fatal("HEALTH_WORKER_SECRET es requerido")
+	}
+
+	return &Config{
+		JWTSecret:          jwt,
+		Port:               getEnv("PORT", ":8080"),
+		DBPath:             getEnv("DB_PATH", "pulso.db"),
+		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
+		HealthWorkerSecret: secret,
+		CORSOrigin:         getEnv("CORS_ORIGIN", "http://localhost:4321"),
+	}
 }
 
 func getEnv(key, fallback string) string {
