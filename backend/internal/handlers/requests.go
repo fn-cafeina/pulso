@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"errors"
+	"fmt"
 	"time"
 )
 
@@ -22,14 +22,14 @@ type CreateAppointmentRequest struct {
 
 type CreateServiceRequest struct {
 	Nombre   string  `json:"nombre" binding:"required"`
-	Tipo     string  `json:"tipo" binding:"required"`
+	Tipo     string  `json:"tipo" binding:"required,oneof=hospital clinica puesto_salud"`
 	Latitud  float64 `json:"latitud"`
 	Longitud float64 `json:"longitud"`
 }
 
 type UpdateServiceRequest struct {
 	Nombre   string   `json:"nombre"`
-	Tipo     string   `json:"tipo"`
+	Tipo     string   `json:"tipo" binding:"omitempty,oneof=hospital clinica puesto_salud"`
 	Latitud  *float64 `json:"latitud"`
 	Longitud *float64 `json:"longitud"`
 }
@@ -97,5 +97,5 @@ func parseTime(s string) (time.Time, error) {
 			return t, nil
 		}
 	}
-	return time.Time{}, errors.New("formato de fecha inválido")
+	return time.Time{}, fmt.Errorf("formato de fecha inválido: %s", s)
 }

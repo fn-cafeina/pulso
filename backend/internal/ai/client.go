@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"google.golang.org/genai"
@@ -26,19 +27,30 @@ func NewClient(ctx context.Context, apiKey string) (*Client, error) {
 }
 
 func (c *Client) GenerateContent(ctx context.Context, prompt string) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
+	var lastErr error
+	for i := 0; i < 3; i++ {
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		
+		result, err := c.client.Models.GenerateContent(ctx,
+			c.model,
+			genai.Text(prompt),
+			&genai.GenerateContentConfig{
+				SystemInstruction: genai.NewContentFromText(systemPrompt, genai.RoleUser),
+				Temperature:       genai.Ptr(float32(0.2)),
+			},
+		)
+		cancel()
 
-	result, err := c.client.Models.GenerateContent(ctx,
-		c.model,
-		genai.Text(prompt),
-		&genai.GenerateContentConfig{
-			SystemInstruction: genai.NewContentFromText(systemPrompt, genai.RoleUser),
-			Temperature:       genai.Ptr(float32(0.2)),
-		},
-	)
-	if err != nil {
-		return "", err
+		if err == nil {
+			return result.Text(), nil
+		}
+
+		lastErr = err
+		if strings.Contains(err.Error(), "503") || strings.Contains(err.Error(), "rate limit") {
+			time.Sleep(time.Duration(i+1) * time.Second)
+			continue
+		}
+		break
 	}
-	return result.Text(), nil
+	return "", lastErr
 }
