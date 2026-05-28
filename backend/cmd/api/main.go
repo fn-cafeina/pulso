@@ -3,6 +3,11 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/fn-cafeina/pulso/backend/internal/ai"
 	"github.com/fn-cafeina/pulso/backend/internal/config"
@@ -55,8 +60,9 @@ func main() {
 	aiHandler := handlers.NewAIHandler(aiSvc)
 	reminderHandler := handlers.NewReminderHandler(reminderSvc)
 
-	r := gin.Default()
-	r.Use(middleware.CORS())
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(middleware.CORS(cfg.CORSOrigin))
 
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
@@ -94,7 +100,27 @@ func main() {
 	auth.GET("/reminders/history", reminderHandler.GetHistory)
 	auth.PATCH("/reminders/:id/read", reminderHandler.MarkAsRead)
 
-	if err := r.Run(cfg.Port); err != nil {
-		panic(err)
+	srv := &http.Server{
+		Addr:    cfg.Port,
+		Handler: r,
 	}
+
+	go func() {
+		log.Printf("servidor iniciado en %s", cfg.Port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("servidor deteniéndose...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("error al detener servidor: %v", err)
+	}
+	log.Println("servidor detenido")
 }
