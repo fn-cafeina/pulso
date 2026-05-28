@@ -18,17 +18,17 @@ type Config struct {
 
 func Load() *Config {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No se encontró archivo .env, usando variables de entorno del sistema")
+		log.Println(".env file not found, using system environment variables")
 	}
 
 	jwt := getEnv("JWT_SECRET", "")
 	if jwt == "" {
-		log.Fatal("JWT_SECRET es requerido")
+		log.Fatal("JWT_SECRET is required")
 	}
 
 	secret := getEnv("HEALTH_WORKER_SECRET", "")
 	if secret == "" {
-		log.Fatal("HEALTH_WORKER_SECRET es requerido")
+		log.Fatal("HEALTH_WORKER_SECRET is required")
 	}
 
 	return &Config{

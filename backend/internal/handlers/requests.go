@@ -97,5 +97,5 @@ func parseTime(s string) (time.Time, error) {
 			return t, nil
 		}
 	}
-	return time.Time{}, fmt.Errorf("formato de fecha inválido: %s", s)
+	return time.Time{}, fmt.Errorf("invalid date format: %s", s)
 }

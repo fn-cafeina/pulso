@@ -43,26 +43,26 @@ func NewAIService(
 
 func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultation, error) {
 	if s.gemini == nil {
-		return nil, fmt.Errorf("asistente no disponible")
+		return nil, fmt.Errorf("AI assistant not available")
 	}
 
 	ctx := context.Background()
 
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
-		log.Printf("warning: no se pudo cargar usuario %d: %v", userID, err)
+		log.Printf("warning: failed to load user %d: %v", userID, err)
 	}
 	symptoms, err := s.healthRepo.FindSymptomsByUserID(userID)
 	if err != nil {
-		log.Printf("warning: no se pudieron cargar síntomas para %d: %v", userID, err)
+		log.Printf("warning: failed to load symptoms for %d: %v", userID, err)
 	}
 	vaccines, err := s.healthRepo.FindVaccinesByUserID(userID)
 	if err != nil {
-		log.Printf("warning: no se pudieron cargar vacunas para %d: %v", userID, err)
+		log.Printf("warning: failed to load vaccines for %d: %v", userID, err)
 	}
 	appts, err := s.apptRepo.FindByUserID(userID)
 	if err != nil {
-		log.Printf("warning: no se pudieron cargar citas para %d: %v", userID, err)
+		log.Printf("warning: failed to load appointments for %d: %v", userID, err)
 	}
 
 	var b strings.Builder

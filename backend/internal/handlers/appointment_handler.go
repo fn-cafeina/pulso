@@ -48,7 +48,7 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 	}
 
 	if _, err := h.reminderSvc.Create(userID.(uint), "Cita médica", req.Descripcion, "cita", fecha); err != nil {
-		log.Printf("error: no se pudo crear recordatorio: %v", err)
+		log.Printf("error: failed to create reminder: %v", err)
 	}
 
 	SuccessMsg(c, http.StatusCreated, "cita creada", appt)

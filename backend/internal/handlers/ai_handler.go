@@ -31,7 +31,7 @@ func (h *AIHandler) Consult(c *gin.Context) {
 			Error(c, http.StatusServiceUnavailable, "El asistente está saturado, intenta de nuevo en unos segundos.")
 			return
 		}
-		if strings.Contains(err.Error(), "no disponible") {
+		if strings.Contains(err.Error(), "not available") {
 			Error(c, http.StatusServiceUnavailable, err.Error())
 			return
 		}

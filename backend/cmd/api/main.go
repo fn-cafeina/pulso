@@ -106,7 +106,7 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("servidor iniciado en %s", cfg.Port)
+		log.Printf("server started on %s", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -116,11 +116,11 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("servidor deteniéndose...")
+	log.Println("shutting down server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("error al detener servidor: %v", err)
+		log.Fatalf("server shutdown error: %v", err)
 	}
-	log.Println("servidor detenido")
+	log.Println("server stopped")
 }
