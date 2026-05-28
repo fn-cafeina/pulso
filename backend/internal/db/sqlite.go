@@ -1,14 +1,21 @@
 package db
 
 import (
+	"sync"
+
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+var (
+	DB     *gorm.DB
+	initMu sync.Mutex
+)
 
 func InitDB(path string) {
+	initMu.Lock()
+	defer initMu.Unlock()
 	var err error
 	DB, err = gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
