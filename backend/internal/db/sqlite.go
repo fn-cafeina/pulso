@@ -17,7 +17,7 @@ func InitDB(path string) {
 	initMu.Lock()
 	defer initMu.Unlock()
 	var err error
-	DB, err = gorm.Open(sqlite.Open(path), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(path+"?_journal_mode=WAL"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
