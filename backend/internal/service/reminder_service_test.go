@@ -57,9 +57,9 @@ func (m *mockReminderRepo) MarkAsRead(id, userID uint) error {
 	return nil
 }
 
-func (m *mockReminderRepo) Delete(id uint) error {
+func (m *mockReminderRepo) Delete(id, userID uint) error {
 	for i, r := range m.reminders {
-		if r.ID == id {
+		if r.ID == id && r.UserID == userID {
 			m.reminders = append(m.reminders[:i], m.reminders[i+1:]...)
 			return nil
 		}

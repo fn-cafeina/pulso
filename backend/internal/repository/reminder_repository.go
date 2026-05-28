@@ -12,7 +12,7 @@ type ReminderRepository interface {
 	FindPendingByUserID(userID uint) ([]models.Reminder, error)
 	FindByUserID(userID uint) ([]models.Reminder, error)
 	MarkAsRead(id, userID uint) error
-	Delete(id uint) error
+	Delete(id, userID uint) error
 }
 
 type reminderRepository struct {
@@ -47,6 +47,6 @@ func (r *reminderRepository) MarkAsRead(id, userID uint) error {
 	return r.db.Model(&models.Reminder{}).Where("id = ? AND user_id = ?", id, userID).Update("leido", true).Error
 }
 
-func (r *reminderRepository) Delete(id uint) error {
-	return r.db.Delete(&models.Reminder{}, id).Error
+func (r *reminderRepository) Delete(id, userID uint) error {
+	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&models.Reminder{}).Error
 }
