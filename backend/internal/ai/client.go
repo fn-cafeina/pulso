@@ -29,9 +29,9 @@ func NewClient(ctx context.Context, apiKey string) (*Client, error) {
 func (c *Client) GenerateContent(ctx context.Context, prompt string) (string, error) {
 	var lastErr error
 	for i := 0; i < 3; i++ {
-		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-		
-		result, err := c.client.Models.GenerateContent(ctx,
+		reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+
+		result, err := c.client.Models.GenerateContent(reqCtx,
 			c.model,
 			genai.Text(prompt),
 			&genai.GenerateContentConfig{
@@ -47,7 +47,13 @@ func (c *Client) GenerateContent(ctx context.Context, prompt string) (string, er
 
 		lastErr = err
 		if strings.Contains(err.Error(), "503") || strings.Contains(err.Error(), "rate limit") {
-			time.Sleep(time.Duration(i+1) * time.Second)
+			timer := time.NewTimer(time.Duration(i+1) * time.Second)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return "", ctx.Err()
+			case <-timer.C:
+			}
 			continue
 		}
 		break

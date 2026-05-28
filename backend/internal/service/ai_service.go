@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -47,10 +48,22 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 
 	ctx := context.Background()
 
-	user, _ := s.userRepo.FindByID(userID)
-	symptoms, _ := s.healthRepo.FindSymptomsByUserID(userID)
-	vaccines, _ := s.healthRepo.FindVaccinesByUserID(userID)
-	appts, _ := s.apptRepo.FindByUserID(userID)
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		log.Printf("warning: no se pudo cargar usuario %d: %v", userID, err)
+	}
+	symptoms, err := s.healthRepo.FindSymptomsByUserID(userID)
+	if err != nil {
+		log.Printf("warning: no se pudieron cargar síntomas para %d: %v", userID, err)
+	}
+	vaccines, err := s.healthRepo.FindVaccinesByUserID(userID)
+	if err != nil {
+		log.Printf("warning: no se pudieron cargar vacunas para %d: %v", userID, err)
+	}
+	appts, err := s.apptRepo.FindByUserID(userID)
+	if err != nil {
+		log.Printf("warning: no se pudieron cargar citas para %d: %v", userID, err)
+	}
 
 	var b strings.Builder
 	b.WriteString("[CONTEXTO DEL USUARIO]\n")
