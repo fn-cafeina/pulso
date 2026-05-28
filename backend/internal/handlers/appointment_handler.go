@@ -21,7 +21,7 @@ func (h *AppointmentHandler) GetAll(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	appts, err := h.apptSvc.GetByUserID(userID.(uint))
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	Success(c, http.StatusOK, appts)
@@ -43,7 +43,7 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	appt, err := h.apptSvc.Create(userID.(uint), req.Descripcion, fecha)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 

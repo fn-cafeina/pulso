@@ -35,7 +35,7 @@ func (h *AlertHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.alertSvc.Create(alert); err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *AlertHandler) GetAll(c *gin.Context) {
 
 	alerts, err := h.alertSvc.GetAll(nivel, departamento, soloActivas)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (h *AlertHandler) GetByID(c *gin.Context) {
 			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *AlertHandler) Update(c *gin.Context) {
 			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (h *AlertHandler) Update(c *gin.Context) {
 
 	updated, err := h.alertSvc.Update(existing)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *AlertHandler) Delete(c *gin.Context) {
 			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (h *AlertHandler) Deactivate(c *gin.Context) {
 			Error(c, http.StatusNotFound, "alerta no encontrada")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 

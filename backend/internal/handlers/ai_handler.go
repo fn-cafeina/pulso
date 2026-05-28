@@ -39,7 +39,7 @@ func (h *AIHandler) Consult(c *gin.Context) {
 			Error(c, http.StatusGatewayTimeout, "El asistente tardó demasiado en responder.")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (h *AIHandler) GetHistory(c *gin.Context) {
 
 	history, err := h.aiSvc.GetHistory(userID.(uint))
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 

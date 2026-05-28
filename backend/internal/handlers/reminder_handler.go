@@ -20,7 +20,7 @@ func (h *ReminderHandler) GetPending(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	reminders, err := h.reminderSvc.GetPending(userID.(uint))
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	Success(c, http.StatusOK, reminders)
@@ -42,7 +42,7 @@ func (h *ReminderHandler) Create(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	reminder, err := h.reminderSvc.Create(userID.(uint), req.Titulo, req.Descripcion, req.Tipo, fecha)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	SuccessMsg(c, http.StatusCreated, "recordatorio creado", reminder)
@@ -52,7 +52,7 @@ func (h *ReminderHandler) GetHistory(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	reminders, err := h.reminderSvc.GetAll(userID.(uint))
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	Success(c, http.StatusOK, reminders)
@@ -67,7 +67,7 @@ func (h *ReminderHandler) MarkAsRead(c *gin.Context) {
 
 	userID, _ := c.Get("user_id")
 	if err := h.reminderSvc.MarkAsRead(uint(id), userID.(uint)); err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	Msg(c, http.StatusOK, "recordatorio marcado como leído")

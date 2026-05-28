@@ -52,7 +52,7 @@ func (h *EventHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.eventSvc.Create(event); err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func (h *EventHandler) GetByID(c *gin.Context) {
 			Error(c, http.StatusNotFound, "evento no encontrado")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 
 		nearby, err := h.eventSvc.GetNearby(lat, lng, radius)
 		if err != nil {
-			Error(c, http.StatusInternalServerError, err.Error())
+			InternalError(c, err)
 			return
 		}
 
@@ -107,7 +107,7 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 	upcoming := c.Query("upcoming") == "true"
 	events, err := h.eventSvc.GetAll(upcoming)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -133,7 +133,7 @@ func (h *EventHandler) Update(c *gin.Context) {
 			Error(c, http.StatusNotFound, "evento no encontrado")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -177,7 +177,7 @@ func (h *EventHandler) Update(c *gin.Context) {
 
 	updated, err := h.eventSvc.Update(existing)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -196,7 +196,7 @@ func (h *EventHandler) Delete(c *gin.Context) {
 			Error(c, http.StatusNotFound, "evento no encontrado")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 

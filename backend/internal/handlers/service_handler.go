@@ -33,7 +33,7 @@ func (h *ServiceHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.svcSvc.Create(svc); err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -53,7 +53,7 @@ func (h *ServiceHandler) GetByID(c *gin.Context) {
 			Error(c, http.StatusNotFound, "servicio no encontrado")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 
 		nearby, err := h.svcSvc.GetNearby(lat, lng, radius)
 		if err != nil {
-			Error(c, http.StatusInternalServerError, err.Error())
+			InternalError(c, err)
 			return
 		}
 
@@ -87,7 +87,7 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 
 	services, err := h.svcSvc.GetAll()
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 			Error(c, http.StatusNotFound, "servicio no encontrado")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 
 	updated, err := h.svcSvc.Update(existing)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (h *ServiceHandler) Delete(c *gin.Context) {
 			Error(c, http.StatusNotFound, "servicio no encontrado")
 			return
 		}
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 

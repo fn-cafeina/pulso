@@ -22,7 +22,7 @@ func (h *HealthHandler) GetSymptoms(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	reports, err := h.healthSvc.GetSymptoms(userID.(uint))
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	Success(c, http.StatusOK, reports)
@@ -48,7 +48,7 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 
 	record, err := h.healthSvc.CreateVaccine(userID.(uint), req.NombreVacuna, fecha)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *HealthHandler) GetVaccines(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	records, err := h.healthSvc.GetVaccines(userID.(uint))
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 	Success(c, http.StatusOK, records)
@@ -89,7 +89,7 @@ func (h *HealthHandler) CreateSymptom(c *gin.Context) {
 
 	report, err := h.healthSvc.CreateSymptom(userID.(uint), req.Descripcion, fecha)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, err.Error())
+		InternalError(c, err)
 		return
 	}
 
