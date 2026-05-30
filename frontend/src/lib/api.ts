@@ -1,27 +1,42 @@
 const API_BASE = "http://localhost:8080";
 
+function safeGetItem(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(key);
+}
+
+function safeSetItem(key: string, value: string) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(key, value);
+}
+
+function safeRemoveItem(key: string) {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(key);
+}
+
 export function getToken(): string | null {
-  return localStorage.getItem("token");
+  return safeGetItem("token");
 }
 
 export function getRole(): string | null {
-  return localStorage.getItem("rol");
+  return safeGetItem("rol");
 }
 
 export function getUsername(): string | null {
-  return localStorage.getItem("username");
+  return safeGetItem("username");
 }
 
 export function setAuth(token: string, rol: string, username: string) {
-  localStorage.setItem("token", token);
-  localStorage.setItem("rol", rol);
-  localStorage.setItem("username", username);
+  safeSetItem("token", token);
+  safeSetItem("rol", rol);
+  safeSetItem("username", username);
 }
 
 export function clearAuth() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("rol");
-  localStorage.removeItem("username");
+  safeRemoveItem("token");
+  safeRemoveItem("rol");
+  safeRemoveItem("username");
 }
 
 function decodeToken(token: string): any {
