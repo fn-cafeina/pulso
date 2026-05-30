@@ -67,13 +67,13 @@ func (s *authService) Login(req LoginRequest) (string, string, error) {
 	user, err := s.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", "", errors.New("credenciales inválidas")
+			return "", "", errors.New("usuario no encontrado")
 		}
 		return "", "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return "", "", errors.New("credenciales inválidas")
+		return "", "", errors.New("contraseña incorrecta")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
