@@ -1,6 +1,6 @@
 BINARY_NAME=bin/api
 
-.PHONY: build run test vet lint tidy clean dev setup
+.PHONY: build run test vet lint tidy clean dev
 
 build:
 	go build -o $(BINARY_NAME) ./cmd/api/main.go
