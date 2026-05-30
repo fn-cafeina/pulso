@@ -125,3 +125,16 @@ export async function register(data: {
     body: JSON.stringify(data),
   });
 }
+
+export async function consultAI(pregunta: string): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }> {
+  const res = await apiFetch("/ai/consult", {
+    method: "POST",
+    body: JSON.stringify({ pregunta }),
+  });
+  return res.data;
+}
+
+export async function getAIHistory(): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }[]> {
+  const res = await apiFetch("/ai/history");
+  return res.data || [];
+}
