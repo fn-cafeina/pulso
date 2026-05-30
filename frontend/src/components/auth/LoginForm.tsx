@@ -7,51 +7,23 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
-  const [touched, setTouched] = useState<{ username?: boolean; password?: boolean }>({});
   const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     usernameRef.current?.focus();
   }, []);
 
-  const validateField = (name: string, value: string) => {
-    if (name === "username" && value.trim().length < 3) {
-      return "Mínimo 3 caracteres";
-    }
-    if (name === "password" && value.length < 6) {
-      return "Mínimo 6 caracteres";
-    }
-    return "";
-  };
-
-  const handleBlur = (name: string, value: string) => {
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    const err = validateField(name, value);
-    setFieldErrors((prev) => ({ ...prev, [name]: err }));
-  };
-
-  const handleChange = (name: string, value: string) => {
-    if (name === "username") setUsername(value);
-    if (name === "password") setPassword(value);
-    setError("");
-    if (touched[name as keyof typeof touched]) {
-      const err = validateField(name, value);
-      setFieldErrors((prev) => ({ ...prev, [name]: err }));
-    }
+  const clearFieldError = (name: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[name as keyof typeof prev]) return prev;
+      return { ...prev, [name]: undefined };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    const usernameErr = validateField("username", username);
-    const passwordErr = validateField("password", password);
-    setFieldErrors({ username: usernameErr, password: passwordErr });
-    setTouched({ username: true, password: true });
-
-    if (usernameErr || passwordErr) return;
+    setFieldErrors({});
 
     setLoading(true);
 
@@ -59,7 +31,14 @@ export default function LoginForm() {
       await login(username.trim(), password);
       window.location.href = "/";
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message;
+      if (msg === "usuario no encontrado") {
+        setFieldErrors({ username: "Usuario no encontrado" });
+      } else if (msg === "contraseña incorrecta") {
+        setFieldErrors({ password: "Contraseña incorrecta" });
+      } else {
+        setFieldErrors({ username: msg });
+      }
     } finally {
       setLoading(false);
     }
@@ -67,12 +46,6 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="bg-danger/10 border border-danger/30 text-danger rounded-lg px-4 py-3 text-sm animate-shake">
-          {error}
-        </div>
-      )}
-
       <div>
         <label htmlFor="username" className="block text-sm font-medium text-text mb-1">
           Usuario
@@ -86,17 +59,16 @@ export default function LoginForm() {
             required
             minLength={3}
             value={username}
-            onChange={(e) => handleChange("username", e.target.value)}
-            onBlur={(e) => handleBlur("username", e.target.value)}
+            onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); }}
             className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
-              touched.username && fieldErrors.username
+              fieldErrors.username
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
             }`}
             placeholder="Tu usuario"
           />
         </div>
-        {touched.username && fieldErrors.username && (
+        {fieldErrors.username && (
           <p className="text-danger text-xs mt-1">{fieldErrors.username}</p>
         )}
       </div>
@@ -113,10 +85,9 @@ export default function LoginForm() {
             required
             minLength={6}
             value={password}
-            onChange={(e) => handleChange("password", e.target.value)}
-            onBlur={(e) => handleBlur("password", e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
             className={`w-full pl-10 pr-10 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
-              touched.password && fieldErrors.password
+              fieldErrors.password
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
             }`}
@@ -131,7 +102,7 @@ export default function LoginForm() {
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
-        {touched.password && fieldErrors.password && (
+        {fieldErrors.password && (
           <p className="text-danger text-xs mt-1">{fieldErrors.password}</p>
         )}
       </div>

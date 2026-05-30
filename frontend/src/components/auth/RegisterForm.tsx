@@ -13,49 +13,31 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
-  const [touched, setTouched] = useState<{ username?: boolean; password?: boolean }>({});
   const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     usernameRef.current?.focus();
   }, []);
 
-  const validateField = (name: string, value: string) => {
-    if (name === "username" && value.trim().length < 3) {
-      return "Mínimo 3 caracteres";
-    }
-    if (name === "password" && value.length < 6) {
-      return "Mínimo 6 caracteres";
-    }
-    return "";
-  };
-
-  const handleBlur = (name: string, value: string) => {
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    const err = validateField(name, value);
-    setFieldErrors((prev) => ({ ...prev, [name]: err }));
-  };
-
-  const handleChange = (name: string, value: string) => {
-    if (name === "username") setUsername(value);
-    if (name === "password") setPassword(value);
-    setError("");
-    if (touched[name as keyof typeof touched]) {
-      const err = validateField(name, value);
-      setFieldErrors((prev) => ({ ...prev, [name]: err }));
-    }
+  const clearFieldError = (name: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[name as keyof typeof prev]) return prev;
+      return { ...prev, [name]: undefined };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
-    const usernameErr = validateField("username", username);
-    const passwordErr = validateField("password", password);
-    setFieldErrors({ username: usernameErr, password: passwordErr });
-    setTouched({ username: true, password: true });
+    const usernameErr = username.trim().length < 3 ? "Mínimo 3 caracteres" : "";
+    const passwordErr = password.length < 6 ? "Mínimo 6 caracteres" : "";
 
-    if (usernameErr || passwordErr) return;
+    if (usernameErr || passwordErr) {
+      setFieldErrors({ username: usernameErr || undefined, password: passwordErr || undefined });
+      return;
+    }
 
     setLoading(true);
 
@@ -104,17 +86,16 @@ export default function RegisterForm() {
             required
             minLength={3}
             value={username}
-            onChange={(e) => handleChange("username", e.target.value)}
-            onBlur={(e) => handleBlur("username", e.target.value)}
+            onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); setError(""); }}
             className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
-              touched.username && fieldErrors.username
+              fieldErrors.username
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
             }`}
             placeholder="Elige un usuario"
           />
         </div>
-        {touched.username && fieldErrors.username && (
+        {fieldErrors.username && (
           <p className="text-danger text-xs mt-1">{fieldErrors.username}</p>
         )}
       </div>
@@ -131,10 +112,9 @@ export default function RegisterForm() {
             required
             minLength={6}
             value={password}
-            onChange={(e) => handleChange("password", e.target.value)}
-            onBlur={(e) => handleBlur("password", e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); setError(""); }}
             className={`w-full pl-10 pr-10 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
-              touched.password && fieldErrors.password
+              fieldErrors.password
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
             }`}
@@ -149,7 +129,7 @@ export default function RegisterForm() {
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
-        {touched.password && fieldErrors.password && (
+        {fieldErrors.password && (
           <p className="text-danger text-xs mt-1">{fieldErrors.password}</p>
         )}
       </div>
