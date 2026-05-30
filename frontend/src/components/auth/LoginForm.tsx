@@ -45,19 +45,23 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <div>
         <label htmlFor="username" className="block text-sm font-medium text-text mb-1">
           Usuario
         </label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" aria-hidden="true" />
           <input
             ref={usernameRef}
             id="username"
+            name="username"
             type="text"
             required
             minLength={3}
+            autoComplete="username"
+            aria-invalid={!!fieldErrors.username}
+            aria-describedby={fieldErrors.username ? "username-error" : undefined}
             value={username}
             onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); }}
             className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
@@ -69,7 +73,7 @@ export default function LoginForm() {
           />
         </div>
         {fieldErrors.username && (
-          <p className="text-danger text-xs mt-1">{fieldErrors.username}</p>
+          <p id="username-error" className="text-danger text-xs mt-1" role="alert">{fieldErrors.username}</p>
         )}
       </div>
 
@@ -78,15 +82,19 @@ export default function LoginForm() {
           Contraseña
         </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" aria-hidden="true" />
           <input
             id="password"
+            name="password"
             type={showPassword ? "text" : "password"}
             required
             minLength={6}
+            autoComplete="current-password"
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? "password-error" : undefined}
             value={password}
             onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
-            className={`w-full pl-10 pr-10 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+            className={`w-full pl-10 pr-12 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
               fieldErrors.password
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
@@ -96,14 +104,14 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray hover:text-text transition-colors cursor-pointer"
-            tabIndex={-1}
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray hover:text-text transition-colors cursor-pointer rounded-md"
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
         {fieldErrors.password && (
-          <p className="text-danger text-xs mt-1">{fieldErrors.password}</p>
+          <p id="password-error" className="text-danger text-xs mt-1" role="alert">{fieldErrors.password}</p>
         )}
       </div>
 

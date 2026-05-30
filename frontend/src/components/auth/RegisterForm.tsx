@@ -60,15 +60,15 @@ export default function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       {error && (
-        <div className="bg-danger/10 border border-danger/30 text-danger rounded-lg px-4 py-3 text-sm animate-shake">
+        <div className="bg-danger/10 border border-danger/30 text-danger rounded-lg px-4 py-3 text-sm animate-shake" role="alert">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-success/10 border border-success/30 text-success rounded-lg px-4 py-3 text-sm">
+        <div className="bg-success/10 border border-success/30 text-success rounded-lg px-4 py-3 text-sm" role="status">
           Cuenta creada correctamente. Redirigiendo al inicio de sesión...
         </div>
       )}
@@ -78,13 +78,17 @@ export default function RegisterForm() {
           Usuario
         </label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" aria-hidden="true" />
           <input
             ref={usernameRef}
             id="username"
+            name="username"
             type="text"
             required
             minLength={3}
+            autoComplete="username"
+            aria-invalid={!!fieldErrors.username}
+            aria-describedby={fieldErrors.username ? "reg-username-error" : undefined}
             value={username}
             onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); setError(""); }}
             className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
@@ -96,7 +100,7 @@ export default function RegisterForm() {
           />
         </div>
         {fieldErrors.username && (
-          <p className="text-danger text-xs mt-1">{fieldErrors.username}</p>
+          <p id="reg-username-error" className="text-danger text-xs mt-1" role="alert">{fieldErrors.username}</p>
         )}
       </div>
 
@@ -105,15 +109,19 @@ export default function RegisterForm() {
           Contraseña
         </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" aria-hidden="true" />
           <input
             id="password"
+            name="password"
             type={showPassword ? "text" : "password"}
             required
             minLength={6}
+            autoComplete="new-password"
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? "reg-password-error" : undefined}
             value={password}
             onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); setError(""); }}
-            className={`w-full pl-10 pr-10 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+            className={`w-full pl-10 pr-12 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
               fieldErrors.password
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
@@ -123,20 +131,21 @@ export default function RegisterForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray hover:text-text transition-colors cursor-pointer"
-            tabIndex={-1}
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray hover:text-text transition-colors cursor-pointer rounded-md"
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
         {fieldErrors.password && (
-          <p className="text-danger text-xs mt-1">{fieldErrors.password}</p>
+          <p id="reg-password-error" className="text-danger text-xs mt-1" role="alert">{fieldErrors.password}</p>
         )}
       </div>
 
       <button
         type="button"
         onClick={() => setShowOptional(!showOptional)}
+        aria-expanded={showOptional}
         className="flex items-center gap-1 text-sm text-primary hover:text-primary-dark font-medium transition-colors cursor-pointer"
       >
         Opciones avanzadas
@@ -151,9 +160,11 @@ export default function RegisterForm() {
             </label>
             <textarea
               id="antecedentes"
+              name="antecedentes"
               value={antecedentes}
               onChange={(e) => setAntecedentes(e.target.value)}
               rows={3}
+              maxLength={500}
               className="w-full px-4 py-2.5 rounded-lg border border-gray/30 bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
               placeholder="Ej: Asma leve, alergia a la penicilina..."
             />
@@ -165,6 +176,7 @@ export default function RegisterForm() {
             </label>
             <input
               id="codigo"
+              name="codigo"
               type="text"
               value={codigo}
               onChange={(e) => setCodigo(e.target.value)}
