@@ -49,14 +49,15 @@ docs/        # Documentación detallada
 ### Backend
 ```bash
 cd backend
-make dev           # Inicia con hot-reload (Air)
+cp .env.example .env    # Configurar JWT_SECRET y HEALTH_WORKER_SECRET (requeridos)
+make dev                # Inicia con hot-reload (Air)
 ```
 
 ### Frontend
 ```bash
-cd frontend
+cd frontend             # Requiere Node >= 22.12.0
 npm install
-npm run dev        # Inicia entorno de desarrollo Astro
+npm run dev             # Inicia entorno de desarrollo Astro
 ```
 
 ## Licencia

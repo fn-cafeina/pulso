@@ -15,7 +15,7 @@ backend/
 │   ├── middleware/
 │   │   ├── auth.go           # JWT Bearer validation
 │   │   ├── role.go           # RoleRequired("health_worker")
-│   │   └── cors.go           # CORS hardcoded a localhost:4321
+│   │   └── cors.go           # CORS configurable vía CORS_ORIGIN
 │   ├── models/               # 9 modelos GORM (embed BaseModel)
 │   │   └── base.go           # BaseModel: id, created_at, updated_at, deleted_at oculto
 │   ├── repository/           # Interfaces + implementaciones GORM
@@ -59,11 +59,11 @@ Cada capa se comunica mediante interfaces definidas en `repository/` y `service/
 
 | Variable | Default | Descripción |
 |----------|---------|-------------|
-| `JWT_SECRET` | `pulso-secret-key` | Clave para firmar tokens JWT |
+| `JWT_SECRET` | **requerido** | Clave para firmar tokens JWT (server falla si vacío) |
 | `PORT` | `:8080` | Puerto del servidor |
 | `DB_PATH` | `pulso.db` | Ruta del archivo SQLite |
 | `GEMINI_API_KEY` | `""` | API key de Gemini (opcional → AI da 503 si falta) |
-| `HEALTH_WORKER_SECRET` | `""` | Código secreto para rol health_worker (vacío = deshabilitado) |
+| `HEALTH_WORKER_SECRET` | **requerido** | Código secreto para rol health_worker (server falla si vacío) |
 
 Las variables se cargan desde `backend/.env` vía `godotenv.Load()`. Variables de entorno del sistema tienen prioridad sobre `.env`.
 
@@ -117,7 +117,7 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 - `User.Password` excluido del JSON.
 
 ### CORS
-Hardcoded a `http://localhost:4321`. No configurable aún.
+Configurable vía variable `CORS_ORIGIN` (default: `http://localhost:4321`).
 
 ## Tests
 
