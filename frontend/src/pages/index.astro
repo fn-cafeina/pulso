@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Home from '../components/Home';
 ---
 
 <BaseLayout pageTitle="Pulso">
-  <h1 class="text-4xl font-bold">Pulso</h1>
-  <p class="font-semibold">Su asistente de monitoreo de salud</p>
+  <Home client:load />
 </BaseLayout>
