@@ -1,7 +1,16 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    @apply min-h-dvh bg-gradient-to-tr from-yellow-200 to-red-300;
-  }
+@theme {
+  --color-primary: #004a99;
+  --color-primary-dark: #003870;
+  --color-accent: #f39c12;
+  --color-accent-dark: #d4870e;
+  --color-success: #28a745;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
+  --color-neutral: #f8f9fa;
+  --color-gray: #6c757d;
+  --color-text: #343a40;
+  --color-white: #ffffff;
 }
