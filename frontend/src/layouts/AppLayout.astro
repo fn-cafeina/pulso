@@ -4,7 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import AuthGuard from '../components/layout/AuthGuard';
 import Nav from '../components/layout/Nav';
 
-const { pageTitle, currentPath } = Astro.props;
+const { pageTitle, currentPath, flush } = Astro.props;
 ---
 <html lang="es">
   <head>
@@ -38,7 +38,7 @@ const { pageTitle, currentPath } = Astro.props;
           <Nav currentPath={currentPath} client:load mobileHeader />
         </header>
 
-        <main class="p-4 pb-20 md:p-8 md:pb-8">
+        <main class={flush ? "pb-20 md:pb-0" : "p-4 pb-20 md:p-8 md:pb-8"}>
           <slot />
         </main>
       </div>
