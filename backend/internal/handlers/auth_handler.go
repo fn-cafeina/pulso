@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
@@ -18,13 +19,17 @@ func NewAuthHandler(authSvc service.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req service.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		Error(c, http.StatusBadRequest, err.Error())
+		Error(c, http.StatusBadRequest, "usuario y contraseña son requeridos")
 		return
 	}
 
 	user, err := h.authSvc.Register(req)
 	if err != nil {
-		Error(c, http.StatusConflict, err.Error())
+		msg := "error al registrar usuario"
+		if strings.Contains(err.Error(), "UNIQUE constraint") {
+			msg = "el nombre de usuario ya está en uso"
+		}
+		Error(c, http.StatusConflict, msg)
 		return
 	}
 
@@ -37,7 +42,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req service.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		Error(c, http.StatusBadRequest, err.Error())
+		Error(c, http.StatusBadRequest, "usuario y contraseña son requeridos")
 		return
 	}
 
