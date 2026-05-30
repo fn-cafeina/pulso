@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css'
+import { ClientRouter } from 'astro:transitions';
 import AuthGuard from '../components/layout/AuthGuard';
 import Nav from '../components/layout/Nav';
 
@@ -13,6 +14,7 @@ const { pageTitle, currentPath } = Astro.props;
     <meta name="description" content="Pulso — Asistente virtual de salud para familias nicaragüenses" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
+    <ClientRouter />
   </head>
   <body class="bg-neutral">
     <noscript>
