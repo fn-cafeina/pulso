@@ -1,0 +1,42 @@
+---
+import '../styles/global.css'
+import AuthGuard from '../components/layout/AuthGuard';
+import Nav from '../components/layout/Nav';
+
+const { pageTitle, currentPath } = Astro.props;
+---
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#004a99" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+  </head>
+  <body class="bg-neutral">
+    <AuthGuard client:load />
+
+    <div class="flex min-h-screen">
+      <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray/20">
+        <Nav currentPath={currentPath} client:load />
+      </aside>
+
+      <div class="flex-1 md:ml-64">
+        <header class="bg-white border-b border-gray/20 px-4 py-3 flex items-center justify-between md:hidden">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-bold text-primary">Pulso</span>
+          </div>
+          <Nav currentPath={currentPath} client:load mobileOnly />
+        </header>
+
+        <main class="p-4 pb-24 md:p-8 md:pb-8">
+          <slot />
+        </main>
+      </div>
+
+      <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray/20 z-50">
+        <Nav currentPath={currentPath} client:load bottomNav />
+      </nav>
+    </div>
+  </body>
+</html>
