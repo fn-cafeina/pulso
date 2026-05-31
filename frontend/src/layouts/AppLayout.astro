@@ -4,7 +4,7 @@ import { ClientRouter } from 'astro:transitions';
 import AuthGuard from '../components/layout/AuthGuard';
 import Nav from '../components/layout/Nav';
 
-const { pageTitle, currentPath, flush } = Astro.props;
+const { pageTitle, currentPath } = Astro.props;
 ---
 <html lang="es">
   <head>
@@ -28,22 +28,20 @@ const { pageTitle, currentPath, flush } = Astro.props;
 
     <AuthGuard client:load />
 
-    <div class="flex min-h-screen">
-      <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray/20">
-        <Nav currentPath={currentPath} client:load />
-      </aside>
+    <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray/20 z-40">
+      <Nav currentPath={currentPath} client:load />
+    </aside>
 
-      <div class="flex-1 md:ml-64">
-        <header class="bg-white border-b border-gray/20 px-4 py-3 flex items-center justify-between md:hidden">
-          <Nav currentPath={currentPath} client:load mobileHeader />
-        </header>
+    <div class="md:ml-64 h-screen flex flex-col">
+      <header class="bg-white border-b border-gray/20 px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between md:hidden z-30">
+        <Nav currentPath={currentPath} client:load mobileHeader />
+      </header>
 
-        <main class={flush ? "pb-20 md:pb-0" : "p-4 pb-20 md:p-8 md:pb-8"}>
-          <slot />
-        </main>
-      </div>
+      <main class="flex-1 overflow-y-auto">
+        <slot />
+      </main>
 
-      <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray/20 z-50 pb-[env(safe-area-inset-bottom)]" aria-label="Navegación principal">
+      <nav class="bg-white border-t border-gray/20 z-20 pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegación principal">
         <Nav currentPath={currentPath} client:load bottomNav />
       </nav>
     </div>

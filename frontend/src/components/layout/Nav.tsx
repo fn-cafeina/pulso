@@ -55,14 +55,14 @@ export default function Nav({ currentPath, bottomNav, mobileHeader }: NavProps) 
       <>
         <button
           onClick={() => setDrawerOpen(true)}
-          className="p-2 -ml-2 text-text hover:bg-gray/10 rounded-lg transition-colors cursor-pointer"
+          className="p-2.5 -ml-2 text-text hover:bg-gray/10 rounded-lg transition-colors cursor-pointer"
           aria-label="Abrir menú"
         >
           <Menu className="w-6 h-6" />
         </button>
 
         {drawerOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 z-[60] md:hidden">
             <div
               className="absolute inset-0 bg-black/40"
               onClick={() => setDrawerOpen(false)}
@@ -75,7 +75,7 @@ export default function Nav({ currentPath, bottomNav, mobileHeader }: NavProps) 
                 </div>
                 <button
                   onClick={() => setDrawerOpen(false)}
-                  className="p-2 text-gray hover:text-text hover:bg-gray/10 rounded-lg transition-colors cursor-pointer"
+                  className="p-2.5 text-gray hover:text-text hover:bg-gray/10 rounded-lg transition-colors cursor-pointer"
                   aria-label="Cerrar menú"
                 >
                   <X className="w-5 h-5" />
@@ -91,7 +91,7 @@ export default function Nav({ currentPath, bottomNav, mobileHeader }: NavProps) 
                       key={item.href}
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                         active
                           ? "bg-primary/10 text-primary"
                           : "text-text hover:bg-gray/10"
