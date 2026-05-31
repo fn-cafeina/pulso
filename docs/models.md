@@ -61,7 +61,7 @@ No hay endpoint para listar usuarios. El password se guarda hasheado con bcrypt.
 | Campo | Tipo Go | JSON | Constraints |
 |-------|---------|------|-------------|
 | Nombre | `string` | `nombre` | `binding:"required"` |
-| Tipo | `string` | `tipo` | `binding:"required,oneof=hospital clinica puesto_salud"` |
+| Tipo | `string` | `tipo` | `binding:"required"` |
 | Latitud | `float64` | `latitud` | opcional |
 | Longitud | `float64` | `longitud` | opcional |
 

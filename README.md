@@ -25,7 +25,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 ## Stack
 
 - **Backend:** Go 1.26 + Gin + GORM + SQLite
-- **Frontend:** Astro + Tailwind CSS
+- **Frontend:** Astro + React + Tailwind CSS
 - **IA:** Integración con API externa para asistente virtual
 
 ## Documentación
@@ -40,7 +40,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 
 ```
 backend/     # API REST (Go + Gin + GORM + SQLite)
-frontend/    # App web (Astro + Tailwind CSS 4)
+frontend/    # App web (Astro + React + Tailwind CSS 4)
 docs/        # Documentación detallada
 ```
 
@@ -55,9 +55,11 @@ make dev                # Inicia con hot-reload (Air)
 
 ### Frontend
 ```bash
-cd frontend             # Requiere Node >= 22.12.0
+cd frontend             # Requires Node >= 22.12.0
 npm install
-npm run dev             # Inicia entorno de desarrollo Astro
+npm run dev             # Desarrollo en :4321
+npm run build           # Build producción
+npm run preview         # Preview del build
 ```
 
 ## Licencia

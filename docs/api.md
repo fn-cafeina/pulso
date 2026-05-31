@@ -263,7 +263,7 @@ Crea recordatorio automático tipo `cita`.
     {
       "id": 1,
       "nombre": "Centro de Salud Villa Libertad",
-      "tipo": "centro",
+      "tipo": "hospital",
       "latitud": 12.1328,
       "longitud": -86.2504,
       "created_at": "2026-05-20T10:00:00Z",
@@ -286,7 +286,7 @@ Incluye campo extra `distancia_km`.
     {
       "id": 1,
       "nombre": "Centro de Salud Villa Libertad",
-      "tipo": "centro",
+      "tipo": "hospital",
       "latitud": 12.1328,
       "longitud": -86.2504,
       "distancia_km": 1.23,
@@ -305,7 +305,7 @@ Incluye campo extra `distancia_km`.
 ```json
 {
   "nombre": "Centro de Salud Villa Libertad",
-  "tipo": "centro",
+  "tipo": "hospital",
   "latitud": 12.1328,
   "longitud": -86.2504
 }
@@ -314,7 +314,7 @@ Incluye campo extra `distancia_km`.
 **Response 201:**
 ```json
 {
-  "data": { "id": 1, "nombre": "Centro de Salud Villa Libertad", "tipo": "centro", ... },
+  "data": { "id": 1, "nombre": "Centro de Salud Villa Libertad", "tipo": "hospital", ... },
   "message": "servicio creado"
 }
 ```
@@ -333,7 +333,7 @@ Todos los campos opcionales en update.
 **Response 200:**
 ```json
 {
-  "data": { "id": 1, "nombre": "Centro de Salud Villa Libertad (actualizado)", "tipo": "centro", ... },
+  "data": { "id": 1, "nombre": "Centro de Salud Villa Libertad (actualizado)", "tipo": "hospital", ... },
   "message": "servicio actualizado"
 }
 ```

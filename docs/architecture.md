@@ -63,6 +63,7 @@ Cada capa se comunica mediante interfaces definidas en `repository/` y `service/
 | `PORT` | `:8080` | Puerto del servidor |
 | `DB_PATH` | `pulso.db` | Ruta del archivo SQLite |
 | `GEMINI_API_KEY` | `""` | API key de Gemini (opcional → AI da 503 si falta) |
+| `CORS_ORIGIN` | `http://localhost:4321` | Origen permitido por CORS |
 | `HEALTH_WORKER_SECRET` | **requerido** | Código secreto para rol health_worker (server falla si vacío) |
 
 Las variables se cargan desde `backend/.env` vía `godotenv.Load()`. Variables de entorno del sistema tienen prioridad sobre `.env`.
@@ -118,6 +119,9 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 
 ### CORS
 Configurable vía variable `CORS_ORIGIN` (default: `http://localhost:4321`).
+
+### Graceful shutdown
+El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s, permitiendo que requests en curso finalicen antes de cerrar conexiones.
 
 ## Tests
 
