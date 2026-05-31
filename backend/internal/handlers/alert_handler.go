@@ -46,10 +46,20 @@ func (h *AlertHandler) GetAll(c *gin.Context) {
 	nivel := c.Query("nivel")
 	departamento := c.Query("departamento")
 	soloActivas := c.Query("activas") == "true"
+	p := ParsePagination(c)
 
-	alerts, err := h.alertSvc.GetAll(nivel, departamento, soloActivas)
+	alerts, total, err := h.alertSvc.GetAll(nivel, departamento, soloActivas, p.Page, p.PerPage)
 	if err != nil {
 		InternalError(c, err)
+		return
+	}
+
+	if p.IsEnabled() {
+		PaginatedSuccess(c, http.StatusOK, alerts, PaginationMeta{
+			Page:    p.Page,
+			PerPage: p.PerPage,
+			Total:   total,
+		})
 		return
 	}
 

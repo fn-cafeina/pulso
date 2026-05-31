@@ -28,18 +28,31 @@ func (m *mockEventRepo) FindByID(id uint) (*models.HealthEvent, error) {
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (m *mockEventRepo) FindAll(upcoming bool) ([]models.HealthEvent, error) {
+func (m *mockEventRepo) FindAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error) {
+	var base []models.HealthEvent
 	if !upcoming {
-		return m.events, nil
-	}
-	var result []models.HealthEvent
-	now := time.Now()
-	for _, e := range m.events {
-		if e.FechaFin.After(now) || e.FechaInicio.After(now) {
-			result = append(result, e)
+		base = m.events
+	} else {
+		now := time.Now()
+		for _, e := range m.events {
+			if e.FechaFin.After(now) || e.FechaInicio.After(now) {
+				base = append(base, e)
+			}
 		}
 	}
-	return result, nil
+	total := int64(len(base))
+	if page <= 0 {
+		return base, total, nil
+	}
+	offset := (page - 1) * perPage
+	if offset >= len(base) {
+		return nil, total, nil
+	}
+	end := offset + perPage
+	if end > len(base) {
+		end = len(base)
+	}
+	return base[offset:end], total, nil
 }
 
 func (m *mockEventRepo) Update(event *models.HealthEvent) error {
@@ -117,12 +130,34 @@ func TestEventGetAll_ReturnsAll(t *testing.T) {
 		FechaFin:    time.Now().Add(48 * time.Hour),
 	})
 
-	all, err := svc.GetAll(false)
+	all, _, err := svc.GetAll(false, 0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if len(all) != 2 {
 		t.Fatalf("expected 2 events, got %d", len(all))
+	}
+}
+
+func TestEventGetAll_Pagination(t *testing.T) {
+	repo := &mockEventRepo{}
+	svc := service.NewEventService(repo)
+	for i := 0; i < 5; i++ {
+		_ = svc.Create(&models.HealthEvent{
+			Titulo: "E", Tipo: "jornada",
+			FechaInicio: time.Now(),
+		})
+	}
+
+	page1, total, err := svc.GetAll(false, 1, 2)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if len(page1) != 2 {
+		t.Fatalf("expected 2 on page 1, got %d", len(page1))
+	}
+	if total != 5 {
+		t.Fatalf("expected total 5, got %d", total)
 	}
 }
 
@@ -140,7 +175,7 @@ func TestEventGetAll_Upcoming(t *testing.T) {
 		FechaFin:    time.Now().Add(48 * time.Hour),
 	})
 
-	upcoming, err := svc.GetAll(true)
+	upcoming, _, err := svc.GetAll(true, 0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

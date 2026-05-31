@@ -8,7 +8,7 @@ import (
 type AlertService interface {
 	Create(alert *models.EpiAlert) error
 	GetByID(id uint) (*models.EpiAlert, error)
-	GetAll(nivel, departamento string, soloActivas bool) ([]models.EpiAlert, error)
+	GetAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error)
 	Update(alert *models.EpiAlert) (*models.EpiAlert, error)
 	Delete(id uint) error
 	Deactivate(id uint) error
@@ -34,8 +34,8 @@ func (s *alertService) GetByID(id uint) (*models.EpiAlert, error) {
 	return alert, nil
 }
 
-func (s *alertService) GetAll(nivel, departamento string, soloActivas bool) ([]models.EpiAlert, error) {
-	return s.repo.FindAll(nivel, departamento, soloActivas)
+func (s *alertService) GetAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error) {
+	return s.repo.FindAll(nivel, departamento, soloActivas, page, perPage)
 }
 
 func (s *alertService) Update(alert *models.EpiAlert) (*models.EpiAlert, error) {

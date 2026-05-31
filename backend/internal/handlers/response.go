@@ -24,6 +24,10 @@ func Error(c *gin.Context, status int, msg string) {
 	c.JSON(status, gin.H{"error": msg})
 }
 
+func PaginatedSuccess(c *gin.Context, status int, data any, meta PaginationMeta) {
+	c.JSON(status, gin.H{"data": data, "meta": meta})
+}
+
 func InternalError(c *gin.Context, err error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		Error(c, http.StatusNotFound, "recurso no encontrado")

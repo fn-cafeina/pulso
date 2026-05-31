@@ -27,8 +27,20 @@ func (m *mockServiceRepo) FindByID(id uint) (*models.HealthService, error) {
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (m *mockServiceRepo) FindAll() ([]models.HealthService, error) {
-	return m.services, nil
+func (m *mockServiceRepo) FindAll(page, perPage int) ([]models.HealthService, int64, error) {
+	total := int64(len(m.services))
+	if page <= 0 {
+		return m.services, total, nil
+	}
+	offset := (page - 1) * perPage
+	if offset >= len(m.services) {
+		return nil, total, nil
+	}
+	end := offset + perPage
+	if end > len(m.services) {
+		end = len(m.services)
+	}
+	return m.services[offset:end], total, nil
 }
 
 func (m *mockServiceRepo) Update(svc *models.HealthService) error {
@@ -91,7 +103,7 @@ func TestServiceGetAll_Success(t *testing.T) {
 	_ = svc.Create(&models.HealthService{Nombre: "C1", Tipo: "hospital"})
 	_ = svc.Create(&models.HealthService{Nombre: "C2", Tipo: "clinica"})
 
-	all, err := svc.GetAll()
+	all, _, err := svc.GetAll(0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -100,9 +112,28 @@ func TestServiceGetAll_Success(t *testing.T) {
 	}
 }
 
+func TestServiceGetAll_Pagination(t *testing.T) {
+	repo := &mockServiceRepo{}
+	svc := service.NewServiceService(repo)
+	for i := 0; i < 5; i++ {
+		_ = svc.Create(&models.HealthService{Nombre: "C"})
+	}
+
+	page1, total, err := svc.GetAll(1, 2)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if len(page1) != 2 {
+		t.Fatalf("expected 2 on page 1, got %d", len(page1))
+	}
+	if total != 5 {
+		t.Fatalf("expected total 5, got %d", total)
+	}
+}
+
 func TestServiceGetAll_Empty(t *testing.T) {
 	svc := service.NewServiceService(&mockServiceRepo{})
-	all, err := svc.GetAll()
+	all, _, err := svc.GetAll(0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

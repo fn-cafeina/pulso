@@ -32,12 +32,12 @@ func (h *EventHandler) Create(c *gin.Context) {
 	}
 
 	event := &models.HealthEvent{
-		Titulo:    req.Titulo,
-		Tipo:      req.Tipo,
+		Titulo:      req.Titulo,
+		Tipo:        req.Tipo,
 		Descripcion: req.Descripcion,
-		Ubicacion: req.Ubicacion,
-		Latitud:   req.Latitud,
-		Longitud:  req.Longitud,
+		Ubicacion:   req.Ubicacion,
+		Latitud:     req.Latitud,
+		Longitud:    req.Longitud,
 		Organizador: req.Organizador,
 		FechaInicio: fechaInicio,
 	}
@@ -105,9 +105,20 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 	}
 
 	upcoming := c.Query("upcoming") == "true"
-	events, err := h.eventSvc.GetAll(upcoming)
+	p := ParsePagination(c)
+
+	events, total, err := h.eventSvc.GetAll(upcoming, p.Page, p.PerPage)
 	if err != nil {
 		InternalError(c, err)
+		return
+	}
+
+	if p.IsEnabled() {
+		PaginatedSuccess(c, http.StatusOK, events, PaginationMeta{
+			Page:    p.Page,
+			PerPage: p.PerPage,
+			Total:   total,
+		})
 		return
 	}
 

@@ -85,9 +85,19 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	services, err := h.svcSvc.GetAll()
+	p := ParsePagination(c)
+	services, total, err := h.svcSvc.GetAll(p.Page, p.PerPage)
 	if err != nil {
 		InternalError(c, err)
+		return
+	}
+
+	if p.IsEnabled() {
+		PaginatedSuccess(c, http.StatusOK, services, PaginationMeta{
+			Page:    p.Page,
+			PerPage: p.PerPage,
+			Total:   total,
+		})
 		return
 	}
 

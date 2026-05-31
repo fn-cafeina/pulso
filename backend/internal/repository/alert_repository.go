@@ -8,7 +8,7 @@ import (
 type AlertRepository interface {
 	Create(alert *models.EpiAlert) error
 	FindByID(id uint) (*models.EpiAlert, error)
-	FindAll(nivel, departamento string, soloActivas bool) ([]models.EpiAlert, error)
+	FindAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error)
 	Update(alert *models.EpiAlert) error
 	Delete(id uint) error
 	Deactivate(id uint) error
@@ -32,9 +32,11 @@ func (r *alertRepository) FindByID(id uint) (*models.EpiAlert, error) {
 	return &alert, err
 }
 
-func (r *alertRepository) FindAll(nivel, departamento string, soloActivas bool) ([]models.EpiAlert, error) {
+func (r *alertRepository) FindAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error) {
 	var alerts []models.EpiAlert
-	q := r.db.Order("created_at DESC")
+	var total int64
+
+	q := r.db.Model(&models.EpiAlert{}).Order("created_at DESC")
 
 	if soloActivas {
 		q = q.Where("activa = ?", true)
@@ -46,8 +48,20 @@ func (r *alertRepository) FindAll(nivel, departamento string, soloActivas bool) 
 		q = q.Where("departamento = ?", departamento)
 	}
 
-	err := q.Find(&alerts).Error
-	return alerts, err
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if page > 0 {
+		offset := (page - 1) * perPage
+		q = q.Offset(offset).Limit(perPage)
+	}
+
+	if err := q.Find(&alerts).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return alerts, total, nil
 }
 
 func (r *alertRepository) Update(alert *models.EpiAlert) error {

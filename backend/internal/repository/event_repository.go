@@ -10,7 +10,7 @@ import (
 type EventRepository interface {
 	Create(event *models.HealthEvent) error
 	FindByID(id uint) (*models.HealthEvent, error)
-	FindAll(upcoming bool) ([]models.HealthEvent, error)
+	FindAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error)
 	Update(event *models.HealthEvent) error
 	Delete(id uint) error
 }
@@ -33,15 +33,30 @@ func (r *eventRepository) FindByID(id uint) (*models.HealthEvent, error) {
 	return &event, err
 }
 
-func (r *eventRepository) FindAll(upcoming bool) ([]models.HealthEvent, error) {
+func (r *eventRepository) FindAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error) {
 	var events []models.HealthEvent
-	q := r.db.Order("fecha_inicio ASC")
+	var total int64
+
+	q := r.db.Model(&models.HealthEvent{}).Order("fecha_inicio ASC")
 	if upcoming {
 		now := time.Now()
 		q = q.Where("fecha_fin >= ? OR fecha_inicio >= ?", now, now)
 	}
-	err := q.Find(&events).Error
-	return events, err
+
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if page > 0 {
+		offset := (page - 1) * perPage
+		q = q.Offset(offset).Limit(perPage)
+	}
+
+	if err := q.Find(&events).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return events, total, nil
 }
 
 func (r *eventRepository) Update(event *models.HealthEvent) error {

@@ -15,7 +15,7 @@ type NearbyService struct {
 type ServiceService interface {
 	Create(svc *models.HealthService) error
 	GetByID(id uint) (*models.HealthService, error)
-	GetAll() ([]models.HealthService, error)
+	GetAll(page, perPage int) ([]models.HealthService, int64, error)
 	GetNearby(lat, lng, radiusKm float64) ([]NearbyService, error)
 	Update(svc *models.HealthService) (*models.HealthService, error)
 	Delete(id uint) error
@@ -37,12 +37,12 @@ func (s *serviceService) GetByID(id uint) (*models.HealthService, error) {
 	return s.repo.FindByID(id)
 }
 
-func (s *serviceService) GetAll() ([]models.HealthService, error) {
-	return s.repo.FindAll()
+func (s *serviceService) GetAll(page, perPage int) ([]models.HealthService, int64, error) {
+	return s.repo.FindAll(page, perPage)
 }
 
 func (s *serviceService) GetNearby(lat, lng, radiusKm float64) ([]NearbyService, error) {
-	all, err := s.repo.FindAll()
+	all, _, err := s.repo.FindAll(0, 0)
 	if err != nil {
 		return nil, err
 	}

@@ -89,7 +89,10 @@ Las variables se cargan desde `backend/.env` vía `godotenv.Load()`. Variables d
 Haversine se calcula en Go, no en SQL. Se cargan todos los registros y se filtran en memoria. Aceptable para volúmenes de hackathon.
 
 ### Geo en mismo endpoint
-`GET /services` y `GET /events` detectan parámetros `?lat=&lng=&radius=` y responden con resultados filtrados + `distancia_km`. Sin parámetros → listado completo.
+`GET /services` y `GET /events` detectan parámetros `?lat=&lng=&radius=` y responden con resultados filtrados + `distancia_km`. Sin parámetros de geo → listado completo (paginated si `?page=&per_page=` presente).
+
+### Paginación
+`GET /services`, `/events` y `/alerts` soportan `?page=N&per_page=N`. Con `page=0` (default) retorna todos los registros. La respuesta paginada incluye `meta` con page, per_page y total. Búsqueda geográfica ignora paginación (resultados ya filtrados por radio).
 
 ### Update como merge
 PUT busca el registro existente, sobreescribe campos no vacíos, preserva `created_at` original.
@@ -125,6 +128,6 @@ El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s
 
 ## Tests
 
-- 62 tests en 9 archivos dentro de `backend/internal/service/`.
+- 65 tests en 9 archivos dentro de `backend/internal/service/`.
 - Patrón: mocks manuales con structs e inline methods, flag `fail bool` para errores.
 - `cd backend && make test` para ejecutar.

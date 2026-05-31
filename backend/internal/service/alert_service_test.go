@@ -27,8 +27,8 @@ func (m *mockAlertRepo) FindByID(id uint) (*models.EpiAlert, error) {
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (m *mockAlertRepo) FindAll(nivel, departamento string, soloActivas bool) ([]models.EpiAlert, error) {
-	var result []models.EpiAlert
+func (m *mockAlertRepo) FindAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error) {
+	var base []models.EpiAlert
 	for _, a := range m.alerts {
 		if soloActivas && !a.Activa {
 			continue
@@ -39,9 +39,21 @@ func (m *mockAlertRepo) FindAll(nivel, departamento string, soloActivas bool) ([
 		if departamento != "" && a.Departamento != departamento {
 			continue
 		}
-		result = append(result, a)
+		base = append(base, a)
 	}
-	return result, nil
+	total := int64(len(base))
+	if page <= 0 {
+		return base, total, nil
+	}
+	offset := (page - 1) * perPage
+	if offset >= len(base) {
+		return nil, total, nil
+	}
+	end := offset + perPage
+	if end > len(base) {
+		end = len(base)
+	}
+	return base[offset:end], total, nil
 }
 
 func (m *mockAlertRepo) Update(alert *models.EpiAlert) error {
@@ -117,12 +129,31 @@ func TestAlertGetAll_NoFilters(t *testing.T) {
 	_ = svc.Create(&models.EpiAlert{Titulo: "A1", Nivel: "bajo"})
 	_ = svc.Create(&models.EpiAlert{Titulo: "A2", Nivel: "alto"})
 
-	all, err := svc.GetAll("", "", false)
+	all, _, err := svc.GetAll("", "", false, 0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if len(all) != 2 {
 		t.Fatalf("expected 2 alerts, got %d", len(all))
+	}
+}
+
+func TestAlertGetAll_Pagination(t *testing.T) {
+	repo := &mockAlertRepo{}
+	svc := service.NewAlertService(repo)
+	for i := 0; i < 5; i++ {
+		_ = svc.Create(&models.EpiAlert{Titulo: "A", Nivel: "bajo"})
+	}
+
+	page1, total, err := svc.GetAll("", "", false, 1, 2)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if len(page1) != 2 {
+		t.Fatalf("expected 2 on page 1, got %d", len(page1))
+	}
+	if total != 5 {
+		t.Fatalf("expected total 5, got %d", total)
 	}
 }
 
@@ -133,7 +164,7 @@ func TestAlertGetAll_FilterByNivel(t *testing.T) {
 	_ = svc.Create(&models.EpiAlert{Titulo: "Alto", Nivel: "alto"})
 	_ = svc.Create(&models.EpiAlert{Titulo: "Medio", Nivel: "medio"})
 
-	filtered, err := svc.GetAll("alto", "", false)
+	filtered, _, err := svc.GetAll("alto", "", false, 0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -148,7 +179,7 @@ func TestAlertGetAll_FilterByActivas(t *testing.T) {
 	_ = svc.Create(&models.EpiAlert{Titulo: "Activa", Nivel: "bajo", Activa: true})
 	_ = svc.Create(&models.EpiAlert{Titulo: "Inactiva", Nivel: "medio", Activa: false})
 
-	activas, err := svc.GetAll("", "", true)
+	activas, _, err := svc.GetAll("", "", true, 0, 0)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

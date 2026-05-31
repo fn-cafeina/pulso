@@ -13,6 +13,9 @@ Base URL: `http://localhost:8080`
 
 // Error
 { "error": "..." }
+
+// Paginado (con ?page=&per_page=)
+{ "data": [...], "meta": { "page": 1, "per_page": 20, "total": 47 } }
 ```
 
 `POST /login` retorna token JWT dentro de `data`:
@@ -247,7 +250,7 @@ Crea recordatorio automático tipo `cita`.
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/services` | ❌ | Listar centros (`?lat=&lng=&radius=` opcional) |
+| GET | `/services` | ❌ | Listar centros (`?page=&per_page=`, `?lat=&lng=&radius=` opcional) |
 | GET | `/services/:id` | ❌ | Obtener centro por ID |
 | POST | `/services` | ✅ (hw) | Registrar centro |
 | PUT | `/services/:id` | ✅ (hw) | Actualizar centro |
@@ -270,6 +273,29 @@ Crea recordatorio automático tipo `cita`.
       "updated_at": "2026-05-20T10:00:00Z"
     }
   ]
+}
+```
+</details>
+
+<details>
+<summary><code>GET /services?page=1&per_page=10</code> — listar con paginación</summary>
+
+**Response 200:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Centro de Salud Villa Libertad",
+      "tipo": "hospital",
+      ...
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 10,
+    "total": 47
+  }
 }
 ```
 </details>
@@ -354,7 +380,7 @@ Todos los campos opcionales en update.
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/events` | ❌ | Listar eventos (`?upcoming=true`, `?lat=&lng=&radius=`) |
+| GET | `/events` | ❌ | Listar eventos (`?upcoming=true`, `?page=&per_page=`, `?lat=&lng=&radius=`) |
 | GET | `/events/:id` | ❌ | Obtener evento por ID |
 | POST | `/events` | ✅ (hw) | Crear evento |
 | PUT | `/events/:id` | ✅ (hw) | Actualizar evento |
@@ -467,7 +493,7 @@ Todos los campos opcionales.
 
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/alerts` | ❌ | Listar alertas (`?nivel=&departamento=&activas=true`) |
+| GET | `/alerts` | ❌ | Listar alertas (`?nivel=&departamento=&activas=true`, `?page=&per_page=`) |
 | GET | `/alerts/:id` | ❌ | Obtener alerta por ID |
 | POST | `/alerts` | ✅ (hw) | Crear alerta |
 | PUT | `/alerts/:id` | ✅ (hw) | Actualizar alerta |

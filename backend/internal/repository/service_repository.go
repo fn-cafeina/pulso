@@ -8,7 +8,7 @@ import (
 type ServiceRepository interface {
 	Create(svc *models.HealthService) error
 	FindByID(id uint) (*models.HealthService, error)
-	FindAll() ([]models.HealthService, error)
+	FindAll(page, perPage int) ([]models.HealthService, int64, error)
 	Update(svc *models.HealthService) error
 	Delete(id uint) error
 }
@@ -31,10 +31,25 @@ func (r *serviceRepository) FindByID(id uint) (*models.HealthService, error) {
 	return &svc, err
 }
 
-func (r *serviceRepository) FindAll() ([]models.HealthService, error) {
+func (r *serviceRepository) FindAll(page, perPage int) ([]models.HealthService, int64, error) {
 	var services []models.HealthService
-	err := r.db.Find(&services).Error
-	return services, err
+	var total int64
+
+	if err := r.db.Model(&models.HealthService{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	q := r.db
+	if page > 0 {
+		offset := (page - 1) * perPage
+		q = q.Offset(offset).Limit(perPage)
+	}
+
+	if err := q.Find(&services).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return services, total, nil
 }
 
 func (r *serviceRepository) Update(svc *models.HealthService) error {

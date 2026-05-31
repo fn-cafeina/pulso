@@ -15,7 +15,7 @@ type NearbyEvent struct {
 type EventService interface {
 	Create(event *models.HealthEvent) error
 	GetByID(id uint) (*models.HealthEvent, error)
-	GetAll(upcoming bool) ([]models.HealthEvent, error)
+	GetAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error)
 	GetNearby(lat, lng, radiusKm float64) ([]NearbyEvent, error)
 	Update(event *models.HealthEvent) (*models.HealthEvent, error)
 	Delete(id uint) error
@@ -41,12 +41,12 @@ func (s *eventService) GetByID(id uint) (*models.HealthEvent, error) {
 	return event, nil
 }
 
-func (s *eventService) GetAll(upcoming bool) ([]models.HealthEvent, error) {
-	return s.repo.FindAll(upcoming)
+func (s *eventService) GetAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error) {
+	return s.repo.FindAll(upcoming, page, perPage)
 }
 
 func (s *eventService) GetNearby(lat, lng, radiusKm float64) ([]NearbyEvent, error) {
-	all, err := s.repo.FindAll(true)
+	all, _, err := s.repo.FindAll(true, 0, 0)
 	if err != nil {
 		return nil, err
 	}

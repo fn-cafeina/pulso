@@ -44,13 +44,13 @@ Manual DI in `cmd/api/main.go`. Interfaces at service/repo layers.
 - DB: SQLite via `glebarez/sqlite` (pure-Go), WAL mode, AutoMigrate on startup
 - CORS: `CORS_ORIGIN` env (default `http://localhost:4321`)
 
-## Tests (62, 9 files)
+## Tests (65, 12 files)
 
 Only `backend/internal/service/` has tests. Pattern: mock repo structs with inline methods, `fail bool` flag.
 
 ## Quirks
 
 - `HealthService.Tipo` validation (`hospital`, `clinica`, `puesto_salud`) is in request DTOs, not the model
-- No CI/CD, no pagination
+- No CI/CD
 - Graceful shutdown on SIGINT/SIGTERM (10s timeout)
 - `parseTime()` accepts 3 formats: `2006-01-02T15:04:05Z`, `2006-01-02T15:04:05`, `2006-01-02`
