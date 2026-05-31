@@ -64,7 +64,7 @@ export default function LoginForm() {
             aria-describedby={fieldErrors.username ? "username-error" : undefined}
             value={username}
             onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); }}
-            className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+            className={`w-full pl-10 pr-4 py-3 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
               fieldErrors.username
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
@@ -94,7 +94,7 @@ export default function LoginForm() {
             aria-describedby={fieldErrors.password ? "password-error" : undefined}
             value={password}
             onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
-            className={`w-full pl-10 pr-12 py-2.5 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+            className={`w-full pl-10 pr-12 py-3 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
               fieldErrors.password
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30"
@@ -104,7 +104,7 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray hover:text-text transition-colors cursor-pointer rounded-md"
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 text-gray hover:text-text transition-colors cursor-pointer rounded-md"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
