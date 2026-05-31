@@ -122,13 +122,13 @@ export default function ChatInterface() {
   const handleInput = () => {
     const ta = textareaRef.current;
     if (ta) {
-      ta.style.height = "auto";
-      ta.style.height = Math.min(ta.scrollHeight, 120) + "px";
+      ta.style.height = "0";
+      ta.style.height = Math.min(Math.max(ta.scrollHeight, 40), 96) + "px";
     }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-screen -mx-4 md:mx-0">
+    <div className="flex flex-col h-full">
       <div className="bg-white border-b border-gray/20 px-4 py-3 flex items-center gap-3">
         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
           <Stethoscope className="w-5 h-5 text-primary" />
@@ -139,7 +139,7 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 overscroll-behavior-contain">
         {initialLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
@@ -208,9 +208,9 @@ export default function ChatInterface() {
             onChange={(e) => { setInput(e.target.value); setError(""); }}
             onKeyDown={handleKeyDown}
             onInput={handleInput}
-            placeholder="Describe tus síntomas o haz una pregunta..."
+            placeholder="Pregunta sobre tu salud..."
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-gray/30 bg-neutral px-4 py-2.5 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+            className="flex-1 resize-none rounded-xl border border-gray/30 bg-neutral px-4 py-2.5 text-base text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors overflow-y-auto"
           />
           <button
             onClick={() => handleSend()}
@@ -248,7 +248,7 @@ function MessageBubble({ msg, onSend }: { msg: Message; onSend: (text: string) =
             <Stethoscope className="w-4 h-4 text-gray" />
           )}
         </div>
-        <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed overflow-hidden break-words ${
           msg.role === "user"
             ? "bg-primary text-white rounded-br-md"
             : "bg-white border border-gray/20 text-text rounded-bl-md"
