@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -106,6 +107,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	if err != nil {
 		return nil, err
 	}
+	respuesta = NormalizeResponse(respuesta)
 
 	consult := &models.AIConsultation{
 		UserID:    userID,
@@ -121,4 +123,43 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 
 func (s *aiService) GetHistory(userID uint) ([]models.AIConsultation, error) {
 	return s.aiRepo.FindByUserID(userID)
+}
+
+var (
+	reMultiNewline = regexp.MustCompile(`\n{3,}`)
+	reMarkdownBold = regexp.MustCompile(`\*\*`)
+)
+
+func NormalizeResponse(r string) string {
+	r = strings.TrimSpace(r)
+
+	if !strings.HasPrefix(r, "¡") &&
+		!strings.HasPrefix(r, "Hola") &&
+		!strings.HasPrefix(r, "Claro") &&
+		!strings.HasPrefix(r, "Tranquil") &&
+		!strings.HasPrefix(r, "Mirá") &&
+		!strings.HasPrefix(r, "Bueno") {
+		r = "¡Hola! " + r
+	}
+
+	hasClosing := strings.HasSuffix(r, "?") ||
+		strings.Contains(r, "¿Algo más") ||
+		strings.Contains(r, "¿Tenés alguna") ||
+		strings.Contains(r, "¿Has notado") ||
+		strings.Contains(r, "Cuidate")
+
+	if !hasClosing {
+		r += "\n\n¿Algo más en lo que pueda ayudarte? 😊"
+	}
+
+	centerCount := reMarkdownBold.FindAllStringIndex(r, -1)
+	lower := strings.ToLower(r)
+	if strings.Contains(lower, "acud") && strings.Contains(lower, "centro de salud") && len(centerCount) < 2 {
+		re := regexp.MustCompile(`(?i)(acud\w* al centro de salud más cercano)`)
+		r = re.ReplaceAllString(r, "**$1**")
+	}
+
+	r = reMultiNewline.ReplaceAllString(r, "\n\n")
+
+	return r
 }

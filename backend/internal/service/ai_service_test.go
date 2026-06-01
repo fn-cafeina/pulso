@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
@@ -132,5 +133,59 @@ func TestAIGetHistory_Empty(t *testing.T) {
 	}
 	if len(history) != 0 {
 		t.Fatalf("expected 0 history entries, got %d", len(history))
+	}
+}
+
+func TestNormalizeResponse_AddsGreeting(t *testing.T) {
+	result := service.NormalizeResponse("Tomá bastante agua.")
+	if !strings.HasPrefix(result, "¡Hola!") {
+		t.Fatalf("expected greeting prefix, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_AlreadyGreeted(t *testing.T) {
+	result := service.NormalizeResponse("¡Hola! Mirá, esto es un consejo.")
+	if !strings.HasPrefix(result, "¡Hola!") {
+		t.Fatalf("expected unchanged greeting, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_AddsClosing(t *testing.T) {
+	result := service.NormalizeResponse("¡Hola! Descansá y tomá agua.")
+	if !strings.HasSuffix(result, "😊") {
+		t.Fatalf("expected closing with emoji, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_AlreadyHasClosing(t *testing.T) {
+	result := service.NormalizeResponse("¡Hola! ¿Has notado algo más?")
+	if !strings.HasSuffix(result, "?") {
+		t.Fatalf("expected trailing question, got: %s", result)
+	}
+	if strings.Count(result, "😊") > 0 {
+		t.Fatal("should not add extra emoji when already closed")
+	}
+}
+
+func TestNormalizeResponse_WrapsUrgentInBold(t *testing.T) {
+	result := service.NormalizeResponse("Acude al centro de salud más cercano.")
+	if !strings.Contains(result, "**Acude") {
+		t.Fatalf("expected bold wrapping, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_CollapsesExtraNewlines(t *testing.T) {
+	input := "¡Hola!\n\n\n\n¿Cómo estás?"
+	result := service.NormalizeResponse(input)
+	if strings.Contains(result, "\n\n\n") {
+		t.Fatalf("expected no triple newlines, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_NoChangeIfWellFormatted(t *testing.T) {
+	input := "¡Hola! Mirá lo que te puedo decir. Cuidate mucho. ¿Tenés alguna otra duda?"
+	result := service.NormalizeResponse(input)
+	if result != input {
+		t.Fatalf("expected unchanged, got: %s", result)
 	}
 }
