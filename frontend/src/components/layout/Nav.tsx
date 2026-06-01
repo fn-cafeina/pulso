@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { getUsername, clearAuth } from "../../lib/api";
+import { navigate } from "astro:transitions/client";
+import { useAuth, clearAuth } from "../../lib/auth";
 import {
   Home,
   Stethoscope,
@@ -38,11 +39,11 @@ const bottomItems = [
 
 export default function Nav({ currentPath, bottomNav, mobileHeader }: NavProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const username = getUsername();
+  const { username } = useAuth();
 
   const handleLogout = () => {
     clearAuth();
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   const isActive = (href: string) => {

@@ -1,17 +1,26 @@
 import { useState, useRef, useEffect } from "react";
+import { navigate } from "astro:transitions/client";
 import { login } from "../../lib/api";
-import { User, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { isAuthenticated } from "../../lib/auth";
+import { User, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
   const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     usernameRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate("/");
+    }
   }, []);
 
   const clearFieldError = (name: string) => {
@@ -23,13 +32,13 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setFieldErrors({});
-
     setLoading(true);
 
     try {
       await login(username.trim(), password);
-      window.location.href = "/";
+      navigate("/");
     } catch (err: any) {
       const msg = err.message;
       if (msg === "usuario no encontrado") {
@@ -37,21 +46,36 @@ export default function LoginForm() {
       } else if (msg === "contraseña incorrecta") {
         setFieldErrors({ password: "Contraseña incorrecta" });
       } else {
-        setFieldErrors({ username: msg });
+        setError(msg);
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const btnClass = `w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]`;
+  const inputClass = (hasError: boolean) =>
+    `w-full pl-10 pr-12 py-3 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-all duration-200 ${
+      hasError
+        ? "border-danger focus:ring-danger/50 focus:border-danger"
+        : "border-gray/30 focus:ring-primary/50 focus:border-primary"
+    }`;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      {error && (
+        <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-lg px-4 py-3 text-sm animate-shake" role="alert">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
       <div>
         <label htmlFor="username" className="block text-sm font-medium text-text mb-1">
           Usuario
         </label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" aria-hidden="true" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray pointer-events-none" aria-hidden="true" />
           <input
             ref={usernameRef}
             id="username"
@@ -63,12 +87,8 @@ export default function LoginForm() {
             aria-invalid={!!fieldErrors.username}
             aria-describedby={fieldErrors.username ? "username-error" : undefined}
             value={username}
-            onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); }}
-            className={`w-full pl-10 pr-4 py-3 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
-              fieldErrors.username
-                ? "border-danger focus:ring-danger/50 focus:border-danger"
-                : "border-gray/30"
-            }`}
+            onChange={(e) => { setUsername(e.target.value); clearFieldError("username"); setError(""); }}
+            className={inputClass(!!fieldErrors.username)}
             placeholder="Tu usuario"
           />
         </div>
@@ -82,7 +102,7 @@ export default function LoginForm() {
           Contraseña
         </label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" aria-hidden="true" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray pointer-events-none" aria-hidden="true" />
           <input
             id="password"
             name="password"
@@ -93,12 +113,8 @@ export default function LoginForm() {
             aria-invalid={!!fieldErrors.password}
             aria-describedby={fieldErrors.password ? "password-error" : undefined}
             value={password}
-            onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
-            className={`w-full pl-10 pr-12 py-3 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
-              fieldErrors.password
-                ? "border-danger focus:ring-danger/50 focus:border-danger"
-                : "border-gray/30"
-            }`}
+            onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); setError(""); }}
+            className={`${inputClass(!!fieldErrors.password)} pr-12`}
             placeholder="Tu contraseña"
           />
           <button
@@ -106,6 +122,7 @@ export default function LoginForm() {
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 text-gray hover:text-text transition-colors cursor-pointer rounded-md"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            tabIndex={-1}
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
@@ -115,11 +132,7 @@ export default function LoginForm() {
         )}
       </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-primary hover:bg-primary-dark disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
+      <button type="submit" disabled={loading} className={btnClass}>
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />

@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { isAuthenticated, getUsername, getRole } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import {
   Stethoscope,
   ClipboardList,
@@ -33,18 +32,10 @@ function SkeletonHome() {
 }
 
 export default function Home() {
-  const [authorized, setAuthorized] = useState<boolean | null>(null);
-  const [username, setUsername] = useState("");
-  const [rol, setRol] = useState("");
+  const { username, rol, isAuthenticated, hydrated } = useAuth();
 
-  useEffect(() => {
-    if (!isAuthenticated()) return;
-    setUsername(getUsername() || "");
-    setRol(getRole() || "");
-    setAuthorized(true);
-  }, []);
-
-  if (authorized === null) return <SkeletonHome />;
+  if (!hydrated) return <SkeletonHome />;
+  if (!isAuthenticated) return null;
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">

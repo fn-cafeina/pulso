@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { isAuthenticated } from "../../lib/api";
+import { navigate } from "astro:transitions/client";
+import { isAuthenticated } from "../../lib/auth";
 import { Loader2 } from "lucide-react";
 
 export default function AuthGuard() {
@@ -7,7 +8,7 @@ export default function AuthGuard() {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      window.location.href = "/login";
+      navigate("/login");
       return;
     }
     setChecking(false);
