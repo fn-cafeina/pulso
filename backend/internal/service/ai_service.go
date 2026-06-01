@@ -67,6 +67,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	}
 
 	var b strings.Builder
+	b.WriteString(fmt.Sprintf("[FECHA ACTUAL: %s]\n\n", time.Now().Format("02/01/2006")))
 	b.WriteString("[CONTEXTO DEL USUARIO]\n")
 
 	if user != nil && user.AntecedentesMedicos != "" {
