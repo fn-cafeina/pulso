@@ -44,7 +44,7 @@ Manual DI in `cmd/api/main.go`. Interfaces at service/repo layers.
 - DB: SQLite via `glebarez/sqlite` (pure-Go), WAL mode, AutoMigrate on startup
 - CORS: `CORS_ORIGIN` env (default `http://localhost:4321`)
 
-## Tests (65, 12 files)
+## Tests (72, 9 files)
 
 Only `backend/internal/service/` has tests. Pattern: mock repo structs with inline methods, `fail bool` flag.
 

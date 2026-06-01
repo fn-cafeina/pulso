@@ -144,6 +144,7 @@ func NormalizeResponse(r string) string {
 
 	hasClosing := strings.HasSuffix(r, "?") ||
 		strings.Contains(r, "¿Algo más") ||
+		strings.Contains(r, "¿Hay algo más") ||
 		strings.Contains(r, "¿Tenés alguna") ||
 		strings.Contains(r, "¿Has notado") ||
 		strings.Contains(r, "Cuidate")

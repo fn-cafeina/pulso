@@ -105,10 +105,11 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 ### Asistente IA
 - Gemini 3.1 Flash Lite (GA desde mayo 2026, $0.25/1M input tokens).
 - Modelo: `gemini-3.1-flash-lite`.
-- Temperatura fija en 0.2. Sin streaming.
+- Temperatura 0.8. Sin streaming.
 - Inyecta contexto del usuario (antecedentes, síntomas, vacunas, citas futuras) en el prompt.
-- 30s timeout. Sin key o rate-limit → 503.
-- Prompt del sistema en español: no diagnostica ni receta.
+- 30s timeout, 3 retries con backoff. Sin key o rate-limit → 503.
+- Prompt del sistema en español con personalidad cálida y lenguaje nicaragüense (vos).
+- Post-procesado con `NormalizeResponse()`: garantiza saludo, cierre amigable y negritas en alertas.
 
 ### Recordatorios automáticos
 - Al crear cita → recordatorio tipo `cita`.
@@ -128,6 +129,6 @@ El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s
 
 ## Tests
 
-- 65 tests en 9 archivos dentro de `backend/internal/service/`.
+- 72 tests en 9 archivos dentro de `backend/internal/service/`.
 - Patrón: mocks manuales con structs e inline methods, flag `fail bool` para errores.
 - `cd backend && make test` para ejecutar.
