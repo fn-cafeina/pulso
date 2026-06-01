@@ -25,7 +25,7 @@ func (r *aiRepository) Create(consult *models.AIConsultation) error {
 func (r *aiRepository) FindByUserID(userID uint) ([]models.AIConsultation, error) {
 	var consults []models.AIConsultation
 	err := r.db.Where("user_id = ?", userID).
-		Order("created_at DESC").
+		Order("created_at ASC").
 		Find(&consults).Error
 	return consults, err
 }
