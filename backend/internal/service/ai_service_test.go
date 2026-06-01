@@ -189,3 +189,24 @@ func TestNormalizeResponse_NoChangeIfWellFormatted(t *testing.T) {
 		t.Fatalf("expected unchanged, got: %s", result)
 	}
 }
+
+func TestNormalizeResponse_HayAlgoMasClosing(t *testing.T) {
+	result := service.NormalizeResponse("¡Hola! ¿Hay algo más en lo que pueda ayudarte?")
+	if strings.Count(result, "¿Algo más") > 1 {
+		t.Fatalf("expected no duplicate closing, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_EmojiTrailingQuestion(t *testing.T) {
+	result := service.NormalizeResponse("¡Hola! Descansá y tomá agua. ¿Cómo te sentís? 😊")
+	if strings.Count(result, "😊") > 1 {
+		t.Fatalf("expected no duplicate emoji, got: %s", result)
+	}
+}
+
+func TestNormalizeResponse_BuenasGreeting(t *testing.T) {
+	result := service.NormalizeResponse("Buenas, mirá lo que te puedo decir.")
+	if !strings.HasPrefix(result, "Buenas") {
+		t.Fatalf("expected Buenas prefix unchanged, got: %s", result)
+	}
+}
