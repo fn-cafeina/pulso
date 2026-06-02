@@ -31,12 +31,12 @@ const { pageTitle, currentPath } = Astro.props;
     <AuthGuard client:load />
 
     <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray/20 z-40">
-      <SidebarNav currentPath={currentPath} client:load />
+      <SidebarNav currentPath={currentPath} client:idle />
     </aside>
 
     <div class="md:ml-64 h-screen flex flex-col">
       <header class="bg-white border-b border-gray/20 px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between md:hidden z-30">
-        <MobileDrawer currentPath={currentPath} client:load />
+        <MobileDrawer currentPath={currentPath} client:idle />
       </header>
 
       <main class="flex-1 overflow-y-auto">
@@ -44,7 +44,7 @@ const { pageTitle, currentPath } = Astro.props;
       </main>
 
       <nav class="bg-white border-t border-gray/20 z-20 pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegación principal">
-        <BottomNav currentPath={currentPath} client:load />
+        <BottomNav currentPath={currentPath} client:idle />
       </nav>
     </div>
   </body>

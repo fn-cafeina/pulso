@@ -72,7 +72,7 @@ export default function RegisterForm() {
     }
   };
 
-  const btnClass = `w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]`;
+  const btnClass = `w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg shadow hover:shadow-md active:shadow-sm transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]`;
   const inputClass = (hasError: boolean) =>
     `w-full pl-10 pr-12 py-3 rounded-lg border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-all duration-200 ${
       hasError
