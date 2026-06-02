@@ -2,7 +2,9 @@
 import '../styles/global.css'
 import { ClientRouter } from 'astro:transitions';
 import AuthGuard from '../components/layout/AuthGuard';
-import Nav from '../components/layout/Nav';
+import SidebarNav from '../components/layout/SidebarNav';
+import BottomNav from '../components/layout/BottomNav';
+import MobileDrawer from '../components/layout/MobileDrawer';
 
 const { pageTitle, currentPath } = Astro.props;
 ---
@@ -29,12 +31,12 @@ const { pageTitle, currentPath } = Astro.props;
     <AuthGuard client:load />
 
     <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray/20 z-40">
-      <Nav currentPath={currentPath} client:load />
+      <SidebarNav currentPath={currentPath} client:load />
     </aside>
 
     <div class="md:ml-64 h-screen flex flex-col">
       <header class="bg-white border-b border-gray/20 px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between md:hidden z-30">
-        <Nav currentPath={currentPath} client:load mobileHeader />
+        <MobileDrawer currentPath={currentPath} client:load />
       </header>
 
       <main class="flex-1 overflow-y-auto">
@@ -42,7 +44,7 @@ const { pageTitle, currentPath } = Astro.props;
       </main>
 
       <nav class="bg-white border-t border-gray/20 z-20 pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegación principal">
-        <Nav currentPath={currentPath} client:load bottomNav />
+        <BottomNav currentPath={currentPath} client:load />
       </nav>
     </div>
   </body>
