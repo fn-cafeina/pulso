@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "@fontsource/nunito/400.css";
+@import "@fontsource/nunito/500.css";
+@import "@fontsource/nunito/600.css";
+@import "@fontsource/nunito/700.css";
+@import "@fontsource/nunito/800.css";
 @plugin "@tailwindcss/typography";
 
 :root {
@@ -47,6 +52,7 @@
   --color-gray: var(--color-gray);
   --color-text: var(--color-text);
   --color-white: var(--color-white);
+  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
   --animate-fade-in-up: fade-in-up 0.4s ease-out;
   --animate-fade-in-right: fade-in-right 0.25s ease-out;
   --animate-shake: shake 0.4s ease-in-out;
@@ -83,6 +89,9 @@
 }
 
 @layer base {
+  html {
+    font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  }
   * {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
