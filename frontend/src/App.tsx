@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route, Navigate, ScrollRestoration } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "./stores/auth";
 import AuthLayout from "./components/layout/AuthLayout";
 import AppLayout from "./components/layout/AppLayout";
@@ -14,15 +14,18 @@ import RecordatoriosPage from "./pages/RecordatoriosPage";
 import ServiciosPage from "./pages/ServiciosPage";
 
 export default function App() {
+  const { pathname } = useLocation();
   const initFromStorage = useAuthStore((s) => s.initFromStorage);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     initFromStorage();
   }, [initFromStorage]);
 
   return (
-    <>
-    <ScrollRestoration />
     <Routes>
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
@@ -39,6 +42,5 @@ export default function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </>
   );
 }
