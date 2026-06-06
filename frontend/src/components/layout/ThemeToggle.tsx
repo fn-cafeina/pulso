@@ -24,7 +24,9 @@ export default function ThemeToggle() {
       className="flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium text-text hover:bg-gray/10 transition-colors cursor-pointer w-full"
       aria-label={dark ? "Activar modo claro" : "Activar modo oscuro"}
     >
-      {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      <span className="inline-block transition-transform duration-500" style={{ transform: dark ? "rotate(180deg)" : "rotate(0deg)" }}>
+        {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </span>
       {dark ? "Modo claro" : "Modo oscuro"}
     </button>
   );
