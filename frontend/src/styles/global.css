@@ -6,22 +6,6 @@
 @import "@fontsource/nunito/800.css";
 @plugin "@tailwindcss/typography";
 
-.dark {
-  --color-primary: #60a5fa;
-  --color-primary-dark: #3b82f6;
-  --color-danger: #f87171;
-  --color-accent: #fb923c;
-  --color-accent-dark: #f97316;
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-info: #2dd4bf;
-  --color-pink: #f472b6;
-  --color-neutral: #1a1814;
-  --color-gray: #b8b0a5;
-  --color-text: #f0ebe4;
-  --color-white: #262220;
-}
-
 @theme {
   --color-primary: #004a99;
   --color-primary-dark: #003870;
@@ -35,7 +19,7 @@
   --color-neutral: #fef9f0;
   --color-gray: #6b6359;
   --color-text: #2d2a26;
-  --color-white: #ffffff;
+  --color-surface: #ffffff;
   --radius-card: 1rem;
   --radius-button: 0.75rem;
   --radius-bubble: 1.25rem;
@@ -47,6 +31,35 @@
   --animate-float: float 3s ease-in-out infinite;
   --animate-scale-in: scale-in 0.2s ease-out;
   --animate-bounce-soft: bounce-soft 0.3s ease-in-out;
+}
+
+html.dark {
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-danger: #f87171;
+  --color-accent: #fb923c;
+  --color-accent-dark: #f97316;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-info: #2dd4bf;
+  --color-pink: #f472b6;
+  --color-neutral: #1a1814;
+  --color-gray: #b8b0a5;
+  --color-text: #f0ebe4;
+  --color-surface: #262220;
+}
+
+html.dark .prose {
+  --tw-prose-body: var(--color-text);
+  --tw-prose-headings: var(--color-text);
+  --tw-prose-bold: var(--color-text);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-code: var(--color-text);
+  --tw-prose-quote-borders: var(--color-primary);
+  --tw-prose-bullets: var(--color-text);
+  --tw-prose-counters: var(--color-text);
+  --tw-prose-hr: var(--color-gray);
+  --tw-prose-quotes: var(--color-text);
 }
 
 @keyframes fade-in-up {

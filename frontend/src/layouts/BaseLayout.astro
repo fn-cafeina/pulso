@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css'
 import { ClientRouter } from 'astro:transitions';
+import ThemeScript from '../components/layout/ThemeScript.astro';
 const { pageTitle } = Astro.props;
 ---
 <html lang="es">
@@ -11,12 +12,13 @@ const { pageTitle } = Astro.props;
     <meta name="description" content="Pulso — Asistente virtual de salud para familias nicaragüenses" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
+    <ThemeScript />
     <ClientRouter />
   </head>
   <body class="bg-neutral">
     <noscript>
       <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white rounded-card shadow-lg p-8 max-w-md text-center">
+        <div class="bg-surface rounded-card shadow-lg p-8 max-w-md text-center">
           <h1 class="text-2xl font-bold text-primary mb-2">Pulso</h1>
           <p class="text-gray">JavaScript es requerido para usar esta aplicación. Por favor, habilita JavaScript en tu navegador.</p>
         </div>

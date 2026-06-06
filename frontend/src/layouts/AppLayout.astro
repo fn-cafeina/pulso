@@ -5,6 +5,7 @@ import AuthGuard from '../components/layout/AuthGuard';
 import SidebarNav from '../components/layout/SidebarNav';
 import BottomNav from '../components/layout/BottomNav';
 import MobileDrawer from '../components/layout/MobileDrawer';
+import ThemeScript from '../components/layout/ThemeScript.astro';
 
 const { pageTitle, currentPath } = Astro.props;
 ---
@@ -16,12 +17,13 @@ const { pageTitle, currentPath } = Astro.props;
     <meta name="description" content="Pulso — Asistente virtual de salud para familias nicaragüenses" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
+    <ThemeScript />
     <ClientRouter />
   </head>
   <body class="bg-neutral">
     <noscript>
       <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white rounded-card shadow-lg p-8 max-w-md text-center">
+        <div class="bg-surface rounded-card shadow-lg p-8 max-w-md text-center">
           <h1 class="text-2xl font-bold text-primary mb-2">Pulso</h1>
           <p class="text-gray">JavaScript es requerido para usar esta aplicación. Por favor, habilita JavaScript en tu navegador.</p>
         </div>
@@ -30,12 +32,12 @@ const { pageTitle, currentPath } = Astro.props;
 
     <AuthGuard client:load />
 
-    <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray/20 z-40">
+    <aside class="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-surface border-r border-gray/20 z-40">
       <SidebarNav currentPath={currentPath} client:idle />
     </aside>
 
     <div class="md:ml-64 h-screen flex flex-col">
-      <header class="bg-white border-b border-gray/20 px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between md:hidden z-30">
+      <header class="bg-surface border-b border-gray/20 px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] flex items-center justify-between md:hidden z-30">
         <MobileDrawer currentPath={currentPath} client:idle />
       </header>
 
@@ -43,7 +45,7 @@ const { pageTitle, currentPath } = Astro.props;
         <slot />
       </main>
 
-      <nav class="bg-white border-t border-gray/20 z-20 pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegación principal">
+      <nav class="bg-surface border-t border-gray/20 z-20 pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navegación principal">
         <BottomNav currentPath={currentPath} client:idle />
       </nav>
     </div>

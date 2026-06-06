@@ -14,7 +14,7 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-white border-b border-gray/20 px-4 py-3 flex items-center gap-3">
+      <div className="bg-surface border-b border-gray/20 px-4 py-3 flex items-center gap-3">
         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
           <Stethoscope className="w-5 h-5 text-primary" />
         </div>
@@ -52,7 +52,7 @@ export default function ChatInterface() {
                   <div className="w-8 h-8 rounded-full bg-gray/10 flex items-center justify-center flex-shrink-0">
                     <Stethoscope className="w-4 h-4 text-gray" />
                   </div>
-                  <div className="px-4 py-3 bg-white border border-gray/20 rounded-bubble rounded-bl-md animate-scale-in">
+                  <div className="px-4 py-3 bg-surface border border-gray/20 rounded-bubble rounded-bl-md animate-scale-in">
                     <div className="flex gap-1">
                       <span className="w-2 h-2 bg-gray/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                       <span className="w-2 h-2 bg-gray/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -75,7 +75,7 @@ export default function ChatInterface() {
         </div>
       )}
 
-      <div className="border-t border-gray/20 bg-white px-4 py-3">
+      <div className="border-t border-gray/20 bg-surface px-4 py-3">
         <ChatInput
           input={input}
           loading={loading}

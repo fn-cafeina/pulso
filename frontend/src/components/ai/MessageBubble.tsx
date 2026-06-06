@@ -67,7 +67,7 @@ export default function MessageBubble({ msg }: { msg: Message }) {
         <div className={`px-4 py-3 rounded-bubble text-sm leading-relaxed overflow-hidden break-words animate-scale-in ${
           msg.role === "user"
             ? "bg-primary text-white rounded-br-md"
-            : "bg-white border border-gray/20 text-text rounded-bl-md"
+            : "bg-surface border border-gray/20 text-text rounded-bl-md"
         }`}>
           {msg.role === "user" ? (
             msg.content
