@@ -24,7 +24,7 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 overscroll-behavior-contain">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 [overscroll-behavior:contain]">
         {initialLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
