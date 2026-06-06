@@ -23,7 +23,7 @@
   --radius-card: 1rem;
   --radius-button: 0.75rem;
   --radius-bubble: 1.25rem;
-  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
   --animate-fade-in-up: fade-in-up 0.4s ease-out;
   --animate-fade-in-right: fade-in-right 0.25s ease-out;
   --animate-shake: shake 0.4s ease-in-out;
@@ -113,6 +113,15 @@ html.dark .prose {
 }
 
 @layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-neutral);
+    color: var(--color-text);
+    margin: 0;
+  }
   * {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;

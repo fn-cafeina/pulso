@@ -1,4 +1,4 @@
-import { setAuth, getAuth } from "./auth";
+import { getAuth, setAuth } from "../stores/auth";
 
 const API_BASE = "http://localhost:8080";
 

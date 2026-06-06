@@ -7,11 +7,6 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains("dark"));
-    function onPageLoad() {
-      setDark(document.documentElement.classList.contains("dark"));
-    }
-    document.addEventListener("astro:page-load", onPageLoad);
-    return () => document.removeEventListener("astro:page-load", onPageLoad);
   }, []);
 
   const toggle = () => {
@@ -19,7 +14,7 @@ export default function ThemeToggle() {
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem(STORAGE_KEY, next ? "dark" : "light");
-    const meta = document.querySelector('meta[name="theme-color"]');
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (meta) meta.content = next ? "#1a1814" : "#fef9f0";
   };
 

@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { navigate } from "astro:transitions/client";
+import { useNavigate, Link } from "react-router-dom";
 import { login } from "../../lib/api";
-import { isAuthenticated } from "../../lib/auth";
+import { useAuthStore } from "../../stores/auth";
 import { User, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 export default function LoginForm() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -18,10 +19,10 @@ export default function LoginForm() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (useAuthStore.getState().isAuthenticated) {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const clearFieldError = (name: string) => {
     setFieldErrors((prev) => {
@@ -145,9 +146,9 @@ export default function LoginForm() {
 
       <p className="text-center text-sm text-gray">
         ¿No tienes cuenta?{" "}
-        <a href="/register" className="text-primary hover:text-primary-dark font-medium transition-colors">
+        <Link to="/register" className="text-primary hover:text-primary-dark font-medium transition-colors">
           Regístrate
-        </a>
+        </Link>
       </p>
     </form>
   );

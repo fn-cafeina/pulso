@@ -1,15 +1,14 @@
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { LogOut } from "lucide-react";
-import { navigate } from "astro:transitions/client";
-import { useAuth, clearAuth } from "../../lib/auth";
+import { useAuthStore } from "../../stores/auth";
 import { sidebarItems, isActive } from "./navConfig";
 import ThemeToggle from "./ThemeToggle";
 
-interface Props {
-  currentPath: string;
-}
-
-export default function SidebarNav({ currentPath }: Props) {
-  const { username } = useAuth();
+export default function SidebarNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { username } = useAuthStore();
+  const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const handleLogout = () => {
     clearAuth();
@@ -26,11 +25,11 @@ export default function SidebarNav({ currentPath }: Props) {
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto" aria-label="Menú de navegación">
         {sidebarItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(currentPath, item.href);
+          const active = isActive(location.pathname, item.href);
           return (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors ${
                 active
@@ -40,7 +39,7 @@ export default function SidebarNav({ currentPath }: Props) {
             >
               <Icon className="w-5 h-5" />
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </nav>
