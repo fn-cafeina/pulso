@@ -52,7 +52,7 @@ export default function ChatInterface() {
                   <div className="w-8 h-8 rounded-full bg-gray/10 flex items-center justify-center flex-shrink-0">
                     <Stethoscope className="w-4 h-4 text-gray" />
                   </div>
-                  <div className="px-4 py-3 bg-white border border-gray/20 rounded-2xl rounded-bl-md">
+                  <div className="px-4 py-3 bg-white border border-gray/20 rounded-bubble rounded-bl-md">
                     <div className="flex gap-1">
                       <span className="w-2 h-2 bg-gray/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                       <span className="w-2 h-2 bg-gray/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -69,7 +69,7 @@ export default function ChatInterface() {
       </div>
 
       {error && (
-        <div className="mx-4 mb-2 flex items-center gap-2 px-4 py-2 bg-warning/10 border border-warning/30 text-warning rounded-lg text-sm">
+        <div className="mx-4 mb-2 flex items-center gap-2 px-4 py-2 bg-warning/10 border border-warning/30 text-warning rounded-button text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>

@@ -21,7 +21,7 @@ export default function MobileDrawer({ currentPath }: Props) {
     <>
       <button
         onClick={() => setDrawerOpen(true)}
-        className="p-2.5 -ml-2 text-text hover:bg-gray/10 rounded-lg transition-colors cursor-pointer"
+        className="p-2.5 -ml-2 text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer"
         aria-label="Abrir menú"
       >
         <Menu className="w-6 h-6" />
@@ -41,7 +41,7 @@ export default function MobileDrawer({ currentPath }: Props) {
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="p-2.5 text-gray hover:text-text hover:bg-gray/10 rounded-lg transition-colors cursor-pointer"
+                className="p-2.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer"
                 aria-label="Cerrar menú"
               >
                 <X className="w-5 h-5" />
@@ -57,7 +57,7 @@ export default function MobileDrawer({ currentPath }: Props) {
                     key={item.href}
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-3 rounded-button text-sm font-medium transition-colors ${
                       active
                         ? "bg-primary/10 text-primary"
                         : "text-text hover:bg-gray/10"
@@ -76,7 +76,7 @@ export default function MobileDrawer({ currentPath }: Props) {
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-danger hover:bg-danger/5 transition-colors cursor-pointer w-full"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium text-danger hover:bg-danger/5 transition-colors cursor-pointer w-full"
               >
                 <LogOut className="w-5 h-5" />
                 Cerrar sesión
