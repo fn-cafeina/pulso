@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, ScrollRestoration } from "react-router-dom";
 import { useAuthStore } from "./stores/auth";
 import AuthLayout from "./components/layout/AuthLayout";
 import AppLayout from "./components/layout/AppLayout";
@@ -21,6 +21,8 @@ export default function App() {
   }, [initFromStorage]);
 
   return (
+    <>
+    <ScrollRestoration />
     <Routes>
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
@@ -37,5 +39,6 @@ export default function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
