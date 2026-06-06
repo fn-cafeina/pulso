@@ -1,6 +1,8 @@
-import { Outlet } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 
 export default function AuthLayout() {
+  const { pathname } = useLocation();
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-primary/5 via-neutral to-info/5 flex items-center justify-center px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))]">
       <div className="w-full max-w-md animate-fade-in-up">
@@ -10,7 +12,9 @@ export default function AuthLayout() {
         </div>
 
         <div className="bg-surface rounded-card shadow-lg border border-gray/10 p-6 sm:p-8">
-          <Outlet />
+          <div key={pathname} className="animate-fade-in-up">
+            <Outlet />
+          </div>
         </div>
       </div>
     </main>
