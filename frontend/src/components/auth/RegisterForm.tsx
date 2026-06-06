@@ -57,8 +57,8 @@ export default function RegisterForm() {
 
     try {
       await register({ username: user, password, antecedentes_medicos: antecedentes.trim() || undefined, codigo: codigo.trim() || undefined });
-      setSuccess(true);
       await login(user, password);
+      setSuccess(true);
       setTimeout(() => navigate("/"), 600);
     } catch (err: any) {
       const msg = err.message;
