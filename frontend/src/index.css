@@ -113,6 +113,9 @@ html.dark .prose {
 }
 
 @layer base {
+  html {
+    transition: color 0.15s, background-color 0.15s;
+  }
   html, body, #root {
     height: 100%;
   }
