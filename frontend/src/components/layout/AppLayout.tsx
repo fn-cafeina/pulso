@@ -19,7 +19,7 @@ export default function AppLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto">
-          <div key={pathname} className="animate-fade-in-up">
+          <div key={pathname} className="animate-fade-in-up h-full">
             <Outlet />
           </div>
         </main>
