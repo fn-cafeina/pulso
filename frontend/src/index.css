@@ -129,4 +129,17 @@ html.dark .prose {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-gray);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text);
+  }
 }
