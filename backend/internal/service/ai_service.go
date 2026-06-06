@@ -50,22 +50,6 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 
 	ctx := context.Background()
 
-	isHealth, err := s.gemini.ClassifyQuestion(ctx, pregunta)
-	if err != nil {
-		log.Printf("warning: classify failed (%v), letting through", err)
-	} else if !isHealth {
-		respuesta := "Lo siento, solo puedo ayudarte con temas de salud. ¿Tenés algún síntoma o duda sobre tu bienestar?"
-		consult := &models.AIConsultation{
-			UserID:    userID,
-			Pregunta:  pregunta,
-			Respuesta: respuesta,
-		}
-		if createErr := s.aiRepo.Create(consult); createErr != nil {
-			return nil, createErr
-		}
-		return consult, nil
-	}
-
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		log.Printf("warning: failed to load user %d: %v", userID, err)
