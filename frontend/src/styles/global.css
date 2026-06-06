@@ -6,22 +6,6 @@
 @import "@fontsource/nunito/800.css";
 @plugin "@tailwindcss/typography";
 
-:root {
-  --color-primary: #004a99;
-  --color-primary-dark: #003870;
-  --color-danger: #c92d3c;
-  --color-accent: #b84d14;
-  --color-accent-dark: #9c4010;
-  --color-success: #0a7230;
-  --color-warning: #9a5408;
-  --color-info: #086860;
-  --color-pink: #b82d6a;
-  --color-neutral: #fef9f0;
-  --color-gray: #6b6359;
-  --color-text: #2d2a26;
-  --color-white: #ffffff;
-}
-
 .dark {
   --color-primary: #60a5fa;
   --color-primary-dark: #3b82f6;
@@ -39,19 +23,19 @@
 }
 
 @theme {
-  --color-primary: var(--color-primary);
-  --color-primary-dark: var(--color-primary-dark);
-  --color-danger: var(--color-danger);
-  --color-accent: var(--color-accent);
-  --color-accent-dark: var(--color-accent-dark);
-  --color-success: var(--color-success);
-  --color-warning: var(--color-warning);
-  --color-info: var(--color-info);
-  --color-pink: var(--color-pink);
-  --color-neutral: var(--color-neutral);
-  --color-gray: var(--color-gray);
-  --color-text: var(--color-text);
-  --color-white: var(--color-white);
+  --color-primary: #004a99;
+  --color-primary-dark: #003870;
+  --color-danger: #c92d3c;
+  --color-accent: #b84d14;
+  --color-accent-dark: #9c4010;
+  --color-success: #0a7230;
+  --color-warning: #9a5408;
+  --color-info: #086860;
+  --color-pink: #b82d6a;
+  --color-neutral: #fef9f0;
+  --color-gray: #6b6359;
+  --color-text: #2d2a26;
+  --color-white: #ffffff;
   --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
   --animate-fade-in-up: fade-in-up 0.4s ease-out;
   --animate-fade-in-right: fade-in-right 0.25s ease-out;
@@ -89,9 +73,6 @@
 }
 
 @layer base {
-  html {
-    font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
-  }
   * {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
