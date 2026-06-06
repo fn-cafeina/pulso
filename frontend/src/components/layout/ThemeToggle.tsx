@@ -1,6 +1,6 @@
 import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { STORAGE_KEY, THEME_COLORS } from "../../lib/theme";
+import { STORAGE_KEY } from "../../lib/theme";
 
 export default function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -20,7 +20,7 @@ export default function ThemeToggle() {
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem(STORAGE_KEY, next ? "dark" : "light");
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = next ? THEME_COLORS.dark : THEME_COLORS.light;
+    if (meta) meta.content = next ? "#1a1814" : "#fef9f0";
   };
 
   return (
