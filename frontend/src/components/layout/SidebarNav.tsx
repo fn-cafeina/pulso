@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 export default function SidebarNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { username } = useAuthStore();
+  const { username, rol } = useAuthStore();
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const handleLogout = () => {
@@ -44,18 +44,24 @@ export default function SidebarNav() {
         })}
       </nav>
 
-      <div className="p-3 border-t border-gray/20">
-        <ThemeToggle />
-        <div className="px-3 py-2 mb-1">
-          <p className="text-sm font-medium text-text truncate">{username}</p>
+      <div className="border-t border-gray/20 p-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">
+            {username?.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-text truncate">{username}</p>
+            <p className="text-xs text-gray capitalize">{rol === "health_worker" ? "Trabajador de salud" : "Paciente"}</p>
+          </div>
+          <ThemeToggle compact />
+          <button
+            onClick={handleLogout}
+            className="p-2 text-gray hover:text-danger hover:bg-danger/5 rounded-button transition-colors cursor-pointer"
+            aria-label="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium text-danger hover:bg-danger/5 transition-colors cursor-pointer w-full"
-        >
-          <LogOut className="w-5 h-5" />
-          Cerrar sesión
-        </button>
       </div>
     </div>
   );

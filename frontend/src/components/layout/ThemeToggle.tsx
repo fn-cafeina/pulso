@@ -2,7 +2,11 @@ import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { STORAGE_KEY } from "../../lib/theme";
 
-export default function ThemeToggle() {
+interface Props {
+  compact?: boolean;
+}
+
+export default function ThemeToggle({ compact }: Props) {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -17,6 +21,20 @@ export default function ThemeToggle() {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
     if (meta) meta.content = next ? "#1a1814" : "#fef9f0";
   };
+
+  if (compact) {
+    return (
+      <button
+        onClick={toggle}
+        className="flex items-center justify-center p-2 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer"
+        aria-label={dark ? "Modo claro" : "Modo oscuro"}
+      >
+          <span className="flex transition-transform duration-500" style={{ transform: dark ? "rotate(180deg)" : "rotate(0deg)" }}>
+          {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button
