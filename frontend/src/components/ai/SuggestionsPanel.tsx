@@ -15,7 +15,7 @@ export default function SuggestionsPanel({ onSend }: Props) {
         <button
           key={s}
           onClick={() => onSend(s)}
-          className="w-full text-left px-4 py-3 bg-white border border-gray/20 rounded-xl text-sm text-text hover:bg-gray/5 hover:border-primary/30 transition-colors cursor-pointer"
+          className="w-full text-left px-4 py-3 bg-white border border-gray/20 rounded-card text-sm text-text hover:bg-gray/5 hover:border-primary/30 transition-colors cursor-pointer"
         >
           {s}
         </button>

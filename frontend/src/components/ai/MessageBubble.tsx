@@ -64,7 +64,7 @@ export default function MessageBubble({ msg }: { msg: Message }) {
             <Stethoscope className="w-4 h-4 text-gray" />
           )}
         </div>
-        <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed overflow-hidden break-words ${
+        <div className={`px-4 py-3 rounded-bubble text-sm leading-relaxed overflow-hidden break-words ${
           msg.role === "user"
             ? "bg-primary text-white rounded-br-md"
             : "bg-white border border-gray/20 text-text rounded-bl-md"

@@ -31,7 +31,7 @@ export default function SidebarNav({ currentPath }: Props) {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors ${
                 active
                   ? "bg-primary/10 text-primary"
                   : "text-text hover:bg-gray/10"
@@ -50,7 +50,7 @@ export default function SidebarNav({ currentPath }: Props) {
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-danger hover:bg-danger/5 transition-colors cursor-pointer w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium text-danger hover:bg-danger/5 transition-colors cursor-pointer w-full"
         >
           <LogOut className="w-5 h-5" />
           Cerrar sesión
