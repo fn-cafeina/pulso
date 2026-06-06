@@ -25,7 +25,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 ## Stack
 
 - **Backend:** Go 1.26 + Gin + GORM + SQLite
-- **Frontend:** Astro + React + Tailwind CSS
+- **Frontend:** Vite + React + Tailwind CSS
 - **IA:** Integración con API externa para asistente virtual
 
 ## Documentación
@@ -40,7 +40,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 
 ```
 backend/     # API REST (Go + Gin + GORM + SQLite)
-frontend/    # App web (Astro + React + Tailwind CSS 4)
+frontend/    # App web (Vite + React SPA + Tailwind CSS 4)
 docs/        # Documentación detallada
 ```
 
@@ -57,9 +57,8 @@ make dev                # Inicia con hot-reload (Air)
 ```bash
 cd frontend             # Requires Node >= 22.12.0
 npm install
-npm run dev             # Desarrollo en :4321
-npm run build           # Build producción
-npm run preview         # Preview del build
+npm run dev             # Desarrollo en :5173
+npm run build           # tsc && vite build
 ```
 
 ## Licencia

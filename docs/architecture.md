@@ -28,8 +28,9 @@ backend/
 
 frontend/
 ├── src/
-├── package.json               # Astro + Tailwind CSS 4
-└── astro.config.mjs
+├── package.json               # Vite + React + Tailwind CSS 4
+├── vite.config.ts             # Vite config (react + tailwindcss plugins)
+└── tsconfig.json
 ```
 
 ## Capas
@@ -63,7 +64,7 @@ Cada capa se comunica mediante interfaces definidas en `repository/` y `service/
 | `PORT` | `:8080` | Puerto del servidor |
 | `DB_PATH` | `pulso.db` | Ruta del archivo SQLite |
 | `GEMINI_API_KEY` | `""` | API key de Gemini (opcional → AI da 503 si falta) |
-| `CORS_ORIGIN` | `http://localhost:4321` | Origen permitido por CORS |
+| `CORS_ORIGIN` | `http://localhost:5173` | Origen permitido por CORS |
 | `HEALTH_WORKER_SECRET` | **requerido** | Código secreto para rol health_worker (server falla si vacío) |
 
 Las variables se cargan desde `backend/.env` vía `godotenv.Load()`. Variables de entorno del sistema tienen prioridad sobre `.env`.
@@ -122,7 +123,7 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 - `User.Password` excluido del JSON.
 
 ### CORS
-Configurable vía variable `CORS_ORIGIN` (default: `http://localhost:4321`).
+Configurable vía variable `CORS_ORIGIN` (default: `http://localhost:5173`).
 
 ### Graceful shutdown
 El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s, permitiendo que requests en curso finalicen antes de cerrar conexiones.

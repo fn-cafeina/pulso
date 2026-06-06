@@ -1,6 +1,6 @@
 # Pulso
 
-Monorepo: Go backend (Gin + GORM + SQLite) + Astro/React frontend (Tailwind CSS 4).
+Monorepo: Go backend (Gin + GORM + SQLite) + Vite/React SPA frontend (Tailwind CSS 4).
 
 **UI/API**: Spanish. **Source**: English.
 
@@ -22,8 +22,8 @@ make lint     # golangci-lint (gofmt, govet, errcheck, staticcheck, gosimple)
 
 # Frontend (Node >= 22.12.0)
 cd frontend
-npm run dev   # astro dev :4321
-npm run build
+npm run dev   # vite dev :5173
+npm run build  # tsc && vite build
 ```
 
 ## Required env
@@ -42,7 +42,7 @@ Manual DI in `cmd/api/main.go`. Interfaces at service/repo layers.
 - Geo: Haversine in Go memory, not SQL
 - AI: Gemini 3.1 Flash Lite, 3 retries w/ backoff, 30s timeout, 503 if key missing
 - DB: SQLite via `glebarez/sqlite` (pure-Go), WAL mode, AutoMigrate on startup
-- CORS: `CORS_ORIGIN` env (default `http://localhost:4321`)
+- CORS: `CORS_ORIGIN` env (default `http://localhost:5173`)
 
 ## Tests (72, 9 files)
 
