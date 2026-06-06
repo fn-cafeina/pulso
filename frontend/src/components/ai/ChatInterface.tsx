@@ -31,7 +31,7 @@ export default function ChatInterface() {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 animate-float">
               <Stethoscope className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-lg font-semibold text-text mb-2">¿Cómo puedo ayudarte?</h3>
@@ -52,7 +52,7 @@ export default function ChatInterface() {
                   <div className="w-8 h-8 rounded-full bg-gray/10 flex items-center justify-center flex-shrink-0">
                     <Stethoscope className="w-4 h-4 text-gray" />
                   </div>
-                  <div className="px-4 py-3 bg-white border border-gray/20 rounded-bubble rounded-bl-md">
+                  <div className="px-4 py-3 bg-white border border-gray/20 rounded-bubble rounded-bl-md animate-scale-in">
                     <div className="flex gap-1">
                       <span className="w-2 h-2 bg-gray/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                       <span className="w-2 h-2 bg-gray/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />

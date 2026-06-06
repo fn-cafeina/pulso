@@ -36,7 +36,7 @@ export default function ChatInput({
       <button
         onClick={onSend}
         disabled={!input.trim() || loading}
-        className="p-2.5 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-card shadow hover:shadow-md active:shadow-sm active:translate-y-[1px] transition-all cursor-pointer disabled:cursor-not-allowed"
+        className="p-2.5 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-card shadow hover:shadow-md active:shadow-sm active:translate-y-[1px] hover:animate-bounce-soft transition-all cursor-pointer disabled:cursor-not-allowed"
         aria-label="Enviar mensaje"
       >
         {loading ? (
