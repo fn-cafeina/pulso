@@ -1,0 +1,43 @@
+<script is:inline>
+  (function() {
+    var DARK_PROPS = [
+      '--color-primary:#60a5fa', '--color-primary-dark:#3b82f6',
+      '--color-danger:#f87171', '--color-accent:#fb923c',
+      '--color-accent-dark:#f97316', '--color-success:#4ade80',
+      '--color-warning:#fbbf24', '--color-info:#2dd4bf',
+      '--color-pink:#f472b6', '--color-neutral:#1a1814',
+      '--color-gray:#b8b0a5', '--color-text:#f0ebe4',
+      '--color-surface:#262220'
+    ];
+    var PROSE_PROPS = [
+      '--tw-prose-body:var(--color-text)', '--tw-prose-headings:var(--color-text)',
+      '--tw-prose-bold:var(--color-text)', '--tw-prose-links:var(--color-primary)',
+      '--tw-prose-code:var(--color-text)', '--tw-prose-quote-borders:var(--color-primary)',
+      '--tw-prose-bullets:var(--color-text)', '--tw-prose-counters:var(--color-text)',
+      '--tw-prose-hr:var(--color-gray)', '--tw-prose-quotes:var(--color-text)'
+    ];
+
+    function sync() {
+      var t = localStorage.getItem('pulso-theme');
+      var d = t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', d);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.content = d ? '#1a1814' : '#fef9f0';
+
+      var s = document.getElementById('pulso-theme-vars');
+      if (d) {
+        if (!s) {
+          s = document.createElement('style');
+          s.id = 'pulso-theme-vars';
+          document.head.appendChild(s);
+        }
+        s.textContent = '.dark{' + DARK_PROPS.join(';') + ';}.dark .prose{' + PROSE_PROPS.join(';') + ';}' +
+          'html.dark{' + DARK_PROPS.join(';') + ';}';
+      } else if (s) {
+        s.remove();
+      }
+    }
+    sync();
+    document.addEventListener('astro:page-load', sync);
+  })();
+</script>

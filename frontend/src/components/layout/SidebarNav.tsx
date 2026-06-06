@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react";
 import { navigate } from "astro:transitions/client";
 import { useAuth, clearAuth } from "../../lib/auth";
 import { sidebarItems, isActive } from "./navConfig";
+import ThemeToggle from "./ThemeToggle";
 
 interface Props {
   currentPath: string;
@@ -45,6 +46,7 @@ export default function SidebarNav({ currentPath }: Props) {
       </nav>
 
       <div className="p-3 border-t border-gray/20">
+        <ThemeToggle />
         <div className="px-3 py-2 mb-1">
           <p className="text-sm font-medium text-text truncate">{username}</p>
         </div>

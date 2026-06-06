@@ -3,6 +3,7 @@ import { Menu, X, LogOut } from "lucide-react";
 import { navigate } from "astro:transitions/client";
 import { useAuth, clearAuth } from "../../lib/auth";
 import { sidebarItems, isActive } from "./navConfig";
+import ThemeToggle from "./ThemeToggle";
 
 interface Props {
   currentPath: string;
@@ -33,7 +34,7 @@ export default function MobileDrawer({ currentPath }: Props) {
             className="absolute inset-0 bg-black/40"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 w-72 bg-white shadow-xl flex flex-col animate-fade-in-right">
+          <div className="absolute inset-y-0 left-0 w-72 bg-surface shadow-xl flex flex-col animate-fade-in-right">
             <div className="p-5 border-b border-gray/20 flex items-center justify-between">
               <div>
                 <h1 className="text-xl font-bold text-primary">Pulso</h1>
@@ -71,6 +72,7 @@ export default function MobileDrawer({ currentPath }: Props) {
             </nav>
 
             <div className="p-3 border-t border-gray/20">
+              <ThemeToggle />
               <div className="px-3 py-2 mb-1">
                 <p className="text-sm font-medium text-text truncate">{username}</p>
               </div>

@@ -74,7 +74,7 @@ export default function RegisterForm() {
 
   const btnClass = `w-full bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 rounded-button shadow hover:shadow-md active:shadow-sm transition-all duration-200 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]`;
   const inputClass = (hasError: boolean) =>
-    `w-full pl-10 pr-12 py-3 rounded-button border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-all duration-200 ${
+    `w-full pl-10 pr-12 py-3 rounded-button border bg-surface text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-all duration-200 ${
       hasError
         ? "border-danger focus:ring-danger/50 focus:border-danger"
         : "border-gray/30 focus:ring-primary/50 focus:border-primary"
@@ -178,7 +178,7 @@ export default function RegisterForm() {
             aria-describedby={fieldErrors.confirmPassword ? "reg-confirm-error" : undefined}
             value={confirmPassword}
             onChange={(e) => { setConfirmPassword(e.target.value); clearFieldError("confirmPassword"); setError(""); }}
-            className={`w-full px-4 py-3 rounded-button border bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-all duration-200 pr-12 ${
+            className={`w-full px-4 py-3 rounded-button border bg-surface text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-all duration-200 pr-12 ${
               fieldErrors.confirmPassword
                 ? "border-danger focus:ring-danger/50 focus:border-danger"
                 : "border-gray/30 focus:ring-primary/50 focus:border-primary"
@@ -225,7 +225,7 @@ export default function RegisterForm() {
                   onChange={(e) => setAntecedentes(e.target.value)}
                   rows={3}
                   maxLength={500}
-                  className="w-full px-4 py-2.5 rounded-button border border-gray/30 bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
+                  className="w-full px-4 py-2.5 rounded-button border border-gray/30 bg-surface text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
                   placeholder="Ej: Asma leve, alergia a la penicilina..."
                 />
                 <div className="flex justify-end mt-1">
@@ -245,7 +245,7 @@ export default function RegisterForm() {
                 type="text"
                 value={codigo}
                 onChange={(e) => setCodigo(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-button border border-gray/30 bg-white text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                className="w-full px-4 py-2.5 rounded-button border border-gray/30 bg-surface text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 placeholder="Si eres personal de salud, ingresa tu código"
               />
             </div>

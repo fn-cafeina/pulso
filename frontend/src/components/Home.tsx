@@ -10,7 +10,7 @@ import {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-card shadow-sm p-6 border border-gray/10 animate-pulse-gentle">
+    <div className="bg-surface rounded-card shadow-sm p-6 border border-gray/10 animate-pulse-gentle">
       <div className="w-8 h-8 bg-gray/20 rounded-button mb-3" />
       <div className="h-4 bg-gray/20 rounded w-2/3 mb-2" />
       <div className="h-3 bg-gray/10 rounded w-full" />
@@ -46,7 +46,7 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <a
           href="/asistente"
-          className="bg-white rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <Stethoscope className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Consultar al asistente</h3>
@@ -55,7 +55,7 @@ export default function Home() {
 
         <a
           href="/historial"
-          className="bg-white rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <ClipboardList className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Mi historial</h3>
@@ -64,7 +64,7 @@ export default function Home() {
 
         <a
           href="/servicios"
-          className="bg-white rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <MapPin className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Servicios cercanos</h3>
@@ -73,7 +73,7 @@ export default function Home() {
 
         <a
           href="/recordatorios"
-          className="bg-white rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <Bell className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Recordatorios</h3>
@@ -82,7 +82,7 @@ export default function Home() {
 
         <a
           href="/eventos"
-          className="bg-white rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <Calendar className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Eventos de salud</h3>
@@ -91,7 +91,7 @@ export default function Home() {
 
         <a
           href="/alertas"
-          className="bg-white rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <AlertTriangle className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Alertas</h3>
