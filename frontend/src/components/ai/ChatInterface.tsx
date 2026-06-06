@@ -14,7 +14,7 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-surface border-b border-gray/20 px-4 py-3 flex items-center gap-3">
+      <div className="max-md:hidden bg-surface border-b border-gray/20 px-4 py-3 flex items-center gap-3">
         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
           <Stethoscope className="w-5 h-5 text-primary" />
         </div>
