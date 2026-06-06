@@ -47,7 +47,7 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link
           to="/asistente"
-          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="animate-fade-in-up bg-surface rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <Stethoscope className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Consultar al asistente</h3>
@@ -56,7 +56,7 @@ export default function Home() {
 
         <Link
           to="/historial"
-          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="animate-fade-in-up bg-surface rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <ClipboardList className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Mi historial</h3>
@@ -65,7 +65,7 @@ export default function Home() {
 
         <Link
           to="/servicios"
-          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="animate-fade-in-up bg-surface rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <MapPin className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Servicios cercanos</h3>
@@ -74,7 +74,7 @@ export default function Home() {
 
         <Link
           to="/recordatorios"
-          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="animate-fade-in-up bg-surface rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <Bell className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Recordatorios</h3>
@@ -83,7 +83,7 @@ export default function Home() {
 
         <Link
           to="/eventos"
-          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="animate-fade-in-up bg-surface rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <Calendar className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Eventos de salud</h3>
@@ -92,7 +92,7 @@ export default function Home() {
 
         <Link
           to="/alertas"
-          className="bg-surface rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+          className="animate-fade-in-up bg-surface rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
         >
           <AlertTriangle className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-text mb-1">Alertas</h3>
@@ -106,7 +106,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link
               to="/servicios"
-              className="bg-primary/5 rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+              className="animate-fade-in-up bg-primary/5 rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
             >
               <MapPin className="w-6 h-6 text-primary mb-2" />
               <h4 className="font-semibold text-primary mb-1">Gestionar servicios</h4>
@@ -114,7 +114,7 @@ export default function Home() {
             </Link>
             <Link
               to="/eventos"
-              className="bg-primary/5 rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+              className="animate-fade-in-up bg-primary/5 rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
             >
               <Calendar className="w-6 h-6 text-primary mb-2" />
               <h4 className="font-semibold text-primary mb-1">Gestionar eventos</h4>
@@ -122,7 +122,7 @@ export default function Home() {
             </Link>
             <Link
               to="/alertas"
-              className="bg-primary/5 rounded-card shadow-sm p-6 hover:shadow-md transition-all border border-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
+              className="animate-fade-in-up bg-primary/5 rounded-card shadow-sm p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all border border-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.98]"
             >
               <AlertTriangle className="w-6 h-6 text-primary mb-2" />
               <h4 className="font-semibold text-primary mb-1">Gestionar alertas</h4>
