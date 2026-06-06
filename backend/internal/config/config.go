@@ -37,7 +37,7 @@ func Load() *Config {
 		DBPath:             getEnv("DB_PATH", "pulso.db"),
 		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
 		HealthWorkerSecret: secret,
-		CORSOrigin:         getEnv("CORS_ORIGIN", "http://localhost:4321"),
+		CORSOrigin:         getEnv("CORS_ORIGIN", "http://localhost:5173"),
 	}
 }
 
