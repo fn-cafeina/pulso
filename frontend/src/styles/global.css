@@ -36,6 +36,9 @@
   --color-gray: #6b6359;
   --color-text: #2d2a26;
   --color-white: #ffffff;
+  --radius-card: 1rem;
+  --radius-button: 0.75rem;
+  --radius-bubble: 1.25rem;
   --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
   --animate-fade-in-up: fade-in-up 0.4s ease-out;
   --animate-fade-in-right: fade-in-right 0.25s ease-out;
