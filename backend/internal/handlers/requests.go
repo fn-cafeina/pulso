@@ -60,7 +60,7 @@ type UpdateEventRequest struct {
 
 type CreateAlertRequest struct {
 	Titulo       string `json:"titulo" binding:"required"`
-	Descripcion  string `json:"descripcion" binding:"required"`
+	Descripcion  string `json:"descripcion"`
 	Nivel        string `json:"nivel" binding:"required,oneof=bajo medio alto critico"`
 	Departamento string `json:"departamento"`
 	Fuente       string `json:"fuente"`
