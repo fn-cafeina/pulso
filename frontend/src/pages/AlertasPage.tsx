@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, AlertCircle, Plus } from "lucide-react";
+import { AlertTriangle, AlertCircle, Plus, X } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
 import type { AlertNivel } from "../types";
@@ -45,7 +45,7 @@ interface CreateFormProps {
 
 function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel }: CreateFormProps) {
   return (
-    <form onSubmit={onCreate} className="bg-surface rounded-card shadow-sm p-6 border border-gray/10 space-y-4">
+    <form onSubmit={onCreate} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-text mb-1">Título <span className="text-danger">*</span></label>
         <input
@@ -145,10 +145,12 @@ export default function AlertasPage() {
   const { items, loading, error, fetch, add, clearError } = useAlertsStore();
   const [nivel, setNivel] = useState("");
   const [soloActivas, setSoloActivas] = useState(true);
-  const [desactivando, setDesactivando] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ titulo: "", descripcion: "", nivel: "" as AlertNivel | "", departamento: "", fuente: "" });
+  const [confirmDeactivate, setConfirmDeactivate] = useState<number | null>(null);
+  const [desactivando, setDesactivando] = useState<number | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
 
   useEffect(() => {
     const params: Record<string, any> = {};
@@ -157,10 +159,16 @@ export default function AlertasPage() {
     fetch(params);
   }, [nivel, soloActivas, fetch]);
 
+  function showToast(message: string, type: "success" | "info" = "success") {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
   async function handleDeactivate(id: number) {
     setDesactivando(id);
     try {
       await deactivateAlert(id);
+      showToast("Alerta desactivada");
     } finally {
       setDesactivando(null);
     }
@@ -180,6 +188,7 @@ export default function AlertasPage() {
       });
       setShowForm(false);
       setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
+      showToast("Alerta creada");
     } catch {
       // error handled by store
     } finally {
@@ -238,11 +247,6 @@ export default function AlertasPage() {
             Crear alerta
           </button>
         )}
-        {showForm && rol === "health_worker" && (
-          <div className="w-full max-w-lg mt-6">
-            <CreateForm form={form} setForm={setForm} creating={creating} formDisabled={formDisabled} onCreate={handleCreate} onCancel={resetForm} />
-          </div>
-        )}
       </div>
     );
   }
@@ -251,7 +255,7 @@ export default function AlertasPage() {
     <div className="py-4 md:py-6 px-4 md:px-8">
       <h2 className="text-2xl font-bold text-text mb-4">Alertas Epidemiológicas</h2>
 
-      {rol === "health_worker" && !showForm && (
+      {rol === "health_worker" && (
         <button
           onClick={() => setShowForm(true)}
           className="mb-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
@@ -259,12 +263,6 @@ export default function AlertasPage() {
           <Plus className="w-4 h-4" />
           Crear alerta
         </button>
-      )}
-
-      {showForm && rol === "health_worker" && (
-        <div className="mb-4">
-          <CreateForm form={form} setForm={setForm} creating={creating} formDisabled={formDisabled} onCreate={handleCreate} onCancel={resetForm} />
-        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -322,11 +320,10 @@ export default function AlertasPage() {
                 </div>
                 {rol === "health_worker" && alert.activa && (
                   <button
-                    onClick={() => handleDeactivate(alert.id)}
-                    disabled={desactivando === alert.id}
-                    className="text-xs text-gray hover:text-danger font-medium transition-colors disabled:opacity-50 cursor-pointer"
+                    onClick={() => setConfirmDeactivate(alert.id)}
+                    className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
                   >
-                    {desactivando === alert.id ? "Desactivando..." : "Desactivar"}
+                    Desactivar
                   </button>
                 )}
               </div>
@@ -343,6 +340,66 @@ export default function AlertasPage() {
           );
         })}
       </div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={resetForm}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-surface rounded-card shadow-xl w-full max-w-lg p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text">Nueva alerta</h3>
+              <button onClick={resetForm} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <CreateForm form={form} setForm={setForm} creating={creating} formDisabled={formDisabled} onCreate={handleCreate} onCancel={resetForm} />
+          </div>
+        </div>
+      )}
+
+      {confirmDeactivate !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeactivate(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-surface rounded-card shadow-xl w-full max-w-sm p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-semibold text-text mb-2">Desactivar alerta</h3>
+            <p className="text-sm text-gray mb-6">¿Estás seguro? La alerta dejará de mostrarse como activa.</p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setConfirmDeactivate(null)}
+                className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const id = confirmDeactivate;
+                  setConfirmDeactivate(null);
+                  handleDeactivate(id);
+                }}
+                disabled={desactivando === confirmDeactivate}
+                className="bg-danger hover:bg-danger/80 disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
+              >
+                {desactivando === confirmDeactivate ? "Desactivando..." : "Desactivar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 animate-fade-in-up px-4 py-3 rounded-button text-sm font-medium shadow-lg ${
+            toast.type === "success" ? "bg-success/10 text-success border border-success/30" : "bg-info/10 text-info border border-info/30"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
