@@ -203,59 +203,59 @@ export default function AlertasPage() {
 
   const formDisabled = creating || !form.titulo || !form.nivel;
 
-  if (loading && items.length === 0) {
-    return (
-      <div className="py-4 md:py-6 px-4 md:px-8 space-y-4">
-        <div className="h-8 bg-gray/20 rounded w-48 animate-pulse-gentle" />
-        {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
-      </div>
-    );
-  }
-
-  if (error && items.length === 0) {
-    return (
-      <div className="py-4 md:py-6 px-4 md:px-8">
-        <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake" role="alert">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span className="flex-1">{error}</span>
-          <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
-        </div>
-        <button
-          onClick={() => fetch()}
-          className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all"
-        >
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-
-  if (!loading && items.length === 0) {
-    return (
-      <div className="py-4 md:py-6 px-4 md:px-8 flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in-up">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6 animate-float">
-          <AlertTriangle size={40} />
-        </div>
-        <h2 className="text-2xl font-bold text-text mb-2">No hay alertas</h2>
-        <p className="text-gray max-w-md">No hay alertas epidemiológicas en este momento.</p>
-        {rol === "health_worker" && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-6 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Crear alerta
-          </button>
-        )}
-      </div>
-    );
-  }
+  const loadingInitial = loading && items.length === 0;
+  const errorInitial = error && items.length === 0 && !loading;
+  const empty = !loading && items.length === 0;
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">
-      <h2 className="text-2xl font-bold text-text mb-4">Alertas Epidemiológicas</h2>
+      {loadingInitial && (
+        <div className="space-y-4">
+          <div className="h-8 bg-gray/20 rounded w-48 animate-pulse-gentle" />
+          {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+        </div>
+      )}
 
-      {rol === "health_worker" && (
+      {errorInitial && (
+        <>
+          <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake" role="alert">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1">{error}</span>
+            <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
+          </div>
+          <button
+            onClick={() => fetch()}
+            className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all"
+          >
+            Reintentar
+          </button>
+        </>
+      )}
+
+      {empty && (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in-up">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6 animate-float">
+            <AlertTriangle size={40} />
+          </div>
+          <h2 className="text-2xl font-bold text-text mb-2">No hay alertas</h2>
+          <p className="text-gray max-w-md">No hay alertas epidemiológicas en este momento.</p>
+          {rol === "health_worker" && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-6 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Crear alerta
+            </button>
+          )}
+        </div>
+      )}
+
+      {!loadingInitial && !empty && (
+        <>
+          <h2 className="text-2xl font-bold text-text mb-4">Alertas Epidemiológicas</h2>
+
+          {rol === "health_worker" && (
         <button
           onClick={() => setShowForm(true)}
           className="mb-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
@@ -340,6 +340,8 @@ export default function AlertasPage() {
           );
         })}
       </div>
+        </>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={resetForm}>
