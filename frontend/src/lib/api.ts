@@ -1,11 +1,12 @@
 import { getAuth, setAuth } from "../stores/auth";
+import type { ApiResponse } from "../types";
 
 const API_BASE = "http://localhost:8080";
 
-export async function apiFetch(
+export async function apiFetch<T = any>(
   path: string,
   options: RequestInit = {}
-): Promise<any> {
+): Promise<ApiResponse<T>> {
   const { token } = getAuth();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
