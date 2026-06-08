@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, AlertCircle, Plus, X } from "lucide-react";
+import { AlertTriangle, AlertCircle, Plus, X, RotateCw } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
 import type { AlertNivel } from "../types";
@@ -164,6 +164,11 @@ export default function AlertasPage() {
     setTimeout(() => setToast(null), 3000);
   }
 
+  function clearFilters() {
+    setNivel("");
+    setSoloActivas(true);
+  }
+
   async function handleDeactivate(id: number) {
     setDesactivando(id);
     try {
@@ -202,10 +207,10 @@ export default function AlertasPage() {
   }
 
   const formDisabled = creating || !form.titulo || !form.nivel;
-
-  const loadingInitial = loading && items.length === 0;
+  const loadingInitial = loading && items.length === 0 && !creating;
   const errorInitial = error && items.length === 0 && !loading;
   const empty = !loading && items.length === 0;
+  const hasActiveFilters = nivel !== "" || !soloActivas;
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">
@@ -225,121 +230,145 @@ export default function AlertasPage() {
           </div>
           <button
             onClick={() => fetch()}
-            className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all"
+            className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all cursor-pointer"
           >
             Reintentar
           </button>
         </>
       )}
 
-      {empty && (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in-up">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6 animate-float">
-            <AlertTriangle size={40} />
-          </div>
-          <h2 className="text-2xl font-bold text-text mb-2">No hay alertas</h2>
-          <p className="text-gray max-w-md">No hay alertas epidemiológicas en este momento.</p>
-          {rol === "health_worker" && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-6 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Crear alerta
-            </button>
-          )}
-        </div>
-      )}
-
-      {!loadingInitial && !empty && (
+      {!loadingInitial && (
         <>
-          <h2 className="text-2xl font-bold text-text mb-4">Alertas Epidemiológicas</h2>
+          {!errorInitial && (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-text">Alertas Epidemiológicas</h2>
+                <button
+                  onClick={() => fetch()}
+                  className="p-2 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer"
+                  title="Recargar"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
+              </div>
 
-          {rol === "health_worker" && (
-        <button
-          onClick={() => setShowForm(true)}
-          className="mb-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Crear alerta
-        </button>
-      )}
-
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <select
-          value={nivel}
-          onChange={(e) => setNivel(e.target.value)}
-          className="rounded-button border border-gray/30 bg-surface px-3 py-2 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-        >
-          {niveles.map((n) => (
-            <option key={n.value} value={n.value}>{n.label}</option>
-          ))}
-        </select>
-
-        <label className="flex items-center gap-2 text-sm text-text cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={soloActivas}
-            onChange={(e) => setSoloActivas(e.target.checked)}
-            className="accent-primary w-4 h-4 rounded border-gray/30"
-          />
-          Solo activas
-        </label>
-      </div>
-
-      {error && (
-        <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake mb-4" role="alert">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span className="flex-1">{error}</span>
-          <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
-        </div>
-      )}
-
-      {loading && (
-        <div className="mb-2 text-sm text-gray">Actualizando...</div>
-      )}
-
-      <div className="space-y-3">
-        {items.map((alert) => {
-          const color = nivelColor[alert.nivel] || "gray";
-          return (
-            <div
-              key={alert.id}
-              className={`bg-surface rounded-card shadow-sm p-6 border border-gray/10 transition-all ${!alert.activa ? "opacity-60" : ""}`}
-            >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-${color}/10 text-${color}`}>
-                    {alert.nivel}
-                  </span>
-                  {!alert.activa && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-gray/10 text-gray">
-                      Inactiva
-                    </span>
-                  )}
-                </div>
-                {rol === "health_worker" && alert.activa && (
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                {rol === "health_worker" && (
                   <button
-                    onClick={() => setConfirmDeactivate(alert.id)}
-                    className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                    onClick={() => setShowForm(true)}
+                    className="bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
                   >
-                    Desactivar
+                    <Plus className="w-4 h-4" />
+                    Crear alerta
                   </button>
                 )}
+                <select
+                  value={nivel}
+                  onChange={(e) => setNivel(e.target.value)}
+                  className="rounded-button border border-gray/30 bg-surface px-3 py-2 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                >
+                  {niveles.map((n) => (
+                    <option key={n.value} value={n.value}>{n.label}</option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-2 text-sm text-text cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={soloActivas}
+                    onChange={(e) => setSoloActivas(e.target.checked)}
+                    className="accent-primary w-4 h-4 rounded border-gray/30"
+                  />
+                  Solo activas
+                </label>
               </div>
+            </>
+          )}
 
-              <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>
-              <p className="text-sm text-gray mb-3">{alert.descripcion}</p>
-
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
-                {alert.departamento && <span>Departamento: {alert.departamento}</span>}
-                {alert.fuente && <span>Fuente: {alert.fuente}</span>}
-                <span>{formatDate(alert.created_at)}</span>
-              </div>
+          {error && (
+            <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake mb-4" role="alert">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1">{error}</span>
+              <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
             </div>
-          );
-        })}
-      </div>
+          )}
+
+          {empty && !errorInitial && (
+            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6 animate-float">
+                <AlertTriangle size={40} />
+              </div>
+              {hasActiveFilters ? (
+                <>
+                  <h2 className="text-2xl font-bold text-text mb-2">Sin resultados</h2>
+                  <p className="text-gray max-w-md">No hay alertas que coincidan con los filtros seleccionados.</p>
+                  <button
+                    onClick={clearFilters}
+                    className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer"
+                  >
+                    Limpiar filtros
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold text-text mb-2">No hay alertas</h2>
+                  <p className="text-gray max-w-md">No hay alertas epidemiológicas en este momento.</p>
+                  {rol === "health_worker" && (
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="mt-6 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Crear alerta
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {items.length > 0 && (
+            <div className="space-y-3">
+              {items.map((alert) => {
+                const color = nivelColor[alert.nivel] || "gray";
+                return (
+                  <div
+                    key={alert.id}
+                    className={`bg-surface rounded-card shadow-sm p-6 border border-gray/10 transition-all ${!alert.activa ? "opacity-60" : ""}`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-${color}/10 text-${color}`}>
+                          {alert.nivel}
+                        </span>
+                        {!alert.activa && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-gray/10 text-gray">
+                            Inactiva
+                          </span>
+                        )}
+                      </div>
+                      {rol === "health_worker" && alert.activa && (
+                        <button
+                          onClick={() => setConfirmDeactivate(alert.id)}
+                          className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                        >
+                          Desactivar
+                        </button>
+                      )}
+                    </div>
+
+                    <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>
+                    <p className="text-sm text-gray mb-3">{alert.descripcion}</p>
+
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
+                      {alert.departamento && <span>Departamento: {alert.departamento}</span>}
+                      {alert.fuente && <span>Fuente: {alert.fuente}</span>}
+                      <span>{formatDate(alert.created_at)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
 
@@ -395,7 +424,7 @@ export default function AlertasPage() {
 
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 animate-fade-in-up px-4 py-3 rounded-button text-sm font-medium shadow-lg ${
+          className={`fixed top-4 right-4 z-[60] animate-fade-in-up px-4 py-3 rounded-button text-sm font-medium shadow-lg ${
             toast.type === "success" ? "bg-success/10 text-success border border-success/30" : "bg-info/10 text-info border border-info/30"
           }`}
         >
