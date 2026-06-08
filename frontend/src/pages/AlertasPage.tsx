@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AlertTriangle, AlertCircle, Plus, X, RotateCw } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -164,6 +164,7 @@ export default function AlertasPage() {
   const [form, setForm] = useState({ titulo: "", descripcion: "", nivel: "" as AlertNivel | "", departamento: "", fuente: "" });
   const [confirmDeactivate, setConfirmDeactivate] = useState<number | null>(null);
   const [desactivando, setDesactivando] = useState<number | null>(null);
+  const toastTimeoutRef = useRef<number>(undefined);
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
 
   useEffect(() => {
@@ -181,8 +182,9 @@ export default function AlertasPage() {
   }
 
   function showToast(message: string, type: "success" | "info" = "success") {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 3000);
   }
 
   function clearFilters() {
@@ -195,6 +197,11 @@ export default function AlertasPage() {
     try {
       await deactivateAlert(id);
       showToast("Alerta desactivada");
+      if (soloActivas) {
+        handleRefresh();
+      }
+    } catch {
+      showToast("Error al desactivar", "info");
     } finally {
       setDesactivando(null);
     }
@@ -216,7 +223,7 @@ export default function AlertasPage() {
       setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
       showToast("Alerta creada");
     } catch {
-      // error handled by store
+      showToast("Error al crear alerta", "info");
     } finally {
       setCreating(false);
     }
@@ -330,7 +337,7 @@ export default function AlertasPage() {
 
           {empty && !errorInitial && (
             <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6 animate-float">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6">
                 <AlertTriangle size={40} />
               </div>
               {hasActiveFilters ? (
@@ -377,49 +384,56 @@ export default function AlertasPage() {
           )}
 
           {items.length > 0 && (
-            <div className="space-y-3">
-              {sorted.map((alert) => {
-                const color = nivelColor[alert.nivel] || "gray";
-                const borderColor = alert.activa ? nivelBorderColor[alert.nivel] : "var(--color-gray)";
-                return (
-                  <div
-                    key={alert.id}
-                    style={{ borderLeftColor: borderColor }}
-                    className={`bg-surface rounded-card shadow-sm p-6 border border-gray/10 border-l-4 transition-all ${!alert.activa ? "opacity-60" : ""}`}
-                  >
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-${color}/10 text-${color}`}>
-                          {alert.nivel}
-                        </span>
-                        {!alert.activa && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-gray/10 text-gray">
-                            Inactiva
+            <>
+              <div className="space-y-3">
+                {sorted.map((alert) => {
+                  const color = nivelColor[alert.nivel] || "gray";
+                  const borderColor = alert.activa ? nivelBorderColor[alert.nivel] : "var(--color-gray)";
+                  return (
+                    <div
+                      key={alert.id}
+                      style={{ borderLeftColor: borderColor }}
+                      className={`bg-surface rounded-card shadow-sm p-6 border border-gray/10 border-l-4 transition-all ${!alert.activa ? "opacity-60" : ""}`}
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-${color}/10 text-${color}`}>
+                            {alert.nivel}
                           </span>
+                          {!alert.activa && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-gray/10 text-gray">
+                              Inactiva
+                            </span>
+                          )}
+                        </div>
+                        {rol === "health_worker" && alert.activa && (
+                          <button
+                            onClick={() => setConfirmDeactivate(alert.id)}
+                            className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                          >
+                            Desactivar
+                          </button>
                         )}
                       </div>
-                      {rol === "health_worker" && alert.activa && (
-                        <button
-                          onClick={() => setConfirmDeactivate(alert.id)}
-                          className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
-                        >
-                          Desactivar
-                        </button>
-                      )}
-                    </div>
 
-                    <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>
-                    <p className="text-sm text-gray mb-3">{alert.descripcion}</p>
+                      <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>
+                      <p className="text-sm text-gray mb-3">{alert.descripcion}</p>
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
-                      {alert.departamento && <span>Departamento: {alert.departamento}</span>}
-                      {alert.fuente && <span>Fuente: {alert.fuente}</span>}
-                      <span>{formatDate(alert.created_at)}</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
+                        {alert.departamento && <span>Departamento: {alert.departamento}</span>}
+                        {alert.fuente && <span>Fuente: {alert.fuente}</span>}
+                        <span>{formatDate(alert.created_at)}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+              {rol !== "health_worker" && totalInactivas > 0 && (
+                <p className="mt-4 text-xs text-gray text-center">
+                  Las alertas inactivas son gestionadas por personal de salud.
+                </p>
+              )}
+            </>
           )}
         </>
       )}

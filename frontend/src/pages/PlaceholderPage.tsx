@@ -9,7 +9,7 @@ interface Props {
 export default function PlaceholderPage({ icon: Icon, title, description }: Props) {
   return (
     <div className="py-4 md:py-6 px-4 md:px-8 flex flex-col items-center justify-center min-h-[60vh] text-center animate-fade-in-up">
-      <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6 animate-float">
+      <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6">
         <Icon size={40} />
       </div>
       <h2 className="text-2xl font-bold text-text mb-2">{title}</h2>
