@@ -159,6 +159,13 @@ export default function AlertasPage() {
     fetch(params);
   }, [nivel, soloActivas, fetch]);
 
+  function handleRefresh() {
+    const params: Record<string, any> = {};
+    if (nivel) params.nivel = nivel;
+    if (soloActivas) params.activas = true;
+    fetch(params);
+  }
+
   function showToast(message: string, type: "success" | "info" = "success") {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -229,7 +236,7 @@ export default function AlertasPage() {
             <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
           </div>
           <button
-            onClick={() => fetch()}
+            onClick={handleRefresh}
             className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all cursor-pointer"
           >
             Reintentar
@@ -244,7 +251,7 @@ export default function AlertasPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-text">Alertas Epidemiológicas</h2>
                 <button
-                  onClick={() => fetch()}
+                  onClick={handleRefresh}
                   className="p-2 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer"
                   title="Recargar"
                 >
