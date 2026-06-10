@@ -31,7 +31,7 @@ export default function ChatInterface() {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 animate-float">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Stethoscope className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-lg font-semibold text-text mb-2">¿Cómo puedo ayudarte?</h3>
