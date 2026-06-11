@@ -29,8 +29,8 @@ type LoginRequest struct {
 }
 
 type authService struct {
-	userRepo            repository.UserRepository
-	jwtSecret           string
+	userRepo           repository.UserRepository
+	jwtSecret          string
 	healthWorkerSecret string
 }
 
@@ -45,7 +45,13 @@ func (s *authService) Register(req RegisterRequest) (*models.User, error) {
 	}
 
 	rol := "family"
-	if s.healthWorkerSecret != "" && req.Codigo == s.healthWorkerSecret {
+	if req.Codigo != "" {
+		if s.healthWorkerSecret == "" {
+			return nil, errors.New("registro de personal de salud no disponible")
+		}
+		if req.Codigo != s.healthWorkerSecret {
+			return nil, errors.New("código de health worker inválido")
+		}
 		rol = "health_worker"
 	}
 

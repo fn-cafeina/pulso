@@ -25,11 +25,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user, err := h.authSvc.Register(req)
 	if err != nil {
-		msg := "error al registrar usuario"
 		if strings.Contains(err.Error(), "UNIQUE constraint") {
-			msg = "el nombre de usuario ya está en uso"
+			Error(c, http.StatusConflict, "el nombre de usuario ya está en uso")
+			return
 		}
-		Error(c, http.StatusConflict, msg)
+		if strings.Contains(err.Error(), "código de health worker") ||
+			strings.Contains(err.Error(), "no disponible") {
+			Error(c, http.StatusBadRequest, err.Error())
+			return
+		}
+		Error(c, http.StatusInternalServerError, "error al registrar usuario")
 		return
 	}
 
