@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react";
-import { AlertTriangle, AlertCircle, Plus, X, RotateCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, AlertCircle, Plus, X } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
+import { useToastStore } from "../stores/toast";
 import type { AlertNivel } from "../types";
 
 const niveles: { value: string; label: string }[] = [
@@ -164,8 +165,6 @@ export default function AlertasPage() {
   const [form, setForm] = useState({ titulo: "", descripcion: "", nivel: "" as AlertNivel | "", departamento: "", fuente: "" });
   const [confirmDeactivate, setConfirmDeactivate] = useState<number | null>(null);
   const [desactivando, setDesactivando] = useState<number | null>(null);
-  const toastTimeoutRef = useRef<number>(undefined);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
 
   useEffect(() => {
     const params: Record<string, any> = {};
@@ -181,12 +180,6 @@ export default function AlertasPage() {
     fetch(params);
   }
 
-  function showToast(message: string, type: "success" | "info" = "success") {
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    setToast({ message, type });
-    toastTimeoutRef.current = setTimeout(() => setToast(null), 3000);
-  }
-
   function clearFilters() {
     setNivel("");
     setSoloActivas(true);
@@ -196,12 +189,12 @@ export default function AlertasPage() {
     setDesactivando(id);
     try {
       await deactivateAlert(id);
-      showToast("Alerta desactivada");
-      if (soloActivas) {
-        handleRefresh();
-      }
+      useToastStore.getState().add("Alerta desactivada");
+      useAlertsStore.setState((s) => ({
+        items: s.items.filter((a) => a.id !== id),
+      }));
     } catch {
-      showToast("Error al desactivar", "info");
+      useToastStore.getState().add("Error al desactivar", "info");
     } finally {
       setDesactivando(null);
     }
@@ -221,9 +214,9 @@ export default function AlertasPage() {
       });
       setShowForm(false);
       setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
-      showToast("Alerta creada");
+      useToastStore.getState().add("Alerta creada");
     } catch {
-      showToast("Error al crear alerta", "info");
+      useToastStore.getState().add("Error al crear alerta", "info");
     } finally {
       setCreating(false);
     }
@@ -280,13 +273,6 @@ export default function AlertasPage() {
             <>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-text">Alertas Epidemiológicas</h2>
-                <button
-                  onClick={handleRefresh}
-                  className="p-2 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer"
-                  title="Recargar"
-                >
-                  <RotateCw className="w-4 h-4" />
-                </button>
               </div>
 
               {summaryParts.length > 0 && (
@@ -485,16 +471,6 @@ export default function AlertasPage() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 z-[60] animate-fade-in-up px-4 py-3 rounded-button text-sm font-medium shadow-lg ${
-            toast.type === "success" ? "bg-success/10 text-success border border-success/30" : "bg-info/10 text-info border border-info/30"
-          }`}
-        >
-          {toast.message}
         </div>
       )}
     </div>
