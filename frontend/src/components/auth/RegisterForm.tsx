@@ -17,7 +17,7 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string; confirmPassword?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string; confirmPassword?: string; codigo?: string }>({});
   const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -64,6 +64,8 @@ export default function RegisterForm() {
       const msg = err.message;
       if (msg.includes("ya está en uso")) {
         setFieldErrors({ username: msg });
+      } else if (msg.includes("código de health worker") || msg.includes("no disponible")) {
+        setFieldErrors({ codigo: msg });
       } else {
         setError(msg);
       }
@@ -245,10 +247,19 @@ export default function RegisterForm() {
                 name="codigo"
                 type="text"
                 value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-button border border-gray/30 bg-surface text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                aria-invalid={!!fieldErrors.codigo}
+                aria-describedby={fieldErrors.codigo ? "reg-codigo-error" : undefined}
+                onChange={(e) => { setCodigo(e.target.value); setFieldErrors((prev) => ({ ...prev, codigo: undefined })); setError(""); }}
+                className={`w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray focus:outline-none focus:ring-2 transition-colors ${
+                  fieldErrors.codigo
+                    ? "border-danger focus:ring-danger/50 focus:border-danger"
+                    : "border-gray/30 focus:ring-primary/50 focus:border-primary"
+                }`}
                 placeholder="Si eres personal de salud, ingresa tu código"
               />
+              {fieldErrors.codigo && (
+                <p id="reg-codigo-error" className="text-danger text-xs mt-1" role="alert">{fieldErrors.codigo}</p>
+              )}
             </div>
           </div>
         )}
