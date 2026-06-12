@@ -27,13 +27,6 @@ const nivelColor: Record<AlertNivel, string> = {
   critico: "danger",
 };
 
-const nivelBorderColor: Record<string, string> = {
-  bajo: "var(--color-success)",
-  medio: "var(--color-warning)",
-  alto: "#f97316",
-  critico: "var(--color-danger)",
-};
-
 const sortOrder: Record<string, number> = {
   critico: 0,
   alto: 1,
@@ -140,7 +133,7 @@ function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel 
 
 function SkeletonCard() {
   return (
-    <div className="bg-surface rounded-card shadow-sm p-6 border border-gray/10 animate-pulse-gentle">
+    <div className="bg-surface rounded-card p-6 animate-pulse-gentle">
       <div className="flex gap-2 mb-3">
         <div className="h-5 w-14 bg-gray/20 rounded-button" />
       </div>
@@ -234,13 +227,6 @@ export default function AlertasPage() {
   const hasActiveFilters = nivel !== "" || !soloActivas;
 
   const sorted = [...items].sort((a, b) => (sortOrder[a.nivel] ?? 99) - (sortOrder[b.nivel] ?? 99));
-  const totalActivas = items.filter((a) => a.activa).length;
-  const totalInactivas = items.filter((a) => !a.activa).length;
-  const criticasActivas = items.filter((a) => a.activa && a.nivel === "critico").length;
-  const summaryParts: string[] = [];
-  if (totalActivas > 0) summaryParts.push(`${totalActivas} activa${totalActivas !== 1 ? "s" : ""}`);
-  if (criticasActivas > 0) summaryParts.push(`${criticasActivas} crítica${criticasActivas !== 1 ? "s" : ""}`);
-  if (totalInactivas > 0 && !soloActivas) summaryParts.push(`${totalInactivas} inactiva${totalInactivas !== 1 ? "s" : ""}`);
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">
@@ -271,44 +257,37 @@ export default function AlertasPage() {
         <>
           {!errorInitial && (
             <>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-text">Alertas Epidemiológicas</h2>
-              </div>
-
-              {summaryParts.length > 0 && (
-                <div className="mb-3 text-sm text-gray">
-                  {summaryParts.join(" · ")}
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                {rol === "health_worker" && (
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h2 className="text-lg font-bold text-text">Alertas Epidemiológicas</h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  {rol === "health_worker" && (
+                    <button
+                      onClick={() => setShowForm(true)}
+                      className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-button transition-all cursor-pointer flex items-center gap-2 text-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Crear alerta
+                    </button>
+                  )}
+                  <select
+                    value={nivel}
+                    onChange={(e) => setNivel(e.target.value)}
+                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    Crear alerta
-                  </button>
-                )}
-                <select
-                  value={nivel}
-                  onChange={(e) => setNivel(e.target.value)}
-                  className="rounded-button border border-gray/30 bg-surface px-3 py-2 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                >
-                  {niveles.map((n) => (
-                    <option key={n.value} value={n.value}>{n.label}</option>
-                  ))}
-                </select>
-                <label className="flex items-center gap-2 text-sm text-text cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={soloActivas}
-                    onChange={(e) => setSoloActivas(e.target.checked)}
-                    className="accent-primary w-4 h-4 rounded border-gray/30"
-                  />
-                  Solo activas
-                </label>
+                    {niveles.map((n) => (
+                      <option key={n.value} value={n.value}>{n.label}</option>
+                    ))}
+                  </select>
+                  <label className="flex items-center gap-1.5 text-sm text-text cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={soloActivas}
+                      onChange={(e) => setSoloActivas(e.target.checked)}
+                      className="accent-primary w-3.5 h-3.5 rounded border-gray/30"
+                    />
+                    Solo activas
+                  </label>
+                </div>
               </div>
             </>
           )}
@@ -323,47 +302,30 @@ export default function AlertasPage() {
 
           {empty && !errorInitial && (
             <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-xl mb-6">
-                <AlertTriangle size={40} />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-5 h-5 text-primary" />
               </div>
               {hasActiveFilters ? (
                 <>
-                  <h2 className="text-2xl font-bold text-text mb-2">Sin resultados</h2>
-                  <p className="text-gray max-w-md">No hay alertas que coincidan con los filtros seleccionados.</p>
+                  <h2 className="text-xl font-bold text-text mb-1">Sin resultados</h2>
+                  <p className="text-sm text-gray max-w-md">No hay alertas que coincidan con los filtros seleccionados.</p>
                   <button
                     onClick={clearFilters}
-                    className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer"
+                    className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer text-sm"
                   >
                     Limpiar filtros
                   </button>
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold text-text mb-2">
+                  <h2 className="text-xl font-bold text-text mb-1">
                     {soloActivas ? "No hay alertas activas" : "No hay alertas"}
                   </h2>
-                  <p className="text-gray max-w-md">
+                  <p className="text-sm text-gray max-w-md">
                     {soloActivas
                       ? "No hay alertas epidemiológicas activas en este momento."
                       : "No hay alertas epidemiológicas registradas."}
                   </p>
-                  {soloActivas && (
-                    <button
-                      onClick={() => setSoloActivas(false)}
-                      className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer"
-                    >
-                      Mostrar inactivas
-                    </button>
-                  )}
-                  {rol === "health_worker" && (
-                    <button
-                      onClick={() => setShowForm(true)}
-                      className="mt-6 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Crear alerta
-                    </button>
-                  )}
                 </>
               )}
             </div>
@@ -372,14 +334,12 @@ export default function AlertasPage() {
           {items.length > 0 && (
             <>
               <div className="space-y-3">
-                {sorted.map((alert) => {
+                  {sorted.map((alert) => {
                   const color = nivelColor[alert.nivel] || "gray";
-                  const borderColor = alert.activa ? nivelBorderColor[alert.nivel] : "var(--color-gray)";
                   return (
                     <div
                       key={alert.id}
-                      style={{ borderLeftColor: borderColor }}
-                      className={`bg-surface rounded-card shadow-sm p-6 border border-gray/10 border-l-4 transition-all ${!alert.activa ? "opacity-60" : ""}`}
+                      className="bg-surface rounded-card p-6 transition-all"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -406,19 +366,15 @@ export default function AlertasPage() {
                       <p className="text-sm text-gray mb-3">{alert.descripcion}</p>
 
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
-                        {alert.departamento && <span>Departamento: {alert.departamento}</span>}
-                        {alert.fuente && <span>Fuente: {alert.fuente}</span>}
+                        {alert.departamento && <span>{alert.departamento}</span>}
+                        {alert.fuente && <span>{alert.fuente}</span>}
                         <span>{formatDate(alert.created_at)}</span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              {rol !== "health_worker" && totalInactivas > 0 && (
-                <p className="mt-4 text-xs text-gray text-center">
-                  Las alertas inactivas son gestionadas por personal de salud.
-                </p>
-              )}
+
             </>
           )}
         </>

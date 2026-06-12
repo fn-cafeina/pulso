@@ -24,7 +24,7 @@ export default function ToastContainer() {
   const { icon } = config[current.type];
 
   return createPortal(
-    <div className="fixed top-4 right-4 z-[9999] animate-fade-in-up">
+    <div className="fixed bottom-24 md:bottom-4 right-4 z-[9999] animate-fade-in-up">
       <div className="flex items-start gap-3 px-4 py-3 rounded-button text-sm font-medium shadow-xl bg-surface">
         {icon}
         <span className="flex-1 text-text">{current.message}</span>
