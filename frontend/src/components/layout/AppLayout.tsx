@@ -5,9 +5,9 @@ import SidebarNav from "./SidebarNav";
 import BottomNav from "./BottomNav";
 import MobileDrawer from "./MobileDrawer";
 
-const pageMeta: Record<string, { title: string; subtitle?: string }> = {
+const pageMeta: Record<string, { title: string }> = {
   "/": { title: "Inicio" },
-  "/asistente": { title: "Asistente de Salud", subtitle: "Orientación basada en tu perfil de salud" },
+  "/asistente": { title: "Asistente de Salud" },
   "/historial": { title: "Mi Historial" },
   "/servicios": { title: "Servicios Cercanos" },
   "/eventos": { title: "Eventos" },
@@ -38,7 +38,6 @@ export default function AppLayout() {
           <MobileDrawer />
           <div className="min-w-0">
             <h1 className="font-semibold text-text text-sm truncate">{meta.title}</h1>
-            {meta.subtitle && <p className="text-xs text-gray truncate">{meta.subtitle}</p>}
           </div>
         </header>
 

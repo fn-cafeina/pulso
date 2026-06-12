@@ -14,15 +14,6 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="max-md:hidden bg-surface border-b border-gray/20 px-4 py-3 flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-          <Stethoscope className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h2 className="font-semibold text-text">Asistente de Salud</h2>
-          <p className="text-xs text-gray">Orientación basada en tu perfil de salud</p>
-        </div>
-      </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 [overscroll-behavior:contain]">
         {initialLoading ? (
