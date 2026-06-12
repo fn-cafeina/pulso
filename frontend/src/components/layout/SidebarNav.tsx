@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 export default function SidebarNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { username, rol } = useAuthStore();
+  const { username } = useAuthStore();
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const handleLogout = () => {
@@ -51,7 +51,6 @@ export default function SidebarNav() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-text truncate">{username}</p>
-            <p className="text-xs text-gray capitalize">{rol === "health_worker" ? "Trabajador de salud" : "Paciente"}</p>
           </div>
           <ThemeToggle compact />
           <button
