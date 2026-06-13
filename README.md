@@ -24,25 +24,46 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 
 ## Stack
 
-- **Backend:** Go 1.26 + Gin + GORM + SQLite
-- **Frontend:** Vite + React + Tailwind CSS
-- **IA:** Integración con API externa para asistente virtual
+- **Backend:** Go 1.26.2 + Gin + GORM + SQLite (pure-Go, sin CGO)
+- **Frontend:** Vite + React 19 + TypeScript + Tailwind CSS 4 + Zustand 5 + react-router-dom 7
+- **IA:** Google Gemini 3.1 Flash Lite
+- **Auth:** JWT (HS256, 72h) con roles `family` | `health_worker`
 
-## Documentación
+## Arquitectura
 
-| Recurso | Descripción |
-|---------|-------------|
-| [`docs/api.md`](docs/api.md) | Endpoints, autenticación, ejemplos request/response |
-| [`docs/models.md`](docs/models.md) | Modelos de datos, campos, tipos, constraints |
-| [`docs/architecture.md`](docs/architecture.md) | Arquitectura, capas, stack, decisiones técnicas |
-
-## Estructura
+### Backend
 
 ```
-backend/     # API REST (Go + Gin + GORM + SQLite)
-frontend/    # App web (Vite + React SPA + Tailwind CSS 4)
-docs/        # Documentación detallada
+handler → service → repository → GORM → SQLite
 ```
+
+Inyección de dependencias manual en `cmd/api/main.go`.
+
+### Frontend
+
+```
+Component → Store (Zustand) → createCrudApi (apiFetch) → Backend REST
+```
+
+- **Layouts:** `AuthLayout` (login/register) y `AppLayout` (sidebar + bottom nav + contenido)
+- **Auth:** `AuthGuard` envuelve a `AppLayout`, redirige a `/login` si no hay sesión
+- **Routing:** react-router-dom v7 con rutas anidadas
+- **Global state:** Zustand 5 — stores para auth, alerts, appointments, events, reminders, services, symptoms, toast
+- **CRUD genérico:** `createCrudApi` wrapper sobre `apiFetch` con métodos `list`, `getById`, `create`, `update`, `del`, `action`
+- **Notificaciones:** Sistema de toast global (Zustand + `ToastContainer` montado en `main.tsx`)
+- **Tema:** `ThemeToggle` con soporte light/dark
+
+## Páginas
+
+| Página | Ruta | Estado |
+|--------|------|--------|
+| Inicio | `/` | ✅ Dashboard con cards de acceso rápido |
+| Asistente IA | `/asistente` | ✅ Chat con Gemini, historial, sugerencias |
+| Alertas | `/alertas` | ✅ CRUD completo con filtros |
+| Mi Historial | `/historial` | 📍 Placeholder |
+| Servicios Cercanos | `/servicios` | 📍 Placeholder |
+| Eventos | `/eventos` | 📍 Placeholder |
+| Recordatorios | `/recordatorios` | 📍 Placeholder |
 
 ## Desarrollo
 

@@ -38,13 +38,28 @@ handler → service → repository → GORM → SQLite
 
 Manual DI in `cmd/api/main.go`. Interfaces at service/repo layers.
 
+### Backend
+
 - Auth: JWT Bearer (72h, HS256), roles `family` | `health_worker`
 - Geo: Haversine in Go memory, not SQL
 - AI: Gemini 3.1 Flash Lite, 3 retries w/ backoff, 30s timeout, 503 if key missing
 - DB: SQLite via `glebarez/sqlite` (pure-Go), WAL mode, AutoMigrate on startup
 - CORS: `CORS_ORIGIN` env (default `http://localhost:5173`)
 
-## Tests (72, 9 files)
+### Frontend
+
+```
+Component → Store (Zustand) → createCrudApi → Backend
+```
+
+- **Layouts**: `AuthLayout` (login/register), `AppLayout` (sidebar + bottom nav + `<Outlet />`)
+- **Routing**: react-router-dom v7, `<AuthGuard>` wrapping `AppLayout`, split auth/app
+- **Stores**: Zustand 5 — `auth`, `alerts`, `toast`, `appointments`, `events`, `reminders`, `services`, `symptoms`
+- **CRUD**: `createCrudApi(path)` returns `{ list, getById, create, update, del, action }`; `createCrudStore(api)` builds a Zustand store around it
+- **Toast**: `useToastStore` (single current toast, 4s auto-dismiss) + `ToastContainer` mounted in `main.tsx`, positioned `bottom-24 md:bottom-4 right-4`
+- **Theme**: `ThemeToggle` component with light/dark via Tailwind CSS `@variant dark`
+
+## Tests (75, 9 files)
 
 Only `backend/internal/service/` has tests. Pattern: mock repo structs with inline methods, `fail bool` flag.
 

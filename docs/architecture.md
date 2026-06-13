@@ -128,8 +128,55 @@ Configurable vía variable `CORS_ORIGIN` (default: `http://localhost:5173`).
 ### Graceful shutdown
 El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s, permitiendo que requests en curso finalicen antes de cerrar conexiones.
 
+## Frontend
+
+### Stack
+
+| Componente | Tecnología |
+|------------|------------|
+| Framework | React 19 + TypeScript |
+| Build | Vite 8 |
+| Estilos | Tailwind CSS 4 |
+| Estado global | Zustand 5 |
+| Routing | react-router-dom 7 |
+| Iconos | lucide-react |
+| Tipografía | Nunito (@fontsource) |
+
+### Flujo de datos
+
+```
+Component → Store (Zustand) → createCrudApi → apiFetch → Backend REST
+```
+
+Cada entidad del dominio tiene un store Zustand construido a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `fetch`, `add`, `update`, `remove` de forma consistente.
+
+### Componentes
+
+```
+src/
+├── main.tsx                    Entry point + ToastContainer
+├── App.tsx                     Router principal (auth/app split)
+├── components/
+│   ├── ai/                     ChatInterface, ChatInput, MessageBubble, SuggestionsPanel
+│   ├── auth/                   LoginForm, RegisterForm
+│   ├── layout/                 AppLayout, AuthLayout, AuthGuard, SidebarNav, BottomNav, MobileDrawer, ThemeToggle
+│   └── ui/                     ToastContainer
+├── pages/                      DashboardPage, AsistentePage, AlertasPage y placeholders
+├── stores/                     auth, alerts, appointments, events, reminders, services, symptoms, toast, vaccines
+├── lib/                        createCrudApi, createStore, api
+└── types/                      Tipos compartidos
+```
+
+### Decisiones
+
+- El estado de autenticación se persiste en `localStorage` y se restaura al cargar la app.
+- El modal de login/register se implementa como layouts separados, no como modales flotantes.
+- El sidebar (desktop) y bottom nav + drawer (mobile) comparten la misma configuración de rutas desde `navConfig.ts`.
+- El ToastContainer se renderiza en `main.tsx`, fuera del router pero dentro del `BrowserRouter`, asegurando que las notificaciones sean globales y no interfieran con el layout de página.
+- `AlertasPage` es la única página con CRUD completo implementado; las demás páginas (Historial, Servicios, Eventos, Recordatorios) muestran placeholders funcionales.
+
 ## Tests
 
-- 72 tests en 9 archivos dentro de `backend/internal/service/`.
+- 75 tests en 9 archivos dentro de `backend/internal/service/`.
 - Patrón: mocks manuales con structs e inline methods, flag `fail bool` para errores.
 - `cd backend && make test` para ejecutar.
