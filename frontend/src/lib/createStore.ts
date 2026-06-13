@@ -8,6 +8,7 @@ export interface CrudStore<T, Q = Record<string, any>> {
   error: string | null
   meta?: PaginationMeta
   fetch: (params?: Q) => Promise<void>
+  refresh: (params?: Q) => Promise<void>
   add: (data: Record<string, any>) => Promise<T>
   updateItem: (id: number, data: Record<string, any>) => Promise<T>
   removeItem: (id: number) => Promise<void>
@@ -29,6 +30,15 @@ export function createCrudStore<T extends { id: number }, Q = Record<string, any
         set({ items, meta, loading: false })
       } catch (err: any) {
         set({ error: err.message, loading: false })
+      }
+    },
+
+    async refresh(params?: Q) {
+      try {
+        const { items, meta } = await api.list(params)
+        set({ items, meta, error: null })
+      } catch (err: any) {
+        set({ error: err.message })
       }
     },
 

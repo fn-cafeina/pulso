@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -151,7 +151,7 @@ function SkeletonCard() {
 
 export default function AlertasPage() {
   const { rol } = useAuthStore();
-  const { items, loading, error, fetch, add, updateItem, removeItem, clearError } = useAlertsStore();
+  const { items, loading, error, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
   const [nivel, setNivel] = useState("");
   const [soloActivas, setSoloActivas] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -163,13 +163,19 @@ export default function AlertasPage() {
   const [desactivando, setDesactivando] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const initialLoad = useRef(true);
 
   useEffect(() => {
     const params: Record<string, any> = {};
     if (nivel) params.nivel = nivel;
     if (soloActivas) params.activas = true;
-    fetch(params);
-  }, [nivel, soloActivas, fetch]);
+    if (initialLoad.current) {
+      initialLoad.current = false;
+      fetch(params);
+    } else {
+      refresh(params);
+    }
+  }, [nivel, soloActivas, fetch, refresh]);
 
   function handleRefresh() {
     const params: Record<string, any> = {};
@@ -188,9 +194,6 @@ export default function AlertasPage() {
     try {
       await deactivateAlert(id);
       useToastStore.getState().add("Alerta desactivada");
-      useAlertsStore.setState((s) => ({
-        items: s.items.filter((a) => a.id !== id),
-      }));
     } catch {
       useToastStore.getState().add("Error al desactivar", "info");
     } finally {
