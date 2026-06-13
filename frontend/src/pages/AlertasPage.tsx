@@ -163,7 +163,23 @@ export default function AlertasPage() {
   const [desactivando, setDesactivando] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  const skeletonTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoad = useRef(true);
+
+  const loadingInitial = loading && items.length === 0 && !creating;
+
+  useEffect(() => {
+    if (loadingInitial) {
+      skeletonTimer.current = setTimeout(() => setShowSkeleton(true), 200);
+    } else {
+      if (skeletonTimer.current) clearTimeout(skeletonTimer.current);
+      setShowSkeleton(false);
+    }
+    return () => {
+      if (skeletonTimer.current) clearTimeout(skeletonTimer.current);
+    };
+  }, [loadingInitial]);
 
   useEffect(() => {
     const params: Record<string, any> = {};
@@ -282,7 +298,6 @@ export default function AlertasPage() {
   }
 
   const formDisabled = (creating || updating) || !form.titulo || !form.nivel;
-  const loadingInitial = loading && items.length === 0 && !creating;
   const errorInitial = error && items.length === 0 && !loading;
   const empty = !loading && items.length === 0;
   const hasActiveFilters = nivel !== "" || !soloActivas;
@@ -294,7 +309,7 @@ export default function AlertasPage() {
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">
-      {loadingInitial && (
+      {showSkeleton && (
         <div className="space-y-4">
           <div className="h-8 bg-gray/20 rounded w-48 animate-pulse-gentle" />
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
@@ -317,7 +332,7 @@ export default function AlertasPage() {
         </>
       )}
 
-      {!loadingInitial && (
+      {!showSkeleton && (
         <>
           {!errorInitial && (
             <>
