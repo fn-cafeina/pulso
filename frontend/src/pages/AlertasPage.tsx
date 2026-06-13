@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, AlertCircle, Plus, X } from "lucide-react";
+import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
 import { useToastStore } from "../stores/toast";
-import type { AlertNivel } from "../types";
+import type { AlertNivel, EpiAlert } from "../types";
 
 const niveles: { value: string; label: string }[] = [
   { value: "", label: "Todos los niveles" },
@@ -49,9 +49,10 @@ interface CreateFormProps {
   formDisabled: boolean
   onCreate: (e: React.FormEvent) => Promise<void>
   onCancel: () => void
+  submitLabel?: string
 }
 
-function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel }: CreateFormProps) {
+function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel, submitLabel = "Crear alerta" }: CreateFormProps) {
   return (
     <form onSubmit={onCreate} className="space-y-4">
       <div>
@@ -124,7 +125,7 @@ function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel 
           disabled={formDisabled}
           className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {creating ? "Creando..." : "Crear alerta"}
+          {creating ? (submitLabel === "Guardar cambios" ? "Guardando..." : "Creando...") : submitLabel}
         </button>
       </div>
     </form>
@@ -150,14 +151,18 @@ function SkeletonCard() {
 
 export default function AlertasPage() {
   const { rol } = useAuthStore();
-  const { items, loading, error, fetch, add, clearError } = useAlertsStore();
+  const { items, loading, error, fetch, add, updateItem, removeItem, clearError } = useAlertsStore();
   const [nivel, setNivel] = useState("");
   const [soloActivas, setSoloActivas] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
+  const [updating, setUpdating] = useState(false);
   const [form, setForm] = useState({ titulo: "", descripcion: "", nivel: "" as AlertNivel | "", departamento: "", fuente: "" });
   const [confirmDeactivate, setConfirmDeactivate] = useState<number | null>(null);
   const [desactivando, setDesactivando] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const params: Record<string, any> = {};
@@ -193,6 +198,54 @@ export default function AlertasPage() {
     }
   }
 
+  function handleEdit(alert: EpiAlert) {
+    setForm({
+      titulo: alert.titulo,
+      descripcion: alert.descripcion,
+      nivel: alert.nivel,
+      departamento: alert.departamento,
+      fuente: alert.fuente,
+    });
+    setEditingAlert(alert);
+    setShowForm(true);
+  }
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingAlert || !form.titulo || !form.nivel) return;
+    setUpdating(true);
+    try {
+      await updateItem(editingAlert.id, {
+        titulo: form.titulo,
+        descripcion: form.descripcion || undefined,
+        nivel: form.nivel,
+        departamento: form.departamento || undefined,
+        fuente: form.fuente || undefined,
+      });
+      setShowForm(false);
+      setEditingAlert(null);
+      setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
+      useToastStore.getState().add("Alerta actualizada");
+    } catch {
+      useToastStore.getState().add("Error al actualizar alerta", "info");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    setDeleting(true);
+    try {
+      await removeItem(id);
+      useToastStore.getState().add("Alerta eliminada");
+    } catch {
+      useToastStore.getState().add("Error al eliminar alerta", "info");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(null);
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!form.titulo || !form.nivel) return;
@@ -217,10 +270,11 @@ export default function AlertasPage() {
 
   function resetForm() {
     setShowForm(false);
+    setEditingAlert(null);
     setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
   }
 
-  const formDisabled = creating || !form.titulo || !form.nivel;
+  const formDisabled = (creating || updating) || !form.titulo || !form.nivel;
   const loadingInitial = loading && items.length === 0 && !creating;
   const errorInitial = error && items.length === 0 && !loading;
   const empty = !loading && items.length === 0;
@@ -352,13 +406,31 @@ export default function AlertasPage() {
                             </span>
                           )}
                         </div>
-                        {rol === "health_worker" && alert.activa && (
-                          <button
-                            onClick={() => setConfirmDeactivate(alert.id)}
-                            className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
-                          >
-                            Desactivar
-                          </button>
+                        {rol === "health_worker" && (
+                          <div className="flex items-center gap-2">
+                            {alert.activa && (
+                              <button
+                                onClick={() => setConfirmDeactivate(alert.id)}
+                                className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                              >
+                                Desactivar
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleEdit(alert)}
+                              className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => setConfirmDelete(alert.id)}
+                              className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Eliminar
+                            </button>
+                          </div>
                         )}
                       </div>
 
@@ -388,12 +460,20 @@ export default function AlertasPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-text">Nueva alerta</h3>
+              <h3 className="text-lg font-semibold text-text">{editingAlert ? "Editar alerta" : "Nueva alerta"}</h3>
               <button onClick={resetForm} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <CreateForm form={form} setForm={setForm} creating={creating} formDisabled={formDisabled} onCreate={handleCreate} onCancel={resetForm} />
+            <CreateForm
+              form={form}
+              setForm={setForm}
+              creating={creating || updating}
+              formDisabled={formDisabled}
+              onCreate={editingAlert ? handleUpdate : handleCreate}
+              onCancel={resetForm}
+              submitLabel={editingAlert ? "Guardar cambios" : "Crear alerta"}
+            />
           </div>
         </div>
       )}
@@ -424,6 +504,34 @@ export default function AlertasPage() {
                 className="bg-danger hover:bg-danger/80 disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
               >
                 {desactivando === confirmDeactivate ? "Desactivando..." : "Desactivar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDelete !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-surface rounded-card shadow-xl w-full max-w-sm p-6 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-semibold text-text mb-2">Eliminar alerta</h3>
+            <p className="text-sm text-gray mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(confirmDelete)}
+                disabled={deleting}
+                className="bg-danger hover:bg-danger/80 disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
+              >
+                {deleting ? "Eliminando..." : "Eliminar"}
               </button>
             </div>
           </div>
