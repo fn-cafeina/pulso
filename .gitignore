@@ -4,3 +4,6 @@
 
 # CodeGraph build artifact
 .codegraph/
+
+# OpenCode AI session cache & config
+.opencode/
