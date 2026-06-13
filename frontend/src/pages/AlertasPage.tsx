@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
 import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
+import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
 import { useToastStore } from "../stores/toast";
 import type { AlertNivel, EpiAlert } from "../types";
@@ -153,9 +153,7 @@ function SkeletonCard() {
 export default function AlertasPage() {
   const { rol } = useAuthStore();
   const { items, loading, error, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const nivel = searchParams.get("nivel") ?? "";
-  const soloActivas = searchParams.get("activas") !== "false";
+  const { nivel, soloActivas, setNivel, setSoloActivas, limpiar } = useAlertFiltersStore();
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
@@ -186,16 +184,8 @@ export default function AlertasPage() {
     fetch(params);
   }
 
-  function setFilter(key: string, value: string) {
-    setSearchParams((prev) => {
-      if (value) prev.set(key, value);
-      else prev.delete(key);
-      return prev;
-    }, { replace: true });
-  }
-
   function clearFilters() {
-    setSearchParams({}, { replace: true });
+    limpiar();
   }
 
   async function handleDeactivate(id: number) {
@@ -345,7 +335,7 @@ export default function AlertasPage() {
                   )}
                   <select
                     value={nivel}
-                    onChange={(e) => setFilter("nivel", e.target.value)}
+                    onChange={(e) => setNivel(e.target.value)}
                     className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                   >
                     {niveles.map((n) => (
@@ -356,13 +346,7 @@ export default function AlertasPage() {
                     <input
                       type="checkbox"
                       checked={soloActivas}
-                      onChange={(e) => {
-                        setSearchParams((prev) => {
-                          if (e.target.checked) prev.delete("activas");
-                          else prev.set("activas", "false");
-                          return prev;
-                        }, { replace: true });
-                      }}
+                      onChange={(e) => setSoloActivas(e.target.checked)}
                       className="accent-primary w-3.5 h-3.5 rounded border-gray/30"
                     />
                     Solo activas
@@ -432,21 +416,25 @@ export default function AlertasPage() {
                             </span>
                           )}
                         </div>
-                        {rol === "health_worker" && alert.activa && (
+                        {rol === "health_worker" && (
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setConfirmDeactivate(alert.id)}
-                              className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
-                            >
-                              Desactivar
-                            </button>
-                            <button
-                              onClick={() => handleEdit(alert)}
-                              className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
-                            >
-                              <Pencil className="w-3 h-3" />
-                              Editar
-                            </button>
+                            {alert.activa && (
+                              <>
+                                <button
+                                  onClick={() => setConfirmDeactivate(alert.id)}
+                                  className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                                >
+                                  Desactivar
+                                </button>
+                                <button
+                                  onClick={() => handleEdit(alert)}
+                                  className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                  Editar
+                                </button>
+                              </>
+                            )}
                             <button
                               onClick={() => setConfirmDelete(alert.id)}
                               className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer flex items-center gap-1"
