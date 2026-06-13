@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/fn-cafeina/pulso/backend/internal/ai"
 	"github.com/fn-cafeina/pulso/backend/internal/models"
@@ -147,29 +146,6 @@ var (
 
 func NormalizeResponse(r string) string {
 	r = strings.TrimSpace(r)
-
-	if !strings.HasPrefix(r, "¡") &&
-		!strings.HasPrefix(r, "Hola") &&
-		!strings.HasPrefix(r, "Buen") &&
-		!strings.HasPrefix(r, "Claro") &&
-		!strings.HasPrefix(r, "Tranquil") &&
-		!strings.HasPrefix(r, "Mirá") {
-		r = "¡Hola! " + r
-	}
-
-	tail := strings.TrimRightFunc(r, func(ch rune) bool {
-		return unicode.IsSpace(ch) || unicode.IsSymbol(ch)
-	})
-	hasClosing := strings.HasSuffix(tail, "?") ||
-		strings.Contains(r, "¿Algo más") ||
-		strings.Contains(r, "¿Hay algo más") ||
-		strings.Contains(r, "¿Tenés alguna") ||
-		strings.Contains(r, "¿Has notado") ||
-		strings.Contains(r, "Cuidate")
-
-	if !hasClosing {
-		r += "\n\n¿Algo más en lo que pueda ayudarte? 😊"
-	}
 
 	centerCount := reMarkdownBold.FindAllStringIndex(r, -1)
 	lower := strings.ToLower(r)
