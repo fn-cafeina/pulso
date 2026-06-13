@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -283,7 +283,10 @@ export default function AlertasPage() {
   const empty = !loading && items.length === 0;
   const hasActiveFilters = nivel !== "" || !soloActivas;
 
-  const sorted = [...items].sort((a, b) => (sortOrder[a.nivel] ?? 99) - (sortOrder[b.nivel] ?? 99));
+  const sorted = useMemo(
+    () => [...items].sort((a, b) => (sortOrder[a.nivel] ?? 99) - (sortOrder[b.nivel] ?? 99)),
+    [items]
+  );
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">
@@ -396,7 +399,7 @@ export default function AlertasPage() {
                   return (
                     <div
                       key={alert.id}
-                      className="bg-surface rounded-card p-6 transition-all"
+                      className="bg-surface rounded-card p-6 transition-all animate-fade-in-up"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
