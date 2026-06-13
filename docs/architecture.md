@@ -106,11 +106,11 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 ### Asistente IA
 - Gemini 3.1 Flash Lite (GA desde mayo 2026, $0.25/1M input tokens).
 - Modelo: `gemini-3.1-flash-lite`.
-- Temperatura 0.8. Sin streaming.
+- Temperatura 0.8. Sin streaming (frontend simula typing: 4 chars / 12ms).
 - Inyecta contexto del usuario (antecedentes, síntomas, vacunas, citas futuras) en el prompt.
 - 30s timeout, 3 retries con backoff. Sin key o rate-limit → 503.
 - Prompt del sistema en español con personalidad cálida y lenguaje nicaragüense (vos).
-- Post-procesado con `NormalizeResponse()`: garantiza saludo, cierre amigable y negritas en alertas.
+- NormalizeResponse: bold en emergencias, colapso de saltos de línea.
 
 ### Recordatorios automáticos
 - Al crear cita → recordatorio tipo `cita`.
@@ -162,8 +162,8 @@ src/
 │   ├── layout/                 AppLayout, AuthLayout, AuthGuard, SidebarNav, BottomNav, MobileDrawer, ThemeToggle
 │   └── ui/                     ToastContainer
 ├── pages/                      DashboardPage, AsistentePage, AlertasPage y placeholders
-├── stores/                     auth, alerts, appointments, events, reminders, services, symptoms, toast, vaccines
-├── lib/                        createCrudApi, createStore, api
+├── stores/                     auth, alerts, alertFilters, appointments, events, reminders, services, symptoms, toast, vaccines
+├── lib/                        createCrudApi, createCrudStore (con fetch, refresh, add, updateItem, removeItem), api, useDelayedLoading
 └── types/                      Tipos compartidos
 ```
 
@@ -177,6 +177,6 @@ src/
 
 ## Tests
 
-- 75 tests en 9 archivos dentro de `backend/internal/service/`.
+- 68 tests en 9 archivos dentro de `backend/internal/service/`.
 - Patrón: mocks manuales con structs e inline methods, flag `fail bool` para errores.
 - `cd backend && make test` para ejecutar.

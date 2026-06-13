@@ -55,11 +55,13 @@ Component → Store (Zustand) → createCrudApi → Backend
 - **Layouts**: `AuthLayout` (login/register), `AppLayout` (sidebar + bottom nav + `<Outlet />`)
 - **Routing**: react-router-dom v7, `<AuthGuard>` wrapping `AppLayout`, split auth/app
 - **Stores**: Zustand 5 — `auth`, `alerts`, `toast`, `appointments`, `events`, `reminders`, `services`, `symptoms`
-- **CRUD**: `createCrudApi(path)` returns `{ list, getById, create, update, del, action }`; `createCrudStore(api)` builds a Zustand store around it
+- **CRUD**: `createCrudApi(path)` returns `{ list, getById, create, update, del, action }`; `createCrudStore(api)` builds a Zustand store around it. Stores have `refresh(params?)` — fetches items without setting `loading: true` (used for filter changes).
 - **Toast**: `useToastStore` (single current toast, 4s auto-dismiss) + `ToastContainer` mounted in `main.tsx`, positioned `bottom-24 md:bottom-4 right-4`
 - **Theme**: `ThemeToggle` component with light/dark via Tailwind CSS `@variant dark`
+- **Loading gating**: `useDelayedLoading` hook (default 200ms) delays skeleton/spinner display to prevent flash on rapid API responses.
+- **AI typing**: Simulated typing animation — AI response text appears at 4 chars / 12ms. `streaming` state hides loading dots during animation.
 
-## Tests (75, 9 files)
+## Tests (68, 9 files)
 
 Only `backend/internal/service/` has tests. Pattern: mock repo structs with inline methods, `fail bool` flag.
 
