@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -152,8 +153,9 @@ function SkeletonCard() {
 export default function AlertasPage() {
   const { rol } = useAuthStore();
   const { items, loading, error, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
-  const [nivel, setNivel] = useState("");
-  const [soloActivas, setSoloActivas] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const nivel = searchParams.get("nivel") ?? "";
+  const soloActivas = searchParams.get("activas") !== "false";
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
@@ -184,9 +186,16 @@ export default function AlertasPage() {
     fetch(params);
   }
 
+  function setFilter(key: string, value: string) {
+    setSearchParams((prev) => {
+      if (value) prev.set(key, value);
+      else prev.delete(key);
+      return prev;
+    }, { replace: true });
+  }
+
   function clearFilters() {
-    setNivel("");
-    setSoloActivas(true);
+    setSearchParams({}, { replace: true });
   }
 
   async function handleDeactivate(id: number) {
@@ -194,6 +203,11 @@ export default function AlertasPage() {
     try {
       await deactivateAlert(id);
       useToastStore.getState().add("Alerta desactivada");
+      if (soloActivas) {
+        useAlertsStore.setState((s) => ({
+          items: s.items.filter((a) => a.id !== id),
+        }));
+      }
     } catch {
       useToastStore.getState().add("Error al desactivar", "info");
     } finally {
@@ -331,7 +345,7 @@ export default function AlertasPage() {
                   )}
                   <select
                     value={nivel}
-                    onChange={(e) => setNivel(e.target.value)}
+                    onChange={(e) => setFilter("nivel", e.target.value)}
                     className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                   >
                     {niveles.map((n) => (
@@ -342,7 +356,13 @@ export default function AlertasPage() {
                     <input
                       type="checkbox"
                       checked={soloActivas}
-                      onChange={(e) => setSoloActivas(e.target.checked)}
+                      onChange={(e) => {
+                        setSearchParams((prev) => {
+                          if (e.target.checked) prev.delete("activas");
+                          else prev.set("activas", "false");
+                          return prev;
+                        }, { replace: true });
+                      }}
                       className="accent-primary w-3.5 h-3.5 rounded border-gray/30"
                     />
                     Solo activas
@@ -360,39 +380,39 @@ export default function AlertasPage() {
             </div>
           )}
 
-          {empty && !errorInitial && (
-            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-5 h-5 text-primary" />
+          <div className="transition-opacity duration-200">
+            {empty && !errorInitial && (
+              <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <AlertTriangle className="w-5 h-5 text-primary" />
+                </div>
+                {hasActiveFilters ? (
+                  <>
+                    <h2 className="text-xl font-bold text-text mb-1">Sin resultados</h2>
+                    <p className="text-sm text-gray max-w-md">No hay alertas que coincidan con los filtros seleccionados.</p>
+                    <button
+                      onClick={clearFilters}
+                      className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer text-sm"
+                    >
+                      Limpiar filtros
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-text mb-1">
+                      {soloActivas ? "No hay alertas activas" : "No hay alertas"}
+                    </h2>
+                    <p className="text-sm text-gray max-w-md">
+                      {soloActivas
+                        ? "No hay alertas epidemiológicas activas en este momento."
+                        : "No hay alertas epidemiológicas registradas."}
+                    </p>
+                  </>
+                )}
               </div>
-              {hasActiveFilters ? (
-                <>
-                  <h2 className="text-xl font-bold text-text mb-1">Sin resultados</h2>
-                  <p className="text-sm text-gray max-w-md">No hay alertas que coincidan con los filtros seleccionados.</p>
-                  <button
-                    onClick={clearFilters}
-                    className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer text-sm"
-                  >
-                    Limpiar filtros
-                  </button>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-xl font-bold text-text mb-1">
-                    {soloActivas ? "No hay alertas activas" : "No hay alertas"}
-                  </h2>
-                  <p className="text-sm text-gray max-w-md">
-                    {soloActivas
-                      ? "No hay alertas epidemiológicas activas en este momento."
-                      : "No hay alertas epidemiológicas registradas."}
-                  </p>
-                </>
-              )}
-            </div>
-          )}
+            )}
 
-          {items.length > 0 && (
-            <>
+            {items.length > 0 && (
               <div className="space-y-3">
                   {sorted.map((alert) => {
                   const color = nivelColor[alert.nivel] || "gray";
@@ -412,16 +432,14 @@ export default function AlertasPage() {
                             </span>
                           )}
                         </div>
-                        {rol === "health_worker" && (
+                        {rol === "health_worker" && alert.activa && (
                           <div className="flex items-center gap-2">
-                            {alert.activa && (
-                              <button
-                                onClick={() => setConfirmDeactivate(alert.id)}
-                                className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
-                              >
-                                Desactivar
-                              </button>
-                            )}
+                            <button
+                              onClick={() => setConfirmDeactivate(alert.id)}
+                              className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                            >
+                              Desactivar
+                            </button>
                             <button
                               onClick={() => handleEdit(alert)}
                               className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
@@ -452,9 +470,8 @@ export default function AlertasPage() {
                   );
                 })}
               </div>
-
-            </>
-          )}
+            )}
+          </div>
         </>
       )}
 
