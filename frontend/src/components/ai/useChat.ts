@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { consultAI, getAIHistory } from "../../lib/api";
+import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import type { Message } from "./MessageBubble";
 
 export default function useChat() {
@@ -10,6 +11,8 @@ export default function useChat() {
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const showInitialLoader = useDelayedLoading(initialLoading);
 
   useEffect(() => {
     loadHistory();
@@ -78,7 +81,7 @@ export default function useChat() {
     input,
     setInput,
     loading,
-    initialLoading,
+    initialLoading: showInitialLoader,
     error,
     messagesEndRef,
     textareaRef,

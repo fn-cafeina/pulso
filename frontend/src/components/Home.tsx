@@ -9,33 +9,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-function SkeletonCard() {
-  return (
-    <div className="bg-surface rounded-card shadow-sm p-6 border border-gray/10 animate-pulse-gentle">
-      <div className="w-8 h-8 bg-gray/20 rounded-button mb-3" />
-      <div className="h-4 bg-gray/20 rounded w-2/3 mb-2" />
-      <div className="h-3 bg-gray/10 rounded w-full" />
-    </div>
-  );
-}
-
-function SkeletonHome() {
-  return (
-    <div>
-      <div className="h-8 bg-gray/20 rounded w-48 mb-6 animate-pulse-gentle" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
   const { username, rol, isAuthenticated, hydrated } = useAuthStore();
 
-  if (!hydrated) return <SkeletonHome />;
+  if (!hydrated) return null;
   if (!isAuthenticated) return null;
 
   return (

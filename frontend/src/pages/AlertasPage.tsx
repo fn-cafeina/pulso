@@ -4,6 +4,7 @@ import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
 import { useToastStore } from "../stores/toast";
+import { useDelayedLoading } from "../lib/useDelayedLoading";
 import type { AlertNivel, EpiAlert } from "../types";
 
 const niveles: { value: string; label: string }[] = [
@@ -163,23 +164,10 @@ export default function AlertasPage() {
   const [desactivando, setDesactivando] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [showSkeleton, setShowSkeleton] = useState(false);
-  const skeletonTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoad = useRef(true);
 
   const loadingInitial = loading && items.length === 0 && !creating;
-
-  useEffect(() => {
-    if (loadingInitial) {
-      skeletonTimer.current = setTimeout(() => setShowSkeleton(true), 200);
-    } else {
-      if (skeletonTimer.current) clearTimeout(skeletonTimer.current);
-      setShowSkeleton(false);
-    }
-    return () => {
-      if (skeletonTimer.current) clearTimeout(skeletonTimer.current);
-    };
-  }, [loadingInitial]);
+  const showSkeleton = useDelayedLoading(loadingInitial);
 
   useEffect(() => {
     const params: Record<string, any> = {};
