@@ -80,6 +80,3 @@ export function setAuth(token: string, rol: string, username: string) {
   useAuthStore.getState().setAuth(token, rol, username);
 }
 
-export function clearAuth() {
-  useAuthStore.getState().clearAuth();
-}
