@@ -6,7 +6,7 @@ import useChat from "./useChat";
 
 export default function ChatInterface() {
   const {
-    messages, input, loading, initialLoading, error,
+    messages, input, loading, streaming, initialLoading, error,
     messagesEndRef, textareaRef,
     handleSend, handleKeyDown, handleInput,
     setInput, setError,
@@ -37,7 +37,7 @@ export default function ChatInterface() {
               <MessageBubble key={i} msg={msg} />
             ))}
 
-            {loading && (
+            {streaming ? null : loading && (
               <div className="flex justify-start">
                 <div className="flex gap-2">
                   <div className="w-8 h-8 rounded-full bg-gray/10 flex items-center justify-center flex-shrink-0">
