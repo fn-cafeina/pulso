@@ -1,4 +1,4 @@
-import { Send, Loader2 } from "lucide-react";
+import { Send, Square } from "lucide-react";
 
 interface Props {
   input: string;
@@ -6,6 +6,7 @@ interface Props {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   onInputChange: (value: string) => void;
   onSend: () => void;
+  onCancel: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   onInput: () => void;
   onErrorClear: () => void;
@@ -17,6 +18,7 @@ export default function ChatInput({
   textareaRef,
   onInputChange,
   onSend,
+  onCancel,
   onKeyDown,
   onInput,
   onErrorClear,
@@ -34,13 +36,13 @@ export default function ChatInput({
         className="flex-1 resize-none rounded-card border border-gray/30 bg-neutral px-4 py-2.5 text-base text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors overflow-y-auto"
       />
       <button
-        onClick={onSend}
-        disabled={!input.trim() || loading}
+        onClick={loading ? onCancel : onSend}
+        disabled={!input.trim() && !loading}
         className="p-2.5 bg-primary hover:bg-primary-dark disabled:opacity-40 text-white rounded-card shadow hover:shadow-md active:shadow-sm active:scale-95 hover:scale-105 transition-all cursor-pointer disabled:cursor-not-allowed"
-        aria-label="Enviar mensaje"
+        aria-label={loading ? "Cancelar" : "Enviar mensaje"}
       >
         {loading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <Square className="w-5 h-5" />
         ) : (
           <Send className="w-5 h-5" />
         )}

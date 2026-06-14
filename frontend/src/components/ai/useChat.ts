@@ -7,6 +7,8 @@ import type { Message } from "./MessageBubble";
 const CHARS_PER_TICK = 4;
 const TICK_MS = 12;
 
+let nextLocalId = -1;
+
 export default function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -17,6 +19,8 @@ export default function useChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const lastQuestion = useRef("");
 
   const showInitialLoader = useDelayedLoading(initialLoading);
 
@@ -31,6 +35,7 @@ export default function useChat() {
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (abortRef.current) abortRef.current.abort();
     };
   }, []);
 
@@ -39,8 +44,8 @@ export default function useChat() {
       const history = await getAIHistory();
       const mapped: Message[] = [];
       for (const item of history) {
-        mapped.push({ role: "user", content: item.pregunta });
-        mapped.push({ role: "ai", content: item.respuesta });
+        mapped.push({ id: item.id * 2, role: "user", content: item.pregunta });
+        mapped.push({ id: item.id * 2 + 1, role: "ai", content: item.respuesta });
       }
       setMessages(mapped);
     } catch {
@@ -54,24 +59,45 @@ export default function useChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const cancel = () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setStreaming(false);
+    setLoading(false);
+  };
+
   const handleSend = async (text?: string) => {
     const question = (text || input).trim();
     if (!question || loading) return;
 
+    lastQuestion.current = question;
     setInput("");
     setError("");
-    setMessages((prev) => [...prev, { role: "user", content: question }]);
+    setLoading(true);
+    const userMsgId = nextLocalId--;
+    setMessages((prev) => [...prev, { id: userMsgId, role: "user", content: question }]);
     setLoading(true);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      const result = await consultAI(question);
+      const result = await consultAI(question, controller.signal);
+      if (controller.signal.aborted) return;
       const fullText = result.respuesta;
       if (!fullText) {
         setLoading(false);
         return;
       }
 
-      setMessages((prev) => [...prev, { role: "ai", content: "" }]);
+      const aiMsgId = result.id * 2 + 1;
+      setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
       setLoading(false);
       setStreaming(true);
 
@@ -86,11 +112,15 @@ export default function useChat() {
         }
         setMessages((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = { role: "ai", content: fullText.slice(0, idx) };
+          const last = updated[updated.length - 1];
+          if (last && last.id === aiMsgId) {
+            updated[updated.length - 1] = { ...last, content: fullText.slice(0, idx) };
+          }
           return updated;
         });
       }, TICK_MS);
     } catch (err: any) {
+      if (err.name === "AbortError") return;
       setStreaming(false);
       setLoading(false);
       setError(err.message);
@@ -126,5 +156,7 @@ export default function useChat() {
     handleKeyDown,
     handleInput,
     setError,
+    cancel,
+    retry: () => handleSend(lastQuestion.current),
   };
 }

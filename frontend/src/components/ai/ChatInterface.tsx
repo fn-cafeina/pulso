@@ -9,7 +9,7 @@ export default function ChatInterface() {
     messages, input, loading, streaming, initialLoading, error,
     messagesEndRef, textareaRef,
     handleSend, handleKeyDown, handleInput,
-    setInput, setError,
+    setInput, setError, cancel, retry,
   } = useChat();
 
   return (
@@ -33,8 +33,8 @@ export default function ChatInterface() {
           </div>
         ) : (
           <>
-            {messages.map((msg, i) => (
-              <MessageBubble key={i} msg={msg} />
+            {messages.map((msg) => (
+              <MessageBubble key={msg.id} msg={msg} />
             ))}
 
             {streaming ? null : loading && (
@@ -62,7 +62,13 @@ export default function ChatInterface() {
       {error && (
         <div className="mx-4 mb-2 flex items-center gap-2 px-4 py-2 bg-warning/10 border border-warning/30 text-warning rounded-button text-sm">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          {error}
+          <span className="flex-1">{error}</span>
+          <button
+            onClick={retry}
+            className="underline font-medium hover:text-warning/80 transition-colors cursor-pointer flex-shrink-0"
+          >
+            Reintentar
+          </button>
         </div>
       )}
 
@@ -73,6 +79,7 @@ export default function ChatInterface() {
           textareaRef={textareaRef}
           onInputChange={setInput}
           onSend={() => handleSend()}
+          onCancel={cancel}
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onErrorClear={() => setError("")}

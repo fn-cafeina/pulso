@@ -141,15 +141,13 @@ func (s *aiService) GetHistory(userID uint) ([]models.AIConsultation, error) {
 
 var (
 	reMultiNewline = regexp.MustCompile(`\n{3,}`)
-	reMarkdownBold = regexp.MustCompile(`\*\*`)
 )
 
 func NormalizeResponse(r string) string {
 	r = strings.TrimSpace(r)
 
-	centerCount := reMarkdownBold.FindAllStringIndex(r, -1)
 	lower := strings.ToLower(r)
-	if strings.Contains(lower, "acud") && strings.Contains(lower, "centro de salud") && len(centerCount) < 2 {
+	if strings.Contains(lower, "acud") && strings.Contains(lower, "centro de salud") && !strings.Contains(r, "**") {
 		re := regexp.MustCompile(`(?i)(acud\w* al centro de salud más cercano)`)
 		r = re.ReplaceAllString(r, "**$1**")
 	}

@@ -65,10 +65,11 @@ export async function register(data: {
   });
 }
 
-export async function consultAI(pregunta: string): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }> {
+export async function consultAI(pregunta: string, signal?: AbortSignal): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }> {
   const res = await apiFetch("/ai/consult", {
     method: "POST",
     body: JSON.stringify({ pregunta }),
+    signal,
   });
   return res.data;
 }
