@@ -216,7 +216,7 @@ export default function AlertasPage() {
         };
       });
     } catch {
-      useToastStore.getState().add("Error al desactivar", "info");
+      useToastStore.getState().add("Error al desactivar", "error");
     } finally {
       setDesactivando(null);
     }
@@ -251,7 +251,7 @@ export default function AlertasPage() {
       setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
       useToastStore.getState().add("Alerta actualizada");
     } catch {
-      useToastStore.getState().add("Error al actualizar alerta", "info");
+      useToastStore.getState().add("Error al actualizar alerta", "error");
     } finally {
       setUpdating(false);
     }
@@ -270,7 +270,7 @@ export default function AlertasPage() {
         setPage(page - 1);
       }
     } catch {
-      useToastStore.getState().add("Error al eliminar alerta", "info");
+      useToastStore.getState().add("Error al eliminar alerta", "error");
     } finally {
       setDeleting(false);
       setConfirmDelete(null);
@@ -297,7 +297,7 @@ export default function AlertasPage() {
       setForm({ titulo: "", descripcion: "", nivel: "", departamento: "", fuente: "" });
       useToastStore.getState().add("Alerta creada");
     } catch {
-      useToastStore.getState().add("Error al crear alerta", "info");
+      useToastStore.getState().add("Error al crear alerta", "error");
     } finally {
       setCreating(false);
     }

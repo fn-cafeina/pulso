@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { consultAI, getAIHistory } from "../../lib/api";
+import { useToastStore } from "../../stores/toast";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import type { Message } from "./MessageBubble";
 
@@ -43,7 +44,7 @@ export default function useChat() {
       }
       setMessages(mapped);
     } catch {
-      // Silently ignore history load errors
+      useToastStore.getState().add("Error al cargar historial", "error");
     } finally {
       setInitialLoading(false);
     }
