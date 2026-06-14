@@ -65,61 +65,13 @@ export async function register(data: {
   });
 }
 
-export async function consultAI(
-  pregunta: string,
-  signal: AbortSignal,
-  onChunk: (chunk: string) => void,
-): Promise<number> {
-  const { token } = getAuth();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
-  const res = await fetch(`${API_BASE}/ai/consult`, {
+export async function consultAI(pregunta: string, signal?: AbortSignal): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }> {
+  const res = await apiFetch("/ai/consult", {
     method: "POST",
-    headers,
     body: JSON.stringify({ pregunta }),
     signal,
   });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Error del servidor");
-  }
-
-  const reader = res.body?.getReader();
-  if (!reader) throw new Error("Streaming not supported");
-
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
-
-    let eventType = "";
-    for (const line of lines) {
-      if (line.startsWith("event: ")) {
-        eventType = line.slice(7);
-      } else if (line.startsWith("data: ")) {
-        const data = line.slice(6);
-        if (eventType === "done") {
-          return parseInt(data, 10);
-        }
-        if (eventType === "error") {
-          throw new Error(data);
-        }
-        // default event: content chunk
-        if (data) onChunk(data);
-        eventType = "";
-      }
-    }
-  }
-
-  throw new Error("Stream ended without completion event");
+  return res.data;
 }
 
 export async function getAIHistory(): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }[]> {

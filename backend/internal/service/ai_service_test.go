@@ -1,7 +1,6 @@
 package service_test
 
 import (
-	"context"
 	"strings"
 	"testing"
 
@@ -91,7 +90,7 @@ func TestAIConsult_GeminiNil(t *testing.T) {
 		&mockAIApptRepo{},
 		nil,
 	)
-	_, err := svc.Consult(context.Background(), 1, "¿Qué síntomas tengo?", nil)
+	_, err := svc.Consult(1, "¿Qué síntomas tengo?")
 	if err == nil {
 		t.Fatal("expected error when gemini client is nil")
 	}

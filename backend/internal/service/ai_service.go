@@ -14,7 +14,7 @@ import (
 )
 
 type AIService interface {
-	Consult(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error)
+	Consult(userID uint, pregunta string) (*models.AIConsultation, error)
 	GetHistory(userID uint) ([]models.AIConsultation, error)
 }
 
@@ -42,10 +42,12 @@ func NewAIService(
 	}
 }
 
-func (s *aiService) Consult(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error) {
+func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultation, error) {
 	if s.gemini == nil {
 		return nil, fmt.Errorf("AI assistant not available")
 	}
+
+	ctx := context.Background()
 
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
@@ -115,7 +117,7 @@ func (s *aiService) Consult(ctx context.Context, userID uint, pregunta string, o
 	b.WriteString("### Consulta\n")
 	b.WriteString(pregunta)
 
-	respuesta, err := s.gemini.GenerateContentStream(ctx, b.String(), onChunk)
+	respuesta, err := s.gemini.GenerateContent(ctx, b.String())
 	if err != nil {
 		return nil, err
 	}
