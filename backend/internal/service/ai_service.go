@@ -15,6 +15,7 @@ import (
 
 type AIService interface {
 	Consult(userID uint, pregunta string) (*models.AIConsultation, error)
+	ConsultStream(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error)
 	GetHistory(userID uint) ([]models.AIConsultation, error)
 }
 
@@ -118,6 +119,97 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	b.WriteString(pregunta)
 
 	respuesta, err := s.gemini.GenerateContent(ctx, b.String())
+	if err != nil {
+		return nil, err
+	}
+	respuesta = NormalizeResponse(respuesta)
+
+	consult := &models.AIConsultation{
+		UserID:    userID,
+		Pregunta:  pregunta,
+		Respuesta: respuesta,
+	}
+	if err := s.aiRepo.Create(consult); err != nil {
+		return nil, err
+	}
+
+	return consult, nil
+}
+
+func (s *aiService) ConsultStream(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error) {
+	if s.gemini == nil {
+		return nil, fmt.Errorf("AI assistant not available")
+	}
+
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		log.Printf("warning: failed to load user %d: %v", userID, err)
+	}
+	symptoms, err := s.healthRepo.FindSymptomsByUserID(userID)
+	if err != nil {
+		log.Printf("warning: failed to load symptoms for %d: %v", userID, err)
+	}
+	vaccines, err := s.healthRepo.FindVaccinesByUserID(userID)
+	if err != nil {
+		log.Printf("warning: failed to load vaccines for %d: %v", userID, err)
+	}
+	appts, err := s.apptRepo.FindByUserID(userID)
+	if err != nil {
+		log.Printf("warning: failed to load appointments for %d: %v", userID, err)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "│ Fecha: %s | Hora: %s\n\n", time.Now().Format("02/01/2006"), time.Now().Format("15:04"))
+	b.WriteString("### Contexto del usuario\n")
+
+	if user != nil && user.AntecedentesMedicos != "" {
+		fmt.Fprintf(&b, "Antecedentes médicos: %s\n\n", user.AntecedentesMedicos)
+	}
+
+	if len(symptoms) > 0 {
+		b.WriteString("Síntomas reportados:\n")
+		for _, s := range symptoms {
+			fmt.Fprintf(&b, "  - %s: %s\n", s.Fecha.Format("02/01/2006"), s.Descripcion)
+		}
+		b.WriteString("\n")
+	}
+
+	if len(vaccines) > 0 {
+		b.WriteString("Vacunas registradas:\n")
+		for _, v := range vaccines {
+			fmt.Fprintf(&b, "  - %s (%s)\n", v.NombreVacuna, v.FechaAplicacion.Format("02/01/2006"))
+		}
+		b.WriteString("\n")
+	}
+
+	if len(appts) > 0 {
+		b.WriteString("Citas:\n")
+		now := time.Now()
+		for _, a := range appts {
+			if a.Fecha.After(now) {
+				fmt.Fprintf(&b, "  - %s: %s\n", a.Fecha.Format("02/01/2006"), a.Descripcion)
+			}
+		}
+		b.WriteString("\n")
+	}
+
+	history, err := s.aiRepo.FindByUserID(userID)
+	if err == nil && len(history) > 0 {
+		n := 3
+		if len(history) < n {
+			n = len(history)
+		}
+		recent := history[len(history)-n:]
+		b.WriteString("### Historial de consultas recientes\n")
+		for _, h := range recent {
+			fmt.Fprintf(&b, "  Pregunta: %s\n  Respuesta: %s\n\n", h.Pregunta, h.Respuesta)
+		}
+	}
+
+	b.WriteString("### Consulta\n")
+	b.WriteString(pregunta)
+
+	respuesta, err := s.gemini.GenerateContentStream(ctx, b.String(), onChunk)
 	if err != nil {
 		return nil, err
 	}

@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { consultAI, getAIHistory } from "../../lib/api";
+import { consultAIStream, getAIHistory } from "../../lib/api";
 import { useToastStore } from "../../stores/toast";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import type { Message } from "./MessageBubble";
-
-const CHARS_PER_TICK = 4;
-const TICK_MS = 12;
 
 let nextLocalId = -1;
 
@@ -18,7 +15,6 @@ export default function useChat() {
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const lastQuestion = useRef("");
 
@@ -34,7 +30,6 @@ export default function useChat() {
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
   }, []);
@@ -64,10 +59,6 @@ export default function useChat() {
       abortRef.current.abort();
       abortRef.current = null;
     }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
     setStreaming(false);
     setLoading(false);
   };
@@ -87,38 +78,34 @@ export default function useChat() {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    const aiMsgId = nextLocalId--;
+    setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
+    setLoading(false);
+    setStreaming(true);
+
     try {
-      const result = await consultAI(question, controller.signal);
-      if (controller.signal.aborted) return;
-      const fullText = result.respuesta;
-      if (!fullText) {
-        setLoading(false);
-        return;
-      }
-
-      const aiMsgId = result.id * 2 + 1;
-      setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
-      setLoading(false);
-      setStreaming(true);
-
-      let idx = 0;
-      timerRef.current = setInterval(() => {
-        idx += CHARS_PER_TICK;
-        if (idx >= fullText.length) {
-          idx = fullText.length;
-          if (timerRef.current) clearInterval(timerRef.current);
-          timerRef.current = null;
-          setStreaming(false);
-        }
+      let fullText = "";
+      const id = await consultAIStream(question, controller.signal, (chunk) => {
+        fullText += chunk;
         setMessages((prev) => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
           if (last && last.id === aiMsgId) {
-            updated[updated.length - 1] = { ...last, content: fullText.slice(0, idx) };
+            updated[updated.length - 1] = { ...last, content: fullText };
           }
           return updated;
         });
-      }, TICK_MS);
+      });
+      if (controller.signal.aborted) return;
+      // replace temp ids with real ones from backend
+      const realUserId = id * 2;
+      const realAiId = id * 2 + 1;
+      setMessages((prev) => prev.map((m) => {
+        if (m.id === userMsgId) return { ...m, id: realUserId };
+        if (m.id === aiMsgId) return { ...m, id: realAiId };
+        return m;
+      }));
+      setStreaming(false);
     } catch (err: any) {
       if (err.name === "AbortError") return;
       setStreaming(false);

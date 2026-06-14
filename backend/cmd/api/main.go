@@ -94,6 +94,7 @@ func main() {
 	auth.GET("/appointments", apptHandler.GetAll)
 	auth.POST("/appointments", apptHandler.Create)
 	auth.POST("/ai/consult", aiHandler.Consult)
+	auth.POST("/ai/consult/stream", aiHandler.ConsultStream)
 	auth.GET("/ai/history", aiHandler.GetHistory)
 	auth.GET("/reminders", reminderHandler.GetPending)
 	auth.POST("/reminders", reminderHandler.Create)
