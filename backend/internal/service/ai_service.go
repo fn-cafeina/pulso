@@ -14,7 +14,7 @@ import (
 )
 
 type AIService interface {
-	ConsultStream(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error)
+	Consult(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error)
 	GetHistory(userID uint) ([]models.AIConsultation, error)
 }
 
@@ -42,7 +42,7 @@ func NewAIService(
 	}
 }
 
-func (s *aiService) ConsultStream(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error) {
+func (s *aiService) Consult(ctx context.Context, userID uint, pregunta string, onChunk func(string)) (*models.AIConsultation, error) {
 	if s.gemini == nil {
 		return nil, fmt.Errorf("AI assistant not available")
 	}

@@ -93,7 +93,7 @@ func main() {
 	auth.POST("/vaccines", healthHandler.CreateVaccine)
 	auth.GET("/appointments", apptHandler.GetAll)
 	auth.POST("/appointments", apptHandler.Create)
-	auth.POST("/ai/consult", aiHandler.ConsultStream)
+	auth.POST("/ai/consult", aiHandler.Consult)
 	auth.GET("/ai/history", aiHandler.GetHistory)
 	auth.GET("/reminders", reminderHandler.GetPending)
 	auth.POST("/reminders", reminderHandler.Create)

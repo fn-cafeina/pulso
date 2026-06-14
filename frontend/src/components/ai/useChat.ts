@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { consultAIStream, getAIHistory } from "../../lib/api";
+import { consultAI, getAIHistory } from "../../lib/api";
 import { useToastStore } from "../../stores/toast";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import type { Message } from "./MessageBubble";
@@ -87,26 +87,27 @@ export default function useChat() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const aiMsgId = nextLocalId--;
-    setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
-
     fullTextRef.current = "";
     let resolvedId: number | null = null;
     let streamError: any = null;
+    let aiMsgId: number | null = null;
 
-    // Deferred — resolves on first chunk, rejects on stream error
-    let resolveFirstChunk: () => void;
+    // Deferred — resolves on first chunk with the content, rejects on error
+    let resolveFirstChunk: (content: string) => void;
     let rejectFirstChunk: (e: any) => void;
-    const firstChunk = new Promise<void>((resolve, reject) => {
+    const firstChunk = new Promise<string>((resolve, reject) => {
       resolveFirstChunk = resolve;
       rejectFirstChunk = reject;
     });
 
-    const streamPromise = consultAIStream(question, controller.signal, (chunk) => {
+    const streamPromise = consultAI(question, controller.signal, (chunk) => {
       if (fullTextRef.current.length === 0) {
-        resolveFirstChunk();
+        // First chunk: create AI bubble with initial content
+        aiMsgId = nextLocalId--;
+        setMessages((prev) => [...prev, { id: aiMsgId!, role: "ai", content: chunk }]);
         setLoading(false);
         setStreaming(true);
+        resolveFirstChunk(chunk);
       }
       fullTextRef.current += chunk;
     });
@@ -115,19 +116,19 @@ export default function useChat() {
       .then((id) => { resolvedId = id; })
       .catch((e) => { streamError = e; rejectFirstChunk(e); });
 
+    let initialChunkLen: number;
     try {
-      await firstChunk;
+      initialChunkLen = (await firstChunk).length;
     } catch {
-      // Stream error before first chunk
       setLoading(false);
       throw streamError || new Error("Stream failed");
     }
 
-    if (controller.signal.aborted) return;
+    if (controller.signal.aborted || aiMsgId === null) return;
 
-    // Typing animation — reads from ref smoothly
+    // Typing animation continues from first chunk's length
     await new Promise<void>((resolve, reject) => {
-      let idx = 0;
+      let idx = initialChunkLen;
       const timer = setInterval(() => {
         if (streamError) {
           clearInterval(timer);
@@ -157,18 +158,16 @@ export default function useChat() {
       timerRef.current = timer;
     });
 
-    if (controller.signal.aborted) return;
+    if (controller.signal.aborted || resolvedId === null || aiMsgId === null) return;
 
     // Replace temp ids with real ones from backend
-    if (resolvedId !== null) {
-      const realUserId = resolvedId * 2;
-      const realAiId = resolvedId * 2 + 1;
-      setMessages((prev) => prev.map((m) => {
-        if (m.id === userMsgId) return { ...m, id: realUserId };
-        if (m.id === aiMsgId) return { ...m, id: realAiId };
-        return m;
-      }));
-    }
+    const realUserId = resolvedId * 2;
+    const realAiId = resolvedId * 2 + 1;
+    setMessages((prev) => prev.map((m) => {
+      if (m.id === userMsgId) return { ...m, id: realUserId };
+      if (m.id === aiMsgId) return { ...m, id: realAiId };
+      return m;
+    }));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

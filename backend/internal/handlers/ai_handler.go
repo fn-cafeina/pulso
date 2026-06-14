@@ -18,7 +18,7 @@ func NewAIHandler(aiSvc service.AIService) *AIHandler {
 	return &AIHandler{aiSvc: aiSvc}
 }
 
-func (h *AIHandler) ConsultStream(c *gin.Context) {
+func (h *AIHandler) Consult(c *gin.Context) {
 	var req AIConsultRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		Error(c, http.StatusBadRequest, err.Error())
@@ -38,7 +38,7 @@ func (h *AIHandler) ConsultStream(c *gin.Context) {
 		return
 	}
 
-	result, err := h.aiSvc.ConsultStream(c.Request.Context(), userID.(uint), req.Pregunta, func(chunk string) {
+	result, err := h.aiSvc.Consult(c.Request.Context(), userID.(uint), req.Pregunta, func(chunk string) {
 		_, _ = io.WriteString(c.Writer, fmt.Sprintf("data: %s\n\n", chunk))
 		flusher.Flush()
 	})

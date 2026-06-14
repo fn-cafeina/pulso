@@ -65,7 +65,7 @@ export async function register(data: {
   });
 }
 
-export async function consultAIStream(
+export async function consultAI(
   pregunta: string,
   signal: AbortSignal,
   onChunk: (chunk: string) => void,
@@ -74,7 +74,7 @@ export async function consultAIStream(
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch("http://localhost:8080/ai/consult/stream", {
+  const res = await fetch(`${API_BASE}/ai/consult`, {
     method: "POST",
     headers,
     body: JSON.stringify({ pregunta }),
