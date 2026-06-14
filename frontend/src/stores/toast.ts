@@ -2,31 +2,38 @@ import { create } from "zustand";
 
 export type ToastType = "success" | "info" | "error";
 
-interface Toast {
+export interface Toast {
+  id: number;
   message: string;
   type: ToastType;
 }
 
 const DISMISS_MS = 4000;
-
-let timer: ReturnType<typeof setTimeout> | undefined;
+const timers = new Map<number, ReturnType<typeof setTimeout>>();
+let nextId = 1;
 
 interface ToastState {
-  current: Toast | null;
+  queue: Toast[];
   add: (message: string, type?: ToastType) => void;
-  dismiss: () => void;
+  dismiss: (id: number) => void;
 }
 
-export const useToastStore = create<ToastState>((set) => ({
-  current: null,
+export const useToastStore = create<ToastState>((set, get) => ({
+  queue: [],
   add: (message, type = "success") => {
-    if (timer) clearTimeout(timer);
-    set({ current: { message, type } });
-    timer = setTimeout(() => set({ current: null }), DISMISS_MS);
+    const id = nextId++;
+    set((s) => ({ queue: [...s.queue, { id, message, type }] }));
+    const timer = setTimeout(() => {
+      get().dismiss(id);
+    }, DISMISS_MS);
+    timers.set(id, timer);
   },
-  dismiss: () => {
-    if (timer) clearTimeout(timer);
-    timer = undefined;
-    set({ current: null });
+  dismiss: (id: number) => {
+    const timer = timers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timers.delete(id);
+    }
+    set((s) => ({ queue: s.queue.filter((t) => t.id !== id) }));
   },
 }));

@@ -16,26 +16,31 @@ const config: Record<ToastType, { icon: React.ReactNode }> = {
 };
 
 export default function ToastContainer() {
-  const current = useToastStore((s) => s.current);
+  const queue = useToastStore((s) => s.queue);
   const dismiss = useToastStore((s) => s.dismiss);
 
-  if (!current) return null;
-
-  const { icon } = config[current.type];
+  if (queue.length === 0) return null;
 
   return createPortal(
-    <div className="fixed bottom-24 md:bottom-4 right-4 z-[9999] animate-fade-in-up">
-      <div className="flex items-start gap-3 px-4 py-3 rounded-button text-sm font-medium shadow-xl bg-surface">
-        {icon}
-        <span className="flex-1 text-text">{current.message}</span>
-        <button
-          onClick={dismiss}
-          className="p-0.5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer flex-shrink-0"
-          aria-label="Cerrar"
-        >
-          <X className="w-4 h-4 text-gray" />
-        </button>
-      </div>
+    <div className="fixed bottom-24 md:bottom-4 right-4 z-[9999] flex flex-col-reverse gap-2">
+      {queue.map((toast) => {
+        const { icon } = config[toast.type];
+        return (
+          <div key={toast.id} className="animate-fade-in-up">
+            <div className="flex items-start gap-3 px-4 py-3 rounded-button text-sm font-medium shadow-xl bg-surface">
+              {icon}
+              <span className="flex-1 text-text">{toast.message}</span>
+              <button
+                onClick={() => dismiss(toast.id)}
+                className="p-0.5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer flex-shrink-0"
+                aria-label="Cerrar"
+              >
+                <X className="w-4 h-4 text-gray" />
+              </button>
+            </div>
+          </div>
+        );
+      })}
     </div>,
     document.body,
   );
