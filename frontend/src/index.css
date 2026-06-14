@@ -10,6 +10,7 @@
   --color-primary: #004a99;
   --color-primary-dark: #003870;
   --color-danger: #c92d3c;
+  --color-high: #c2410c;
   --color-accent: #b84d14;
   --color-accent-dark: #9c4010;
   --color-success: #0a7230;
@@ -37,6 +38,7 @@ html.dark {
   --color-primary: #60a5fa;
   --color-primary-dark: #3b82f6;
   --color-danger: #f87171;
+  --color-high: #f97316;
   --color-accent: #fb923c;
   --color-accent-dark: #f97316;
   --color-success: #4ade80;

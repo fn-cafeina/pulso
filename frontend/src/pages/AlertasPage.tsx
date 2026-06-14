@@ -22,11 +22,11 @@ const nivelesForm: { value: AlertNivel; label: string }[] = [
   { value: "critico", label: "Crítico" },
 ];
 
-const nivelColor: Record<AlertNivel, string> = {
-  bajo: "success",
-  medio: "warning",
-  alto: "orange-500",
-  critico: "danger",
+const nivelBadge: Record<AlertNivel, string> = {
+  bajo: "bg-success/10 text-success",
+  medio: "bg-warning/10 text-warning",
+  alto: "bg-high/10 text-high",
+  critico: "bg-danger/10 text-danger",
 };
 
 const sortOrder: Record<AlertNivel, number> = {
@@ -165,7 +165,6 @@ export default function AlertasPage() {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [detailAlert, setDetailAlert] = useState<EpiAlert | null>(null);
-  const [detailError, setDetailError] = useState<string | null>(null);
   const initialLoad = useRef(true);
 
   const loadingInitial = loading && items.length === 0 && !creating;
@@ -280,7 +279,6 @@ export default function AlertasPage() {
 
   function handleViewDetail(alert: EpiAlert) {
     setDetailAlert(alert);
-    setDetailError(null);
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -445,7 +443,7 @@ export default function AlertasPage() {
             {items.length > 0 && (
               <div className="space-y-3">
                   {sorted.map((alert) => {
-                  const color = nivelColor[alert.nivel] || "gray";
+                  const badgeClass = nivelBadge[alert.nivel] || "bg-gray/10 text-gray";
                   return (
                     <div
                       key={alert.id}
@@ -454,7 +452,7 @@ export default function AlertasPage() {
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold bg-${color}/10 text-${color}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold ${badgeClass}`}>
                             {alert.nivel}
                           </span>
                           {!alert.activa && (
@@ -576,16 +574,9 @@ export default function AlertasPage() {
               </button>
             </div>
 
-            {detailError && (
-              <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm mb-4">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{detailError}</span>
-              </div>
-            )}
-
             <div className="space-y-4">
               <div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold ${detailAlert.activa ? `bg-${nivelColor[detailAlert.nivel]}/10 text-${nivelColor[detailAlert.nivel]}` : "bg-gray/10 text-gray"}`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold ${detailAlert.activa ? nivelBadge[detailAlert.nivel] || "bg-gray/10 text-gray" : "bg-gray/10 text-gray"}`}>
                   {detailAlert.activa ? detailAlert.nivel : "Inactiva"}
                 </span>
               </div>
