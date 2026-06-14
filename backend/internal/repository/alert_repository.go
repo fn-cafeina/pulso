@@ -45,7 +45,7 @@ func (r *alertRepository) FindAll(nivel, departamento string, soloActivas bool, 
 		q = q.Where("nivel = ?", nivel)
 	}
 	if departamento != "" {
-		q = q.Where("departamento = ?", departamento)
+		q = q.Where("departamento LIKE ?", "%"+departamento+"%")
 	}
 
 	if err := q.Count(&total).Error; err != nil {

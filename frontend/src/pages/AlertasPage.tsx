@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -153,8 +153,8 @@ function SkeletonCard() {
 
 export default function AlertasPage() {
   const { rol } = useAuthStore();
-  const { items, loading, error, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
-  const { nivel, soloActivas, setNivel, setSoloActivas, limpiar } = useAlertFiltersStore();
+  const { items, loading, error, meta, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
+  const { nivel, soloActivas, departamento, page, perPage, setNivel, setSoloActivas, setDepartamento, setPage, setPerPage, limpiar } = useAlertFiltersStore();
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
@@ -164,28 +164,34 @@ export default function AlertasPage() {
   const [desactivando, setDesactivando] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [detailAlert, setDetailAlert] = useState<EpiAlert | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const initialLoad = useRef(true);
 
   const loadingInitial = loading && items.length === 0 && !creating;
   const showSkeleton = useDelayedLoading(loadingInitial);
 
-  useEffect(() => {
+  function buildParams(pg: number): Record<string, any> {
     const params: Record<string, any> = {};
     if (nivel) params.nivel = nivel;
     if (soloActivas) params.activas = true;
+    if (departamento) params.departamento = departamento;
+    params.page = pg;
+    params.per_page = perPage;
+    return params;
+  }
+
+  useEffect(() => {
     if (initialLoad.current) {
       initialLoad.current = false;
-      fetch(params);
+      fetch(buildParams(page));
     } else {
-      refresh(params);
+      refresh(buildParams(page));
     }
-  }, [nivel, soloActivas, fetch, refresh]);
+  }, [nivel, soloActivas, departamento, page, perPage, fetch, refresh]);
 
   function handleRefresh() {
-    const params: Record<string, any> = {};
-    if (nivel) params.nivel = nivel;
-    if (soloActivas) params.activas = true;
-    fetch(params);
+    fetch(buildParams(page));
   }
 
   function clearFilters() {
@@ -198,9 +204,17 @@ export default function AlertasPage() {
       await deactivateAlert(id);
       useToastStore.getState().add("Alerta desactivada");
       if (soloActivas) {
-        useAlertsStore.setState((s) => ({
-          items: s.items.filter((a) => a.id !== id),
-        }));
+        useAlertsStore.setState((s) => {
+          const newItems = s.items.filter((a) => a.id !== id);
+          // go back a page if we emptied the current page
+          if (newItems.length === 0 && page > 1) {
+            setPage(page - 1);
+          }
+          return {
+            items: newItems,
+            meta: s.meta ? { ...s.meta, total: s.meta.total - 1 } : s.meta,
+          };
+        });
       }
     } catch {
       useToastStore.getState().add("Error al desactivar", "info");
@@ -249,12 +263,24 @@ export default function AlertasPage() {
     try {
       await removeItem(id);
       useToastStore.getState().add("Alerta eliminada");
+      useAlertsStore.setState((s) => ({
+        meta: s.meta ? { ...s.meta, total: s.meta.total - 1 } : s.meta,
+      }));
+      // edge case: if we deleted the last item on a non-first page, go back
+      if (items.length === 1 && page > 1) {
+        setPage(page - 1);
+      }
     } catch {
       useToastStore.getState().add("Error al eliminar alerta", "info");
     } finally {
       setDeleting(false);
       setConfirmDelete(null);
     }
+  }
+
+  async function handleViewDetail(alert: EpiAlert) {
+    setDetailAlert(alert);
+    setDetailError(null);
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -288,11 +314,12 @@ export default function AlertasPage() {
   const formDisabled = (creating || updating) || !form.titulo || !form.nivel;
   const errorInitial = error && items.length === 0 && !loading;
   const empty = !loading && items.length === 0;
-  const hasActiveFilters = nivel !== "" || !soloActivas;
+  const hasActiveFilters = nivel !== "" || departamento !== "" || !soloActivas;
 
+  const shouldSort = !meta;
   const sorted = useMemo(
-    () => [...items].sort((a, b) => (sortOrder[a.nivel] ?? 99) - (sortOrder[b.nivel] ?? 99)),
-    [items]
+    () => (shouldSort ? [...items].sort((a, b) => (sortOrder[a.nivel] ?? 99) - (sortOrder[b.nivel] ?? 99)) : items),
+    [items, shouldSort]
   );
 
   return (
@@ -326,7 +353,7 @@ export default function AlertasPage() {
             <>
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 className="text-lg font-bold text-text">Alertas Epidemiológicas</h2>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   {rol === "health_worker" && (
                     <button
                       onClick={() => setShowForm(true)}
@@ -336,6 +363,13 @@ export default function AlertasPage() {
                       Crear alerta
                     </button>
                   )}
+                  <input
+                    type="text"
+                    value={departamento}
+                    onChange={(e) => setDepartamento(e.target.value)}
+                    placeholder="Departamento..."
+                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors w-32"
+                  />
                   <select
                     value={nivel}
                     onChange={(e) => setNivel(e.target.value)}
@@ -345,7 +379,16 @@ export default function AlertasPage() {
                       <option key={n.value} value={n.value}>{n.label}</option>
                     ))}
                   </select>
-                  <label className="flex items-center gap-1.5 text-sm text-text cursor-pointer select-none">
+                  <select
+                    value={perPage}
+                    onChange={(e) => setPerPage(Number(e.target.value))}
+                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <label className="flex items-center gap-1.5 text-sm text-text cursor-pointer select-none whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={soloActivas}
@@ -406,7 +449,8 @@ export default function AlertasPage() {
                   return (
                     <div
                       key={alert.id}
-                      className="bg-surface rounded-card p-6 transition-all animate-fade-in-up"
+                      className="bg-surface rounded-card p-6 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
+                      onClick={() => handleViewDetail(alert)}
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -419,8 +463,8 @@ export default function AlertasPage() {
                             </span>
                           )}
                         </div>
-                        {rol === "health_worker" && (
-                          <div className="flex items-center gap-2">
+                        {rol === "health_worker" ? (
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             {alert.activa && (
                               <>
                                 <button
@@ -446,11 +490,21 @@ export default function AlertasPage() {
                               Eliminar
                             </button>
                           </div>
+                        ) : (
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleViewDetail(alert)}
+                              className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <Eye className="w-3 h-3" />
+                              Ver detalle
+                            </button>
+                          </div>
                         )}
                       </div>
 
                       <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>
-                      <p className="text-sm text-gray mb-3">{alert.descripcion}</p>
+                      <p className="text-sm text-gray mb-3 line-clamp-2">{alert.descripcion}</p>
 
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
                         {alert.departamento && <span>{alert.departamento}</span>}
@@ -460,6 +514,32 @@ export default function AlertasPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {meta && meta.total > perPage && (
+              <div className="flex items-center justify-between pt-4 pb-2 text-sm text-gray">
+                <span>
+                  Página {meta.page} de {Math.ceil(meta.total / meta.per_page)} ({meta.total} alertas)
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page <= 1}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-text hover:bg-gray/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer disabled:cursor-not-allowed text-sm"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page >= Math.ceil(meta.total / meta.per_page)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-text hover:bg-gray/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer disabled:cursor-not-allowed text-sm"
+                  >
+                    Siguiente
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -488,6 +568,84 @@ export default function AlertasPage() {
               onCancel={resetForm}
               submitLabel={editingAlert ? "Guardar cambios" : "Crear alerta"}
             />
+          </div>
+        </div>
+      )}
+
+      {detailAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setDetailAlert(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative bg-surface rounded-card shadow-xl w-full max-w-lg p-6 animate-scale-in max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-text">Detalle de alerta</h3>
+              <button onClick={() => setDetailAlert(null)} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {detailError && (
+              <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm mb-4">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{detailError}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold ${detailAlert.activa ? `bg-${nivelColor[detailAlert.nivel]}/10 text-${nivelColor[detailAlert.nivel]}` : "bg-gray/10 text-gray"}`}>
+                  {detailAlert.activa ? detailAlert.nivel : "Inactiva"}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Título</label>
+                <p className="text-text font-semibold">{detailAlert.titulo}</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
+                <p className="text-sm text-text whitespace-pre-wrap">{detailAlert.descripcion || "Sin descripción"}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray mb-1">Nivel</label>
+                  <p className="text-sm text-text capitalize">{detailAlert.nivel}</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray mb-1">Estado</label>
+                  <p className="text-sm text-text">{detailAlert.activa ? "Activa" : "Inactiva"}</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray mb-1">Departamento</label>
+                  <p className="text-sm text-text">{detailAlert.departamento || "—"}</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray mb-1">Fuente</label>
+                  <p className="text-sm text-text">{detailAlert.fuente || "—"}</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray mb-1">Creada</label>
+                  <p className="text-sm text-text">{formatDate(detailAlert.created_at)}</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray mb-1">Actualizada</label>
+                  <p className="text-sm text-text">{formatDate(detailAlert.updated_at)}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end pt-2 border-t border-gray/20">
+                <button
+                  onClick={() => setDetailAlert(null)}
+                  className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
