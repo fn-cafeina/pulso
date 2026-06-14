@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -29,7 +29,7 @@ const nivelColor: Record<AlertNivel, string> = {
   critico: "danger",
 };
 
-const sortOrder: Record<string, number> = {
+const sortOrder: Record<AlertNivel, number> = {
   critico: 0,
   alto: 1,
   medio: 2,
@@ -203,19 +203,19 @@ export default function AlertasPage() {
     try {
       await deactivateAlert(id);
       useToastStore.getState().add("Alerta desactivada");
-      if (soloActivas) {
-        useAlertsStore.setState((s) => {
-          const newItems = s.items.filter((a) => a.id !== id);
-          // go back a page if we emptied the current page
+      useAlertsStore.setState((s) => {
+        let newItems = s.items.map((a) => (a.id === id ? { ...a, activa: false } : a));
+        if (soloActivas) {
+          newItems = newItems.filter((a) => a.id !== id);
           if (newItems.length === 0 && page > 1) {
             setPage(page - 1);
           }
-          return {
-            items: newItems,
-            meta: s.meta ? { ...s.meta, total: s.meta.total - 1 } : s.meta,
-          };
-        });
-      }
+        }
+        return {
+          items: newItems,
+          meta: s.meta ? { ...s.meta, total: s.meta.total - 1 } : s.meta,
+        };
+      });
     } catch {
       useToastStore.getState().add("Error al desactivar", "info");
     } finally {
@@ -278,7 +278,7 @@ export default function AlertasPage() {
     }
   }
 
-  async function handleViewDetail(alert: EpiAlert) {
+  function handleViewDetail(alert: EpiAlert) {
     setDetailAlert(alert);
     setDetailError(null);
   }
@@ -490,17 +490,7 @@ export default function AlertasPage() {
                               Eliminar
                             </button>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              onClick={() => handleViewDetail(alert)}
-                              className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
-                            >
-                              <Eye className="w-3 h-3" />
-                              Ver detalle
-                            </button>
-                          </div>
-                        )}
+                        ) : null}
                       </div>
 
                       <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>

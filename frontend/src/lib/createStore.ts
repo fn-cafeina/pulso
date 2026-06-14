@@ -46,7 +46,7 @@ export function createCrudStore<T extends { id: number }, Q = Record<string, any
       set({ error: null })
       try {
         const item = await api.create(data)
-        set((s) => ({ items: [...s.items, item] }))
+        set((s) => ({ items: [item, ...s.items] }))
         return item as T
       } catch (err: any) {
         set({ error: err.message })
