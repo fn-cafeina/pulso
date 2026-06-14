@@ -67,17 +67,17 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	}
 
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("[FECHA ACTUAL: %s]\n\n", time.Now().Format("02/01/2006")))
+	fmt.Fprintf(&b, "[FECHA ACTUAL: %s]\n\n", time.Now().Format("02/01/2006"))
 	b.WriteString("[CONTEXTO DEL USUARIO]\n")
 
 	if user != nil && user.AntecedentesMedicos != "" {
-		b.WriteString(fmt.Sprintf("Antecedentes médicos: %s\n\n", user.AntecedentesMedicos))
+		fmt.Fprintf(&b, "Antecedentes médicos: %s\n\n", user.AntecedentesMedicos)
 	}
 
 	if len(symptoms) > 0 {
 		b.WriteString("Síntomas reportados:\n")
 		for _, s := range symptoms {
-			b.WriteString(fmt.Sprintf("  - %s: %s\n", s.Fecha.Format("02/01/2006"), s.Descripcion))
+			fmt.Fprintf(&b, "  - %s: %s\n", s.Fecha.Format("02/01/2006"), s.Descripcion)
 		}
 		b.WriteString("\n")
 	}
@@ -85,7 +85,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	if len(vaccines) > 0 {
 		b.WriteString("Vacunas registradas:\n")
 		for _, v := range vaccines {
-			b.WriteString(fmt.Sprintf("  - %s (%s)\n", v.NombreVacuna, v.FechaAplicacion.Format("02/01/2006")))
+			fmt.Fprintf(&b, "  - %s (%s)\n", v.NombreVacuna, v.FechaAplicacion.Format("02/01/2006"))
 		}
 		b.WriteString("\n")
 	}
@@ -95,7 +95,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 		now := time.Now()
 		for _, a := range appts {
 			if a.Fecha.After(now) {
-				b.WriteString(fmt.Sprintf("  - %s: %s\n", a.Fecha.Format("02/01/2006"), a.Descripcion))
+				fmt.Fprintf(&b, "  - %s: %s\n", a.Fecha.Format("02/01/2006"), a.Descripcion)
 			}
 		}
 		b.WriteString("\n")
@@ -110,7 +110,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 		recent := history[len(history)-n:]
 		b.WriteString("[HISTORIAL DE CONSULTAS RECIENTES]\n")
 		for _, h := range recent {
-			b.WriteString(fmt.Sprintf("  Pregunta: %s\n  Respuesta: %s\n\n", h.Pregunta, h.Respuesta))
+			fmt.Fprintf(&b, "  Pregunta: %s\n  Respuesta: %s\n\n", h.Pregunta, h.Respuesta)
 		}
 	}
 
