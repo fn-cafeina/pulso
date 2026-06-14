@@ -18,36 +18,6 @@ func NewAIHandler(aiSvc service.AIService) *AIHandler {
 	return &AIHandler{aiSvc: aiSvc}
 }
 
-func (h *AIHandler) Consult(c *gin.Context) {
-	var req AIConsultRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		Error(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	userID, _ := c.Get("user_id")
-
-	result, err := h.aiSvc.Consult(userID.(uint), req.Pregunta)
-	if err != nil {
-		if strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "RESOURCE_EXHAUSTED") {
-			Error(c, http.StatusServiceUnavailable, "El asistente está saturado, intenta de nuevo en unos segundos.")
-			return
-		}
-		if strings.Contains(err.Error(), "not available") {
-			Error(c, http.StatusServiceUnavailable, err.Error())
-			return
-		}
-		if strings.Contains(err.Error(), "context deadline") {
-			Error(c, http.StatusGatewayTimeout, "El asistente tardó demasiado en responder.")
-			return
-		}
-		InternalError(c, err)
-		return
-	}
-
-	SuccessMsg(c, http.StatusCreated, "consulta realizada", result)
-}
-
 func (h *AIHandler) ConsultStream(c *gin.Context) {
 	var req AIConsultRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

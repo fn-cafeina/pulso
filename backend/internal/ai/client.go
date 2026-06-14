@@ -44,10 +44,6 @@ func NewClient(ctx context.Context, apiKey string) (*Client, error) {
 	return &Client{client: c, model: "gemini-3.1-flash-lite"}, nil
 }
 
-func (c *Client) GenerateContent(ctx context.Context, prompt string) (string, error) {
-	return c.generate(ctx, prompt, systemPrompt, 30*time.Second, 3, 0.8)
-}
-
 func (c *Client) GenerateContentStream(ctx context.Context, prompt string, onChunk func(string)) (string, error) {
 	var fullText strings.Builder
 	lastErr := c.generateStream(ctx, prompt, systemPrompt, 30*time.Second, 3, 0.8, func(chunk string) {
@@ -57,45 +53,6 @@ func (c *Client) GenerateContentStream(ctx context.Context, prompt string, onChu
 		}
 	})
 	return fullText.String(), lastErr
-}
-
-func (c *Client) generate(ctx context.Context, prompt, system string, timeout time.Duration, retries int, temperature float32) (string, error) {
-	var lastErr error
-	for i := 0; i < retries; i++ {
-		reqCtx, cancel := context.WithTimeout(ctx, timeout)
-
-		config := &genai.GenerateContentConfig{
-			Temperature: genai.Ptr(temperature),
-		}
-		if system != "" {
-			config.SystemInstruction = genai.NewContentFromText(system, genai.RoleUser)
-		}
-
-		result, err := c.client.Models.GenerateContent(reqCtx,
-			c.model,
-			genai.Text(prompt),
-			config,
-		)
-		cancel()
-
-		if err == nil {
-			return result.Text(), nil
-		}
-
-		lastErr = err
-		if strings.Contains(err.Error(), "503") || strings.Contains(err.Error(), "rate limit") {
-			timer := time.NewTimer(time.Duration(i+1) * time.Second)
-			select {
-			case <-ctx.Done():
-				timer.Stop()
-				return "", ctx.Err()
-			case <-timer.C:
-			}
-			continue
-		}
-		break
-	}
-	return "", lastErr
 }
 
 func (c *Client) generateStream(ctx context.Context, prompt, system string, timeout time.Duration, retries int, temperature float32, onChunk func(string)) error {
