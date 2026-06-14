@@ -4,6 +4,9 @@ import { useToastStore } from "../../stores/toast";
 import { useDelayedLoading } from "../../lib/useDelayedLoading";
 import type { Message } from "./MessageBubble";
 
+const CHARS_PER_TICK = 4;
+const TICK_MS = 12;
+
 let nextLocalId = -1;
 
 export default function useChat() {
@@ -17,6 +20,8 @@ export default function useChat() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const lastQuestion = useRef("");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fullTextRef = useRef("");
 
   const showInitialLoader = useDelayedLoading(initialLoading);
 
@@ -31,6 +36,7 @@ export default function useChat() {
   useEffect(() => {
     return () => {
       if (abortRef.current) abortRef.current.abort();
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
@@ -59,6 +65,10 @@ export default function useChat() {
       abortRef.current.abort();
       abortRef.current = null;
     }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setStreaming(false);
     setLoading(false);
   };
@@ -70,7 +80,6 @@ export default function useChat() {
     lastQuestion.current = question;
     setInput("");
     setError("");
-    setLoading(true);
     const userMsgId = nextLocalId--;
     setMessages((prev) => [...prev, { id: userMsgId, role: "user", content: question }]);
     setLoading(true);
@@ -83,29 +92,58 @@ export default function useChat() {
     setLoading(false);
     setStreaming(true);
 
+    fullTextRef.current = "";
+    let resolvedId: number | null = null;
+
     try {
-      let fullText = "";
-      const id = await consultAIStream(question, controller.signal, (chunk) => {
-        fullText += chunk;
-        setMessages((prev) => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last && last.id === aiMsgId) {
-            updated[updated.length - 1] = { ...last, content: fullText };
-          }
-          return updated;
-        });
+      // Stream in background — accumulates text, resolves with consultation id
+      const streamPromise = consultAIStream(question, controller.signal, (chunk) => {
+        fullTextRef.current += chunk;
       });
+
+      // Typing animation — reads from ref smoothly
+      await new Promise<void>((resolve, reject) => {
+        let idx = 0;
+        const timer = setInterval(() => {
+          const buf = fullTextRef.current;
+          const prevIdx = idx;
+          idx = Math.min(idx + CHARS_PER_TICK, buf.length);
+          if (idx > prevIdx) {
+            setMessages((prev) => {
+              const updated = [...prev];
+              const last = updated[updated.length - 1];
+              if (last && last.id === aiMsgId) {
+                updated[updated.length - 1] = { ...last, content: buf.slice(0, idx) };
+              }
+              return updated;
+            });
+          }
+          // Done when stream finished AND typing caught up
+          if (resolvedId !== null && idx >= buf.length) {
+            clearInterval(timer);
+            setStreaming(false);
+            resolve();
+          }
+        }, TICK_MS);
+        timerRef.current = timer;
+
+        streamPromise
+          .then((id) => { resolvedId = id; })
+          .catch((e) => { clearInterval(timer); reject(e); });
+      });
+
       if (controller.signal.aborted) return;
-      // replace temp ids with real ones from backend
-      const realUserId = id * 2;
-      const realAiId = id * 2 + 1;
-      setMessages((prev) => prev.map((m) => {
-        if (m.id === userMsgId) return { ...m, id: realUserId };
-        if (m.id === aiMsgId) return { ...m, id: realAiId };
-        return m;
-      }));
-      setStreaming(false);
+
+      // Replace temp ids with real ones from backend
+      if (resolvedId !== null) {
+        const realUserId = resolvedId * 2;
+        const realAiId = resolvedId * 2 + 1;
+        setMessages((prev) => prev.map((m) => {
+          if (m.id === userMsgId) return { ...m, id: realUserId };
+          if (m.id === aiMsgId) return { ...m, id: realAiId };
+          return m;
+        }));
+      }
     } catch (err: any) {
       if (err.name === "AbortError") return;
       setStreaming(false);
