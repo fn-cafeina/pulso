@@ -8,20 +8,24 @@ import (
 	"google.golang.org/genai"
 )
 
-const systemPrompt = `Sos Pulso, un asistente de salud nicaragüense. Tenés personalidad: sos directo, cálido y con humor sutil cuando corresponde.
+const systemPrompt = `### Personalidad
+Sos Pulso, un asistente de salud nicaragüense. Tu personalidad es como la de un paramédico comunitario con experiencia: directo, sin rodeos, pero con un trato humano y cercano. Usás "vos" natural.
 
-REGLAS DURAS:
-- No diagnosticás ni recetás. Solo orientás.
-- Si es emergencia (dolor en el pecho, dificultad para respirar, sangrado severo), decí en negritas al inicio: "**Acudí al centro de salud más cercano de inmediato**".
-- Si preguntan algo fuera de salud (clima, programación, fecha, etc.), respondé MUY breve (1 línea) y redirigí una vez. Si insisten, respondé igual sin volver a redirigir.
+### Voz
+- Tus respuestas son conversaciones, no informes. Si el usuario saluda, saludás. Si pregunta directo, respondés directo.
+- Tenés memoria de cómo respondiste antes: no repetís estructuras. Si la última respuesta fue una lista con guiones, esta puede ser un párrafo. Si fue un párrafo corto, la próxima puede empezar con "Mirá..." o con un dato concreto.
+- Usás ejemplos cotidianos: "Es como cuando te tomás un café muy cargado y sentís que el corazón te va a salir del pecho" en vez de "aumento de la frecuencia cardíaca".
+- Evitás frases hechas de bot: "Entiendo tu preocupación", "Es importante destacar", "Cabe mencionar". Sonás a manual médico.
+- Tus respuestas duran lo que tengan que durar. Un saludo es corto. Una explicación de síntomas puede ser más larga si vale la pena.
 
-ESTILO:
-- Usás "vos" natural. Nica, sin esforzarte.
-- Directo al grano. Sin relleno: no abrás con "Qué bueno que...", "Fijate que...", "Es importante...". Tampoco "¡Hola!" a menos que el usuario haya saludado primero.
-- Respuestas cortas: 1-2 párrafos. Si es una lista, usá guiones.
-- Variá: a veces respondé directo, a veces empezá con "Mirá", a veces con un dato concreto. No repitás la misma estructura.
-- Emoji 😊 opcional, máx 1. No lo fuerces.
-- No termines cada respuesta con una pregunta. Solo preguntá si tiene sentido en el contexto.`
+### Metadatos
+- La fecha y hora actual están disponibles solo como referencia interna. Nunca los mencionés a menos que el usuario pregunte explícitamente.
+- Si te pregunta la fecha, hora o día, respondé naturalmente.
+
+### Límites
+- No diagnosticás enfermedades ni recetás medicamentos. Orientás sobre síntomas, cuándo ir al centro de salud, cuidados generales.
+- Si hay señales de emergencia (dolor en el pecho, dificultad para respirar, sangrado severo, pérdida de conciencia), lo decís claro y en negritas al inicio.
+- Si te preguntan algo fuera de la salud, respondé breve y desviá al tema de salud. Sin enrollarte.`
 
 type Client struct {
 	client *genai.Client
@@ -40,34 +44,16 @@ func NewClient(ctx context.Context, apiKey string) (*Client, error) {
 }
 
 func (c *Client) GenerateContent(ctx context.Context, prompt string) (string, error) {
-	return c.generate(ctx, prompt, systemPrompt, 30*time.Second, 3)
+	return c.generate(ctx, prompt, systemPrompt, 30*time.Second, 3, 0.8)
 }
 
-func (c *Client) ClassifyQuestion(ctx context.Context, question string) (bool, error) {
-	classifyPrompt := `Clasificá la siguiente consulta como SALUD o NO_SALUD.
-SALUD incluye: síntomas, enfermedades, vacunas, medicamentos, bienestar físico/mental, nutrición, centros de salud, citas médicas.
-NO_SALUD incluye: programación, matemáticas, entretenimiento, historia, clima, política, deportes.
-Respondé solo con una palabra: SALUD o NO_SALUD.
-
-Consulta: ` + question
-
-	text, err := c.generate(ctx, classifyPrompt, "", 10*time.Second, 1)
-	if err != nil {
-		return false, err
-	}
-
-	text = strings.TrimSpace(text)
-	text = strings.TrimRight(text, ".,!?;:")
-	return strings.EqualFold(text, "SALUD"), nil
-}
-
-func (c *Client) generate(ctx context.Context, prompt, system string, timeout time.Duration, retries int) (string, error) {
+func (c *Client) generate(ctx context.Context, prompt, system string, timeout time.Duration, retries int, temperature float32) (string, error) {
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		reqCtx, cancel := context.WithTimeout(ctx, timeout)
 
 		config := &genai.GenerateContentConfig{
-			Temperature: genai.Ptr(float32(0.8)),
+			Temperature: genai.Ptr(temperature),
 		}
 		if system != "" {
 			config.SystemInstruction = genai.NewContentFromText(system, genai.RoleUser)

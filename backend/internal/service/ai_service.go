@@ -67,8 +67,8 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	}
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "[FECHA ACTUAL: %s]\n\n", time.Now().Format("02/01/2006"))
-	b.WriteString("[CONTEXTO DEL USUARIO]\n")
+	fmt.Fprintf(&b, "│ Fecha: %s | Hora: %s\n\n", time.Now().Format("02/01/2006"), time.Now().Format("15:04"))
+	b.WriteString("### Contexto del usuario\n")
 
 	if user != nil && user.AntecedentesMedicos != "" {
 		fmt.Fprintf(&b, "Antecedentes médicos: %s\n\n", user.AntecedentesMedicos)
@@ -108,13 +108,13 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 			n = len(history)
 		}
 		recent := history[len(history)-n:]
-		b.WriteString("[HISTORIAL DE CONSULTAS RECIENTES]\n")
+		b.WriteString("### Historial de consultas recientes\n")
 		for _, h := range recent {
 			fmt.Fprintf(&b, "  Pregunta: %s\n  Respuesta: %s\n\n", h.Pregunta, h.Respuesta)
 		}
 	}
 
-	b.WriteString("[CONSULTA]\n")
+	b.WriteString("### Consulta\n")
 	b.WriteString(pregunta)
 
 	respuesta, err := s.gemini.GenerateContent(ctx, b.String())
