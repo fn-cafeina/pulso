@@ -89,66 +89,85 @@ export default function useChat() {
 
     const aiMsgId = nextLocalId--;
     setMessages((prev) => [...prev, { id: aiMsgId, role: "ai", content: "" }]);
-    setLoading(false);
-    setStreaming(true);
 
     fullTextRef.current = "";
     let resolvedId: number | null = null;
+    let streamError: any = null;
+
+    // Deferred — resolves on first chunk, rejects on stream error
+    let resolveFirstChunk: () => void;
+    let rejectFirstChunk: (e: any) => void;
+    const firstChunk = new Promise<void>((resolve, reject) => {
+      resolveFirstChunk = resolve;
+      rejectFirstChunk = reject;
+    });
+
+    const streamPromise = consultAIStream(question, controller.signal, (chunk) => {
+      if (fullTextRef.current.length === 0) {
+        resolveFirstChunk();
+        setLoading(false);
+        setStreaming(true);
+      }
+      fullTextRef.current += chunk;
+    });
+
+    streamPromise
+      .then((id) => { resolvedId = id; })
+      .catch((e) => { streamError = e; rejectFirstChunk(e); });
 
     try {
-      // Stream in background — accumulates text, resolves with consultation id
-      const streamPromise = consultAIStream(question, controller.signal, (chunk) => {
-        fullTextRef.current += chunk;
-      });
-
-      // Typing animation — reads from ref smoothly
-      await new Promise<void>((resolve, reject) => {
-        let idx = 0;
-        const timer = setInterval(() => {
-          const buf = fullTextRef.current;
-          const prevIdx = idx;
-          idx = Math.min(idx + CHARS_PER_TICK, buf.length);
-          if (idx > prevIdx) {
-            setMessages((prev) => {
-              const updated = [...prev];
-              const last = updated[updated.length - 1];
-              if (last && last.id === aiMsgId) {
-                updated[updated.length - 1] = { ...last, content: buf.slice(0, idx) };
-              }
-              return updated;
-            });
-          }
-          // Done when stream finished AND typing caught up
-          if (resolvedId !== null && idx >= buf.length) {
-            clearInterval(timer);
-            setStreaming(false);
-            resolve();
-          }
-        }, TICK_MS);
-        timerRef.current = timer;
-
-        streamPromise
-          .then((id) => { resolvedId = id; })
-          .catch((e) => { clearInterval(timer); reject(e); });
-      });
-
-      if (controller.signal.aborted) return;
-
-      // Replace temp ids with real ones from backend
-      if (resolvedId !== null) {
-        const realUserId = resolvedId * 2;
-        const realAiId = resolvedId * 2 + 1;
-        setMessages((prev) => prev.map((m) => {
-          if (m.id === userMsgId) return { ...m, id: realUserId };
-          if (m.id === aiMsgId) return { ...m, id: realAiId };
-          return m;
-        }));
-      }
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
-      setStreaming(false);
+      await firstChunk;
+    } catch {
+      // Stream error before first chunk
       setLoading(false);
-      setError(err.message);
+      throw streamError || new Error("Stream failed");
+    }
+
+    if (controller.signal.aborted) return;
+
+    // Typing animation — reads from ref smoothly
+    await new Promise<void>((resolve, reject) => {
+      let idx = 0;
+      const timer = setInterval(() => {
+        if (streamError) {
+          clearInterval(timer);
+          reject(streamError);
+          return;
+        }
+        const buf = fullTextRef.current;
+        const prevIdx = idx;
+        idx = Math.min(idx + CHARS_PER_TICK, buf.length);
+        if (idx > prevIdx) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last && last.id === aiMsgId) {
+              updated[updated.length - 1] = { ...last, content: buf.slice(0, idx) };
+            }
+            return updated;
+          });
+        }
+        // Done when stream finished AND typing caught up
+        if (resolvedId !== null && idx >= buf.length) {
+          clearInterval(timer);
+          setStreaming(false);
+          resolve();
+        }
+      }, TICK_MS);
+      timerRef.current = timer;
+    });
+
+    if (controller.signal.aborted) return;
+
+    // Replace temp ids with real ones from backend
+    if (resolvedId !== null) {
+      const realUserId = resolvedId * 2;
+      const realAiId = resolvedId * 2 + 1;
+      setMessages((prev) => prev.map((m) => {
+        if (m.id === userMsgId) return { ...m, id: realUserId };
+        if (m.id === aiMsgId) return { ...m, id: realAiId };
+        return m;
+      }));
     }
   };
 
