@@ -3,6 +3,6 @@ tmp_dir = "tmp"
 
 [build]
   cmd = "go build -o ./tmp/api ./cmd/api/main.go"
-  bin = "tmp/api"
+  entrypoint = "cmd/api/main.go"
   include_ext = ["go"]
   delay = 1000
