@@ -400,7 +400,7 @@ export default function AlertasPage() {
             </>
           )}
 
-          {error && (
+          {error && !errorInitial && (
             <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake mb-4" role="alert">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1">{error}</span>
