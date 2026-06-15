@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
@@ -170,15 +170,15 @@ export default function AlertasPage() {
   const loadingInitial = loading && items.length === 0 && !creating;
   const showSkeleton = useDelayedLoading(loadingInitial);
 
-  function buildParams(pg: number): Record<string, any> {
-    const params: Record<string, any> = {};
+  const buildParams = useCallback((pg: number): Record<string, unknown> => {
+    const params: Record<string, unknown> = {};
     if (nivel) params.nivel = nivel;
     if (soloActivas) params.activas = true;
     if (departamento) params.departamento = departamento;
     params.page = pg;
     params.per_page = perPage;
     return params;
-  }
+  }, [nivel, soloActivas, departamento, perPage]);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -187,7 +187,7 @@ export default function AlertasPage() {
     } else {
       refresh(buildParams(page));
     }
-  }, [nivel, soloActivas, departamento, page, perPage, fetch, refresh]);
+  }, [nivel, soloActivas, departamento, page, perPage, fetch, refresh, buildParams]);
 
   function handleRefresh() {
     fetch(buildParams(page));

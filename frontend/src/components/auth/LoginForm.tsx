@@ -40,8 +40,8 @@ export default function LoginForm() {
     try {
       await login(username.trim(), password);
       navigate("/");
-    } catch (err: any) {
-      const msg = err.message;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error desconocido";
       if (msg === "usuario no encontrado") {
         setFieldErrors({ username: "Usuario no encontrado" });
       } else if (msg === "contraseña incorrecta") {

@@ -1,27 +1,27 @@
 import { apiFetch } from "./api";
 import type { PaginationMeta } from "../types";
 
-export interface CrudApi<T, Q = Record<string, any>> {
+export interface CrudApi<T, Q = Record<string, unknown>> {
   list(params?: Q): Promise<{ items: T[]; meta?: PaginationMeta }>
   getById(id: number): Promise<T>
-  create(data: Record<string, any>): Promise<T>
-  update(id: number, data: Record<string, any>): Promise<T>
+  create(data: Record<string, unknown>): Promise<T>
+  update(id: number, data: Record<string, unknown>): Promise<T>
   del(id: number): Promise<void>
   action(id: number, actionName: string, method?: string): Promise<void>
 }
 
-function toQueryString(params: Record<string, any>): string {
+function toQueryString(params: Record<string, unknown>): string {
   const entries = Object.entries(params).filter(
     ([, v]) => v !== undefined && v !== null && v !== ""
   )
   if (entries.length === 0) return ""
-  return "?" + entries.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&")
+  return "?" + entries.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join("&")
 }
 
-export function createCrudApi<T, Q = Record<string, any>>(basePath: string): CrudApi<T, Q> {
+export function createCrudApi<T, Q = Record<string, unknown>>(basePath: string): CrudApi<T, Q> {
   return {
     async list(params?: Q) {
-      const query = params ? toQueryString(params as Record<string, any>) : ""
+      const query = params ? toQueryString(params as Record<string, unknown>) : ""
       const res = await apiFetch<T[]>(`${basePath}${query}`)
       return { items: res.data ?? [], meta: res.meta }
     },
@@ -31,7 +31,7 @@ export function createCrudApi<T, Q = Record<string, any>>(basePath: string): Cru
       return res.data as T
     },
 
-    async create(data: Record<string, any>) {
+    async create(data: Record<string, unknown>) {
       const res = await apiFetch<T>(basePath, {
         method: "POST",
         body: JSON.stringify(data),
@@ -39,7 +39,7 @@ export function createCrudApi<T, Q = Record<string, any>>(basePath: string): Cru
       return res.data as T
     },
 
-    async update(id: number, data: Record<string, any>) {
+    async update(id: number, data: Record<string, unknown>) {
       const res = await apiFetch<T>(`${basePath}/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),

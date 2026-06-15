@@ -60,8 +60,8 @@ export default function RegisterForm() {
       await login(user, password);
       setSuccess(true);
       setTimeout(() => navigate("/"), 600);
-    } catch (err: any) {
-      const msg = err.message;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error desconocido";
       if (msg.includes("ya está en uso")) {
         setFieldErrors({ username: msg });
       } else if (msg.includes("código de health worker") || msg.includes("no disponible")) {

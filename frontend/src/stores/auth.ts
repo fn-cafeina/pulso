@@ -15,7 +15,7 @@ interface AuthState {
   initFromStorage: () => void;
 }
 
-function decodeToken(token: string): any {
+function decodeToken(token: string): { exp?: number } | null {
   try {
     const payload = token.split(".")[1];
     return JSON.parse(atob(payload));

@@ -24,21 +24,6 @@ export default function useChat() {
 
   const showInitialLoader = useDelayedLoading(initialLoading);
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (abortRef.current) abortRef.current.abort();
-    };
-  }, []);
-
   const loadHistory = async () => {
     try {
       const history = await getAIHistory();
@@ -58,6 +43,22 @@ export default function useChat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const id = setTimeout(() => loadHistory());
+    return () => clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, []);
 
   const cancel = () => {
     if (abortRef.current) {
@@ -119,11 +120,11 @@ export default function useChat() {
           return updated;
         });
       }, TICK_MS);
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setStreaming(false);
       setLoading(false);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 

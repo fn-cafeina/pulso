@@ -3,7 +3,7 @@ import type { ApiResponse } from "../types";
 
 const API_BASE = "http://localhost:8080";
 
-export async function apiFetch<T = any>(
+export async function apiFetch<T = unknown>(
   path: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
@@ -25,7 +25,7 @@ export async function apiFetch<T = any>(
     });
   } catch (err) {
     if (err instanceof TypeError && err.message === "Failed to fetch") {
-      throw new Error("No se pudo conectar con el servidor");
+      throw new Error("No se pudo conectar con el servidor", { cause: err });
     }
     throw err;
   }
@@ -43,12 +43,12 @@ export async function login(
   username: string,
   password: string
 ): Promise<{ token: string; rol: string }> {
-  const res = await apiFetch("/login", {
+  const res = await apiFetch<{ token: string; rol: string }>("/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
 
-  const { token, rol } = res.data;
+  const { token, rol } = res.data!;
   setAuth(token, rol, username);
   return { token, rol };
 }
@@ -66,15 +66,15 @@ export async function register(data: {
 }
 
 export async function consultAI(pregunta: string, signal?: AbortSignal): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }> {
-  const res = await apiFetch("/ai/consult", {
+  const res = await apiFetch<{ id: number; pregunta: string; respuesta: string; created_at: string }>("/ai/consult", {
     method: "POST",
     body: JSON.stringify({ pregunta }),
     signal,
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function getAIHistory(): Promise<{ id: number; pregunta: string; respuesta: string; created_at: string }[]> {
-  const res = await apiFetch("/ai/history");
-  return res.data || [];
+  const res = await apiFetch<{ id: number; pregunta: string; respuesta: string; created_at: string }[]>("/ai/history");
+  return res.data ?? [];
 }

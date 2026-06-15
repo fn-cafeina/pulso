@@ -9,7 +9,7 @@ export function useDelayedLoading(loading: boolean, delay = 200): boolean {
       timer.current = setTimeout(() => setShow(true), delay);
     } else {
       if (timer.current) clearTimeout(timer.current);
-      setShow(false);
+      timer.current = setTimeout(() => setShow(false));
     }
     return () => {
       if (timer.current) clearTimeout(timer.current);

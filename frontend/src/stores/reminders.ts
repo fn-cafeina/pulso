@@ -10,7 +10,7 @@ interface RemindersState {
   error: string | null
   fetch: () => Promise<void>
   fetchHistory: () => Promise<void>
-  add: (data: Record<string, any>) => Promise<Reminder>
+  add: (data: Record<string, unknown>) => Promise<Reminder>
   markRead: (id: number) => Promise<void>
   clearError: () => void
 }
@@ -28,8 +28,8 @@ export const useRemindersStore = create<RemindersState>((set) => ({
     try {
       const { items } = await api.list()
       set({ items, loading: false })
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Error desconocido", loading: false })
     }
   },
 
@@ -38,19 +38,19 @@ export const useRemindersStore = create<RemindersState>((set) => ({
     try {
       const res = await apiFetch<Reminder[]>("/reminders/history")
       set({ history: res.data ?? [], loading: false })
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Error desconocido", loading: false })
     }
   },
 
-  async add(data: Record<string, any>) {
+  async add(data: Record<string, unknown>) {
     set({ loading: true, error: null })
     try {
       const item = await api.create(data)
       set((s) => ({ items: [...s.items, item], loading: false }))
       return item as Reminder
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Error desconocido", loading: false })
       throw err
     }
   },
@@ -61,8 +61,8 @@ export const useRemindersStore = create<RemindersState>((set) => ({
       set((s) => ({
         items: s.items.map((r) => (r.id === id ? { ...r, leido: true } : r)),
       }))
-    } catch (err: any) {
-      set({ error: err.message })
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Error desconocido" })
     }
   },
 

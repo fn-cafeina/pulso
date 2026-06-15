@@ -1,5 +1,5 @@
 import { Sun, Moon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { STORAGE_KEY } from "../../lib/theme";
 
 interface Props {
@@ -7,11 +7,7 @@ interface Props {
 }
 
 export default function ThemeToggle({ compact }: Props) {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
 
   const toggle = () => {
     const next = !dark;
