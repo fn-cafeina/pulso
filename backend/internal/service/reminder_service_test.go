@@ -34,14 +34,26 @@ func (m *mockReminderRepo) FindPendingByUserID(userID uint) ([]models.Reminder, 
 	return result, nil
 }
 
-func (m *mockReminderRepo) FindByUserID(userID uint) ([]models.Reminder, error) {
+func (m *mockReminderRepo) FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
 	var result []models.Reminder
 	for _, r := range m.reminders {
 		if r.UserID == userID {
 			result = append(result, r)
 		}
 	}
-	return result, nil
+	total := int64(len(result))
+	if page > 0 {
+		offset := (page - 1) * perPage
+		if offset >= len(result) {
+			return nil, total, nil
+		}
+		end := offset + perPage
+		if end > len(result) {
+			end = len(result)
+		}
+		result = result[offset:end]
+	}
+	return result, total, nil
 }
 
 func (m *mockReminderRepo) MarkAsRead(id, userID uint) error {
@@ -55,6 +67,20 @@ func (m *mockReminderRepo) MarkAsRead(id, userID uint) error {
 		return errors.New("not found")
 	}
 	return nil
+}
+
+func (m *mockReminderRepo) Update(r *models.Reminder) (*models.Reminder, error) {
+	for i, rem := range m.reminders {
+		if rem.ID == r.ID && rem.UserID == r.UserID {
+			m.reminders[i].Titulo = r.Titulo
+			m.reminders[i].Descripcion = r.Descripcion
+			m.reminders[i].Fecha = r.Fecha
+			m.reminders[i].Tipo = r.Tipo
+			// Leido no se modifica
+			return &m.reminders[i], nil
+		}
+	}
+	return nil, nil
 }
 
 func (m *mockReminderRepo) Delete(id, userID uint) error {
@@ -127,9 +153,12 @@ func TestReminderGetAll_ByUser(t *testing.T) {
 	_, _ = svc.Create(1, "B", "", "manual", time.Now())
 	_, _ = svc.Create(2, "C", "", "manual", time.Now())
 
-	all, err := svc.GetAll(1)
+	all, total, err := svc.GetAll(1, 0, 20)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
+	}
+	if total != 2 {
+		t.Fatalf("expected total 2, got %d", total)
 	}
 	if len(all) != 2 {
 		t.Fatalf("expected 2 reminders, got %d", len(all))

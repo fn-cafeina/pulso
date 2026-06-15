@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"time"
-
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"gorm.io/gorm"
 )
@@ -10,7 +8,8 @@ import (
 type ReminderRepository interface {
 	Create(reminder *models.Reminder) error
 	FindPendingByUserID(userID uint) ([]models.Reminder, error)
-	FindByUserID(userID uint) ([]models.Reminder, error)
+	FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error)
+	Update(reminder *models.Reminder) (*models.Reminder, error)
 	MarkAsRead(id, userID uint) error
 	Delete(id, userID uint) error
 }
@@ -29,18 +28,48 @@ func (r *reminderRepository) Create(reminder *models.Reminder) error {
 
 func (r *reminderRepository) FindPendingByUserID(userID uint) ([]models.Reminder, error) {
 	var reminders []models.Reminder
-	err := r.db.Where("user_id = ? AND leido = false AND fecha <= ?", userID, time.Now()).
+	err := r.db.Where("user_id = ? AND leido = false", userID).
 		Order("fecha asc").
 		Find(&reminders).Error
 	return reminders, err
 }
 
-func (r *reminderRepository) FindByUserID(userID uint) ([]models.Reminder, error) {
+func (r *reminderRepository) FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
 	var reminders []models.Reminder
-	err := r.db.Where("user_id = ?", userID).
-		Order("created_at desc").
-		Find(&reminders).Error
-	return reminders, err
+	var total int64
+
+	q := r.db.Model(&models.Reminder{}).Where("user_id = ?", userID)
+
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	q = q.Order("created_at desc")
+	if page > 0 {
+		offset := (page - 1) * perPage
+		q = q.Offset(offset).Limit(perPage)
+	}
+
+	if err := q.Find(&reminders).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return reminders, total, nil
+}
+
+func (r *reminderRepository) Update(reminder *models.Reminder) (*models.Reminder, error) {
+	var existing models.Reminder
+	if err := r.db.Where("id = ? AND user_id = ?", reminder.ID, reminder.UserID).First(&existing).Error; err != nil {
+		return nil, err
+	}
+	existing.Titulo = reminder.Titulo
+	existing.Descripcion = reminder.Descripcion
+	existing.Fecha = reminder.Fecha
+	existing.Tipo = reminder.Tipo
+	if err := r.db.Save(&existing).Error; err != nil {
+		return nil, err
+	}
+	return &existing, nil
 }
 
 func (r *reminderRepository) MarkAsRead(id, userID uint) error {

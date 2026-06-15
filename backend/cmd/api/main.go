@@ -98,7 +98,9 @@ func main() {
 	auth.GET("/reminders", reminderHandler.GetPending)
 	auth.POST("/reminders", reminderHandler.Create)
 	auth.GET("/reminders/history", reminderHandler.GetHistory)
+	auth.PUT("/reminders/:id", reminderHandler.Update)
 	auth.PATCH("/reminders/:id/read", reminderHandler.MarkAsRead)
+	auth.DELETE("/reminders/:id", reminderHandler.Delete)
 
 	srv := &http.Server{
 		Addr:    cfg.Port,

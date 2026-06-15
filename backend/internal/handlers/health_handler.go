@@ -52,7 +52,9 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.reminderSvc.Create(userID.(uint), "Vacuna: "+req.NombreVacuna, "Registro de vacunación", "vacuna", fecha); err != nil {
+	if !fecha.After(time.Now()) {
+		log.Printf("skip reminder for past vaccine: %s", req.NombreVacuna)
+	} else if _, err := h.reminderSvc.Create(userID.(uint), "Vacuna: "+req.NombreVacuna, "Registro de vacunación", "vacuna", fecha); err != nil {
 		log.Printf("error: failed to create reminder: %v", err)
 	}
 

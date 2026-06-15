@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -50,12 +51,48 @@ func (h *ReminderHandler) Create(c *gin.Context) {
 
 func (h *ReminderHandler) GetHistory(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	reminders, err := h.reminderSvc.GetAll(userID.(uint))
+	p := ParsePagination(c)
+	reminders, total, err := h.reminderSvc.GetAll(userID.(uint), p.Page, p.PerPage)
 	if err != nil {
 		InternalError(c, err)
 		return
 	}
-	Success(c, http.StatusOK, reminders)
+	PaginatedSuccess(c, http.StatusOK, reminders, PaginationMeta{Page: p.Page, PerPage: p.PerPage, Total: total})
+}
+
+func (h *ReminderHandler) Update(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "ID inválido")
+		return
+	}
+
+	var req CreateReminderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	fecha, err := parseTime(req.Fecha)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "formato de fecha inválido")
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	reminder, err := h.reminderSvc.Update(&models.Reminder{
+		BaseModel:   models.BaseModel{ID: uint(id)},
+		UserID:      userID.(uint),
+		Titulo:      req.Titulo,
+		Descripcion: req.Descripcion,
+		Fecha:       fecha,
+		Tipo:        req.Tipo,
+	})
+	if err != nil {
+		InternalError(c, err)
+		return
+	}
+	Success(c, http.StatusOK, reminder)
 }
 
 func (h *ReminderHandler) MarkAsRead(c *gin.Context) {
@@ -71,4 +108,19 @@ func (h *ReminderHandler) MarkAsRead(c *gin.Context) {
 		return
 	}
 	Msg(c, http.StatusOK, "recordatorio marcado como leído")
+}
+
+func (h *ReminderHandler) Delete(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "ID inválido")
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	if err := h.reminderSvc.Delete(uint(id), userID.(uint)); err != nil {
+		InternalError(c, err)
+		return
+	}
+	Msg(c, http.StatusOK, "recordatorio eliminado")
 }

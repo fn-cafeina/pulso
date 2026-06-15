@@ -10,8 +10,10 @@ import (
 type ReminderService interface {
 	Create(userID uint, titulo, descripcion, tipo string, fecha time.Time) (*models.Reminder, error)
 	GetPending(userID uint) ([]models.Reminder, error)
-	GetAll(userID uint) ([]models.Reminder, error)
+	GetAll(userID uint, page, perPage int) ([]models.Reminder, int64, error)
+	Update(reminder *models.Reminder) (*models.Reminder, error)
 	MarkAsRead(id, userID uint) error
+	Delete(id, userID uint) error
 }
 
 type reminderService struct {
@@ -40,10 +42,18 @@ func (s *reminderService) GetPending(userID uint) ([]models.Reminder, error) {
 	return s.repo.FindPendingByUserID(userID)
 }
 
-func (s *reminderService) GetAll(userID uint) ([]models.Reminder, error) {
-	return s.repo.FindByUserID(userID)
+func (s *reminderService) GetAll(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
+	return s.repo.FindByUserID(userID, page, perPage)
+}
+
+func (s *reminderService) Update(reminder *models.Reminder) (*models.Reminder, error) {
+	return s.repo.Update(reminder)
 }
 
 func (s *reminderService) MarkAsRead(id, userID uint) error {
 	return s.repo.MarkAsRead(id, userID)
+}
+
+func (s *reminderService) Delete(id, userID uint) error {
+	return s.repo.Delete(id, userID)
 }
