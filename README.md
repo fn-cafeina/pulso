@@ -18,7 +18,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 | Orientación de síntomas | Asistente con IA que orienta sobre signos y síntomas | ✅ |
 | Alertas epidemiológicas | CRUD completo con filtros (nivel, departamento, activas) | ✅ |
 | Historial médico | Registro de antecedentes, síntomas y vacunación | ✅ Backend / 📍 Frontend placeholder |
-| Recordatorios | Notificaciones de citas y próximas vacunas | ✅ Backend / 📍 Frontend placeholder |
+| Recordatorios | Notificaciones de citas y próximas vacunas | ✅ |
 | Localizador | Mapa de centros de salud cercanos | ✅ Backend / 📍 Frontend placeholder |
 | Eventos | Difusión y búsqueda de jornadas y eventos de salud | ✅ Backend / 📍 Frontend placeholder |
 

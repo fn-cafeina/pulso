@@ -658,8 +658,10 @@ Inyecta contexto del usuario (antecedentes, síntomas, vacunas, citas futuras) e
 |--------|------|------|-------------|
 | GET | `/reminders` | ✅ | Recordatorios pendientes (no leídos + fecha ≤ ahora) |
 | POST | `/reminders` | ✅ | Crear recordatorio manual |
-| GET | `/reminders/history` | ✅ | Historial completo de recordatorios |
+| GET | `/reminders/history` | ✅ | Historial completo de recordatorios (`?page=&per_page=`) |
+| PUT | `/reminders/:id` | ✅ | Actualizar recordatorio |
 | PATCH | `/reminders/:id/read` | ✅ | Marcar como leído |
+| DELETE | `/reminders/:id` | ✅ | Eliminar recordatorio |
 
 Los recordatorios se crean automáticamente al agendar citas y registrar vacunas.
 
@@ -711,11 +713,27 @@ Retorna recordatorios no leídos con `fecha ≤ ahora`, ordenados ascendente.
 <details>
 <summary><code>GET /reminders/history</code></summary>
 
-Retorna todos los recordatorios del usuario ordenados por `created_at` descendente.
+Soporta paginación con `?page=N&per_page=N`. Retorna recordatorios ordenados por `created_at` descendente.
+
+**Response 200 (paginado):**
+```json
+{ "data": [ { "id": 2, "titulo": "Cita médica", "leido": true, ... } ], "meta": { "page": 1, "per_page": 20, "total": 47 } }
+```
+</details>
+
+<details>
+<summary><code>PUT /reminders/:id</code></summary>
+
+Todos los campos son opcionales en update.
+
+**Request:**
+```json
+{ "titulo": "Vacunación actualizada", "descripcion": "Ahora en el Centro de Salud", "fecha": "2026-06-15T08:00:00", "tipo": "vacuna" }
+```
 
 **Response 200:**
 ```json
-{ "data": [ { "id": 2, "titulo": "Cita médica", "leido": true, ... }, { "id": 1, "titulo": "Tomar medicamento", "leido": false, ... } ] }
+{ "data": { "id": 1, "user_id": 1, "titulo": "Vacunación actualizada", "fecha": "2026-06-15T08:00:00Z", "leido": false, "tipo": "vacuna", "updated_at": "2026-05-25T10:05:00Z" } }
 ```
 </details>
 
@@ -727,5 +745,16 @@ Scoped al usuario autenticado. No requiere body.
 **Response 200:**
 ```json
 { "message": "recordatorio marcado como leído" }
+```
+</details>
+
+<details>
+<summary><code>DELETE /reminders/:id</code></summary>
+
+Scoped al usuario autenticado. No requiere body.
+
+**Response 200:**
+```json
+{ "message": "recordatorio eliminado" }
 ```
 </details>

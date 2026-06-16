@@ -173,7 +173,7 @@ src/
 - El modal de login/register se implementa como layouts separados, no como modales flotantes.
 - El sidebar (desktop) y bottom nav + drawer (mobile) comparten la misma configuración de rutas desde `navConfig.ts`.
 - El ToastContainer se renderiza en `main.tsx`, fuera del router pero dentro del `BrowserRouter`, asegurando que las notificaciones sean globales y no interfieran con el layout de página.
-- `AlertasPage` es la única página con CRUD completo implementado; las demás páginas (Historial, Servicios, Eventos, Recordatorios) muestran placeholders funcionales.
+- `AlertasPage` y `RecordatoriosPage` tienen CRUD completo implementado; las demás páginas (Historial, Servicios, Eventos) muestran placeholders funcionales.
 
 ## Tests
 
