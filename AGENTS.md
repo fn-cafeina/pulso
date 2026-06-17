@@ -70,4 +70,4 @@ Only `backend/internal/service/` has tests. Pattern: mock repo structs with inli
 - `HealthService.Tipo` validation (`hospital`, `clinica`, `puesto_salud`) is in request DTOs, not the model
 - No CI/CD
 - Graceful shutdown on SIGINT/SIGTERM (10s timeout)
-- `parseTime()` accepts 3 formats: `2006-01-02T15:04:05Z`, `2006-01-02T15:04:05`, `2006-01-02`
+- `parseTime()` accepts 4 formats: `time.RFC3339`, `2006-01-02T15:04:05Z`, `2006-01-02T15:04:05`, `2006-01-02`
