@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { AlertTriangle, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -10,6 +10,7 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import SkeletonCard from "../components/ui/SkeletonCard";
 import EmptyState from "../components/ui/EmptyState";
 import AlertBanner from "../components/ui/AlertBanner";
+import Pagination from "../components/ui/Pagination";
 import type { AlertNivel, EpiAlert } from "../types";
 
 const niveles: { value: string; label: string }[] = [
@@ -475,31 +476,14 @@ export default function AlertasPage() {
               </div>
             )}
 
-            {meta && meta.total > perPage && (
-              <div className="flex items-center justify-between pt-4 pb-2 text-sm text-gray">
-                <span>
-                  Página {meta.page} de {Math.ceil(meta.total / meta.per_page)} ({meta.total} alertas)
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page <= 1}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-text hover:bg-gray/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer disabled:cursor-not-allowed text-sm"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    Anterior
-                  </button>
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page >= Math.ceil(meta.total / meta.per_page)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-text hover:bg-gray/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer disabled:cursor-not-allowed text-sm"
-                  >
-                    Siguiente
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              page={meta!.page}
+              totalPages={Math.ceil(meta!.total / meta!.per_page)}
+              totalItems={meta!.total}
+              itemLabel="alertas"
+              onPrev={() => setPage(page - 1)}
+              onNext={() => setPage(page + 1)}
+            />
           </div>
         </>
       )}
