@@ -7,11 +7,12 @@ import (
 
 type ReminderRepository interface {
 	Create(reminder *models.Reminder) error
+	FindByID(id uint) (*models.Reminder, error)
 	FindPendingByUserID(userID uint) ([]models.Reminder, error)
 	FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error)
-	Update(reminder *models.Reminder) (*models.Reminder, error)
+	Update(reminder *models.Reminder) error
 	MarkAsRead(id, userID uint) error
-	Delete(id, userID uint) error
+	Delete(id uint) error
 }
 
 type reminderRepository struct {
@@ -24,6 +25,12 @@ func NewReminderRepository(db *gorm.DB) ReminderRepository {
 
 func (r *reminderRepository) Create(reminder *models.Reminder) error {
 	return r.db.Create(reminder).Error
+}
+
+func (r *reminderRepository) FindByID(id uint) (*models.Reminder, error) {
+	var reminder models.Reminder
+	err := r.db.First(&reminder, id).Error
+	return &reminder, err
 }
 
 func (r *reminderRepository) FindPendingByUserID(userID uint) ([]models.Reminder, error) {
@@ -57,25 +64,14 @@ func (r *reminderRepository) FindByUserID(userID uint, page, perPage int) ([]mod
 	return reminders, total, nil
 }
 
-func (r *reminderRepository) Update(reminder *models.Reminder) (*models.Reminder, error) {
-	var existing models.Reminder
-	if err := r.db.Where("id = ? AND user_id = ?", reminder.ID, reminder.UserID).First(&existing).Error; err != nil {
-		return nil, err
-	}
-	existing.Titulo = reminder.Titulo
-	existing.Descripcion = reminder.Descripcion
-	existing.Fecha = reminder.Fecha
-	existing.Tipo = reminder.Tipo
-	if err := r.db.Save(&existing).Error; err != nil {
-		return nil, err
-	}
-	return &existing, nil
+func (r *reminderRepository) Update(reminder *models.Reminder) error {
+	return r.db.Save(reminder).Error
 }
 
 func (r *reminderRepository) MarkAsRead(id, userID uint) error {
 	return r.db.Model(&models.Reminder{}).Where("id = ? AND user_id = ?", id, userID).Update("leido", true).Error
 }
 
-func (r *reminderRepository) Delete(id, userID uint) error {
-	return r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&models.Reminder{}).Error
+func (r *reminderRepository) Delete(id uint) error {
+	return r.db.Delete(&models.Reminder{}, id).Error
 }

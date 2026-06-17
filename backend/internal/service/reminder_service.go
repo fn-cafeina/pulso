@@ -5,6 +5,7 @@ import (
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/repository"
+	"gorm.io/gorm"
 )
 
 type ReminderService interface {
@@ -47,7 +48,21 @@ func (s *reminderService) GetAll(userID uint, page, perPage int) ([]models.Remin
 }
 
 func (s *reminderService) Update(reminder *models.Reminder) (*models.Reminder, error) {
-	return s.repo.Update(reminder)
+	existing, err := s.repo.FindByID(reminder.ID)
+	if err != nil {
+		return nil, err
+	}
+	if existing.UserID != reminder.UserID {
+		return nil, gorm.ErrRecordNotFound
+	}
+	existing.Titulo = reminder.Titulo
+	existing.Descripcion = reminder.Descripcion
+	existing.Fecha = reminder.Fecha
+	existing.Tipo = reminder.Tipo
+	if err := s.repo.Update(existing); err != nil {
+		return nil, err
+	}
+	return existing, nil
 }
 
 func (s *reminderService) MarkAsRead(id, userID uint) error {
@@ -55,5 +70,12 @@ func (s *reminderService) MarkAsRead(id, userID uint) error {
 }
 
 func (s *reminderService) Delete(id, userID uint) error {
-	return s.repo.Delete(id, userID)
+	existing, err := s.repo.FindByID(id)
+	if err != nil {
+		return err
+	}
+	if existing.UserID != userID {
+		return gorm.ErrRecordNotFound
+	}
+	return s.repo.Delete(id)
 }

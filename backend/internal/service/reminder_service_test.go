@@ -7,6 +7,7 @@ import (
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
+	"gorm.io/gorm"
 )
 
 type mockReminderRepo struct {
@@ -21,6 +22,15 @@ func (m *mockReminderRepo) Create(r *models.Reminder) error {
 	r.ID = uint(len(m.reminders) + 1)
 	m.reminders = append(m.reminders, *r)
 	return nil
+}
+
+func (m *mockReminderRepo) FindByID(id uint) (*models.Reminder, error) {
+	for i, r := range m.reminders {
+		if r.ID == id {
+			return &m.reminders[i], nil
+		}
+	}
+	return nil, gorm.ErrRecordNotFound
 }
 
 func (m *mockReminderRepo) FindPendingByUserID(userID uint) ([]models.Reminder, error) {
@@ -69,23 +79,25 @@ func (m *mockReminderRepo) MarkAsRead(id, userID uint) error {
 	return nil
 }
 
-func (m *mockReminderRepo) Update(r *models.Reminder) (*models.Reminder, error) {
+func (m *mockReminderRepo) Update(r *models.Reminder) error {
 	for i, rem := range m.reminders {
-		if rem.ID == r.ID && rem.UserID == r.UserID {
+		if rem.ID == r.ID {
 			m.reminders[i].Titulo = r.Titulo
 			m.reminders[i].Descripcion = r.Descripcion
 			m.reminders[i].Fecha = r.Fecha
 			m.reminders[i].Tipo = r.Tipo
-			// Leido no se modifica
-			return &m.reminders[i], nil
+			return nil
 		}
 	}
-	return nil, nil
+	if m.fail {
+		return errors.New("not found")
+	}
+	return nil
 }
 
-func (m *mockReminderRepo) Delete(id, userID uint) error {
+func (m *mockReminderRepo) Delete(id uint) error {
 	for i, r := range m.reminders {
-		if r.ID == id && r.UserID == userID {
+		if r.ID == id {
 			m.reminders = append(m.reminders[:i], m.reminders[i+1:]...)
 			return nil
 		}
