@@ -358,7 +358,7 @@ export default function AlertasPage() {
 
           {error && !errorInitial && (
             <div className="mb-4">
-              <AlertBanner message={error} onClose={clearError} />
+              <AlertBanner message={error} onClose={clearError} onRetry={handleRefresh} />
             </div>
           )}
 

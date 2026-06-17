@@ -218,7 +218,7 @@ export default function RecordatoriosPage() {
 
       {!showSkeleton && !errorInitial && (
         <>
-            <h2 className="text-lg font-bold text-text mb-4">Recordatorios</h2>
+          <h2 className="text-lg font-bold text-text mb-4">Recordatorios</h2>
 
           <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
             <button
@@ -264,7 +264,7 @@ export default function RecordatoriosPage() {
             icon={<Bell className="w-5 h-5 text-primary" />}
             title={tab === "pendientes" ? "No hay recordatorios pendientes" : "No hay historial"}
             description={tab === "pendientes"
-              ? "No tienes recordatorios pendientes. Usa el botón superior para crear uno."
+              ? "No tienes recordatorios pendientes. Usa el botón + para crear uno."
               : "Aún no hay recordatorios en tu historial."}
           />
         )}
