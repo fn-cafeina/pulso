@@ -10,6 +10,7 @@ backend/
 │   ├── config/config.go      # Env vars via godotenv
 │   ├── db/sqlite.go          # Conexión GORM + AutoMigrate (9 modelos)
 │   ├── handlers/             # Handlers HTTP (Gin)
+│   │   ├── pagination.go     # Parseo de ?page=&per_page=
 │   │   ├── response.go       # Envoltorio uniforme: Success, Error, Msg
 │   │   └── requests.go       # DTOs tipados para create/update
 │   ├── middleware/
@@ -17,13 +18,14 @@ backend/
 │   │   ├── role.go           # RoleRequired("health_worker")
 │   │   └── cors.go           # CORS configurable vía CORS_ORIGIN
 │   ├── models/               # 9 modelos GORM (embed BaseModel)
-│   │   └── base.go           # BaseModel: id, created_at, updated_at, deleted_at oculto
+│   │   ├── base.go           # BaseModel: id, created_at, updated_at, deleted_at oculto
+│   │   └── health.go         # SymptomReport + VaccinationRecord
 │   ├── repository/           # Interfaces + implementaciones GORM
 │   └── service/              # Lógica de negocio + tests
 │       └── geo.go            # Haversine (distancia entre coordenadas)
 ├── .env.example               # Variables de entorno requeridas
 ├── .air.toml                  # Config hot-reload (Air)
-├── Makefile                   # dev, build, test, vet, lint, clean
+├── Makefile                   # dev, build, test, vet, lint, tidy, clean
 └── go.mod
 
 frontend/
@@ -44,7 +46,7 @@ Cada capa se comunica mediante interfaces definidas en `repository/` y `service/
 ### Handler
 - Recibe request HTTP, valida binding de DTOs, llama al service.
 - No contiene lógica de negocio.
-- Usa `parseTime()` del paquete `handlers` para fechas (3 formatos aceptados).
+- Usa `parseTime()` del paquete `handlers` para fechas (4 formatos aceptados).
 
 ### Service
 - Lógica de negocio pura.
@@ -134,21 +136,22 @@ El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s
 
 | Componente | Tecnología |
 |------------|------------|
-| Framework | React 19 + TypeScript |
+| Framework | React 19 + TypeScript 6 |
 | Build | Vite 8 |
 | Estilos | Tailwind CSS 4 |
 | Estado global | Zustand 5 |
 | Routing | react-router-dom 7 |
 | Iconos | lucide-react |
+| Markdown | react-markdown + remark-gfm |
 | Tipografía | Nunito (@fontsource) |
 
 ### Flujo de datos
 
 ```
-Component → Store (Zustand) → createCrudApi → apiFetch → Backend REST
+Component → Store (Zustand: createCrudStore) → createCrudApi → apiFetch → Backend REST
 ```
 
-Cada entidad del dominio tiene un store Zustand construido a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `fetch`, `add`, `update`, `remove` de forma consistente.
+Cada entidad del dominio tiene un store Zustand construido a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `meta`, `fetch`, `refresh`, `add`, `updateItem`, `removeItem` de forma consistente.
 
 ### Componentes
 
@@ -157,13 +160,14 @@ src/
 ├── main.tsx                    Entry point + ToastContainer
 ├── App.tsx                     Router principal (auth/app split)
 ├── components/
-│   ├── ai/                     ChatInterface, ChatInput, MessageBubble, SuggestionsPanel
+│   ├── Home.tsx                Dashboard content (bienvenida, stats)
+│   ├── ai/                     ChatInterface, ChatInput, MessageBubble, SuggestionsPanel, useChat
 │   ├── auth/                   LoginForm, RegisterForm
-│   ├── layout/                 AppLayout, AuthLayout, AuthGuard, SidebarNav, BottomNav, MobileDrawer, ThemeToggle
+│   ├── layout/                 AppLayout, AuthLayout, AuthGuard, SidebarNav, BottomNav, MobileDrawer, ThemeToggle, navConfig
 │   └── ui/                     ToastContainer
-├── pages/                      DashboardPage, AsistentePage, AlertasPage y placeholders
+├── pages/                      DashboardPage, AsistentePage, AlertasPage, RecordatoriosPage y placeholders
 ├── stores/                     auth, alerts, alertFilters, appointments, events, reminders, services, symptoms, toast, vaccines
-├── lib/                        createCrudApi, createCrudStore (con fetch, refresh, add, updateItem, removeItem), api, useDelayedLoading
+├── lib/                        api, createCrudApi, createStore (createCrudStore), useDelayedLoading, theme
 └── types/                      Tipos compartidos
 ```
 
@@ -180,3 +184,10 @@ src/
 - 68 tests en 9 archivos dentro de `backend/internal/service/`.
 - Patrón: mocks manuales con structs e inline methods, flag `fail bool` para errores.
 - `cd backend && make test` para ejecutar.
+
+## Linters
+
+| Capa | Comando | Stack |
+|------|---------|-------|
+| Backend | `make vet` / `make lint` | `go vet` / golangci-lint (gofmt, govet, errcheck, staticcheck, gosimple) |
+| Frontend | `npm run lint` | ESLint |
