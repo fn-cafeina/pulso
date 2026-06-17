@@ -320,17 +320,8 @@ export default function AlertasPage() {
         <>
           {!errorInitial && (
             <>
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="mb-4">
                 <h2 className="text-lg font-bold text-text">Alertas Epidemiológicas</h2>
-                {rol === "health_worker" && (
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-button transition-all cursor-pointer flex items-center gap-2 text-sm"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Crear alerta
-                  </button>
-                )}
               </div>
 
               <div className="relative mb-3">
@@ -571,6 +562,16 @@ export default function AlertasPage() {
         confirmLabel="Eliminar"
         confirmLoading={deleting}
       />
+
+      {!showSkeleton && !errorInitial && rol === "health_worker" && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="fixed bottom-24 md:bottom-6 right-4 z-40 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+          aria-label="Crear alerta"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }
