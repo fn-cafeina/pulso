@@ -145,7 +145,6 @@ func TestServiceGetAll_Empty(t *testing.T) {
 func TestServiceGetNearby_FiltersByRadius(t *testing.T) {
 	repo := &mockServiceRepo{}
 	svc := service.NewServiceService(repo)
-	// Managua (12.11499, -86.23617)
 	_ = svc.Create(&models.HealthService{Nombre: "Cerca", Latitud: 12.115, Longitud: -86.236})
 	// León (~78km away)
 	_ = svc.Create(&models.HealthService{Nombre: "Lejos", Latitud: 12.434, Longitud: -86.878})

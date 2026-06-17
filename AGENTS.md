@@ -69,6 +69,10 @@ Component → Store (Zustand) → createCrudApi → Backend
 - **Loading gating**: `useDelayedLoading` hook (default 200ms) delays skeleton/spinner display to prevent flash on rapid API responses.
 - **AI typing**: Simulated typing animation — AI response text appears at 4 chars / 12ms. `loading` state shows dots while waiting for response, then `streaming` takes over during typing.
 
+## Comments
+
+Only `why` comments allowed — explain rationale, intent, or non-obvious tradeoffs. Never `what` comments (don't restate the code in English). Apply to both Go and TS/TSX.
+
 ## Tests (68, 9 files)
 
 Only `backend/internal/service/` has tests. Pattern: mock repo structs with inline methods, `fail bool` flag.

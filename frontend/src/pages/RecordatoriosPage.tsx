@@ -362,7 +362,6 @@ export default function RecordatoriosPage() {
               })}
             </div>
 
-            {/* pagination — history only */}
             {tab === "historial" && meta && (
               <Pagination
                 page={historyPage}
