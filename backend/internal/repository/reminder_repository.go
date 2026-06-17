@@ -45,7 +45,7 @@ func (r *reminderRepository) FindByUserID(userID uint, page, perPage int) ([]mod
 	var reminders []models.Reminder
 	var total int64
 
-	q := r.db.Model(&models.Reminder{}).Where("user_id = ?", userID)
+	q := r.db.Model(&models.Reminder{}).Where("user_id = ? AND leido = true", userID)
 
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err

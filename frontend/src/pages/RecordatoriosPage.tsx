@@ -79,7 +79,7 @@ export default function RecordatoriosPage() {
   const loadingInitial = loading && items.length === 0 && !creating;
   const showSkeleton = useDelayedLoading(loadingInitial);
 
-  const activeItems = tab === "pendientes" ? items : history.filter((r) => !items.some((i) => i.id === r.id));
+  const activeItems = tab === "pendientes" ? items : history;
   const loadingActive = tab === "pendientes" ? loading : loadingHistory;
   const errorInitial = error && activeItems.length === 0 && !loadingActive;
   const empty = !loadingActive && activeItems.length === 0 && !errorInitial;
