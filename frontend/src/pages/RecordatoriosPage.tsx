@@ -338,9 +338,6 @@ export default function RecordatoriosPage() {
                     </div>
 
                     <h3 className="font-semibold text-text mb-1">{reminder.titulo}</h3>
-                    {reminder.descripcion && (
-                      <p className="text-sm text-gray mb-3 line-clamp-2">{reminder.descripcion}</p>
-                    )}
 
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
                       <span className="flex items-center gap-1">

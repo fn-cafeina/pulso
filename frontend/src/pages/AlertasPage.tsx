@@ -415,7 +415,6 @@ export default function AlertasPage() {
                       </div>
 
                       <h3 className="font-semibold text-text mb-1">{alert.titulo}</h3>
-                      <p className="text-sm text-gray mb-3 line-clamp-2">{alert.descripcion}</p>
 
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray">
                         {alert.departamento && <span>{alert.departamento}</span>}
