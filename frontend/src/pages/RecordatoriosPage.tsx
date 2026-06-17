@@ -218,7 +218,7 @@ export default function RecordatoriosPage() {
 
       {!showSkeleton && !errorInitial && (
         <>
-          <h2 className="text-lg font-bold text-text mb-4">Recordatorios</h2>
+          <h2 className="hidden md:block text-lg font-bold text-text mb-4">Recordatorios</h2>
 
           <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
             <button
