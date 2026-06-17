@@ -24,7 +24,7 @@ Las familias nicaragüenses enfrentan dificultades para identificar oportunament
 
 ## Stack
 
-Go 1.26 + Gin + GORM + SQLite + React 19 + TypeScript + Tailwind CSS 4. Arquitectura y decisiones técnicas en [`docs/`](/docs).
+Go 1.26 + Gin + GORM + SQLite + React 19 + TypeScript 6 + Vite 8 + Tailwind CSS 4. Arquitectura y decisiones técnicas en [`docs/`](/docs).
 
 ## Desarrollo
 
