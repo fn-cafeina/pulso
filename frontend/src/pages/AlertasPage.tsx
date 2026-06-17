@@ -1,10 +1,15 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { AlertTriangle, AlertCircle, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
 import { useToastStore } from "../stores/toast";
 import { useDelayedLoading } from "../lib/useDelayedLoading";
+import Modal from "../components/ui/Modal";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import SkeletonCard from "../components/ui/SkeletonCard";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
 import type { AlertNivel, EpiAlert } from "../types";
 
 const niveles: { value: string; label: string }[] = [
@@ -131,23 +136,6 @@ function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel,
         </button>
       </div>
     </form>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="bg-surface rounded-card p-6 animate-pulse-gentle">
-      <div className="flex gap-2 mb-3">
-        <div className="h-5 w-14 bg-gray/20 rounded-button" />
-      </div>
-      <div className="h-4 bg-gray/20 rounded w-3/4 mb-2" />
-      <div className="h-3 bg-gray/10 rounded w-full mb-1" />
-      <div className="h-3 bg-gray/10 rounded w-2/3 mb-3" />
-      <div className="flex gap-4">
-        <div className="h-3 bg-gray/10 rounded w-24" />
-        <div className="h-3 bg-gray/10 rounded w-20" />
-      </div>
-    </div>
   );
 }
 
@@ -331,11 +319,7 @@ export default function AlertasPage() {
 
       {errorInitial && (
         <>
-          <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake" role="alert">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span className="flex-1">{error}</span>
-            <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
-          </div>
+          <AlertBanner message={error} onClose={clearError} />
           <button
             onClick={handleRefresh}
             className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all cursor-pointer"
@@ -401,43 +385,29 @@ export default function AlertasPage() {
           )}
 
           {error && !errorInitial && (
-            <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake mb-4" role="alert">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="flex-1">{error}</span>
-              <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
+            <div className="mb-4">
+              <AlertBanner message={error} onClose={clearError} />
             </div>
           )}
 
           <div className="transition-opacity duration-200">
             {empty && !errorInitial && (
-              <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <AlertTriangle className="w-5 h-5 text-primary" />
-                </div>
-                {hasActiveFilters ? (
-                  <>
-                    <h2 className="text-xl font-bold text-text mb-1">Sin resultados</h2>
-                    <p className="text-sm text-gray max-w-md">No hay alertas que coincidan con los filtros seleccionados.</p>
-                    <button
-                      onClick={clearFilters}
-                      className="mt-4 text-primary hover:text-primary-dark font-medium underline transition-colors cursor-pointer text-sm"
-                    >
-                      Limpiar filtros
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-xl font-bold text-text mb-1">
-                      {soloActivas ? "No hay alertas activas" : "No hay alertas"}
-                    </h2>
-                    <p className="text-sm text-gray max-w-md">
-                      {soloActivas
-                        ? "No hay alertas epidemiológicas activas en este momento."
-                        : "No hay alertas epidemiológicas registradas."}
-                    </p>
-                  </>
-                )}
-              </div>
+              hasActiveFilters ? (
+                <EmptyState
+                  icon={<AlertTriangle className="w-5 h-5 text-primary" />}
+                  title="Sin resultados"
+                  description="No hay alertas que coincidan con los filtros seleccionados."
+                  action={{ label: "Limpiar filtros", onClick: clearFilters }}
+                />
+              ) : (
+                <EmptyState
+                  icon={<AlertTriangle className="w-5 h-5 text-primary" />}
+                  title={soloActivas ? "No hay alertas activas" : "No hay alertas"}
+                  description={soloActivas
+                    ? "No hay alertas epidemiológicas activas en este momento."
+                    : "No hay alertas epidemiológicas registradas."}
+                />
+              )
             )}
 
             {items.length > 0 && (
@@ -534,162 +504,99 @@ export default function AlertasPage() {
         </>
       )}
 
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={resetForm}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-lg p-6 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-text">{editingAlert ? "Editar alerta" : "Nueva alerta"}</h3>
-              <button onClick={resetForm} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <CreateForm
-              form={form}
-              setForm={setForm}
-              creating={creating || updating}
-              formDisabled={formDisabled}
-              onCreate={editingAlert ? handleUpdate : handleCreate}
-              onCancel={resetForm}
-              submitLabel={editingAlert ? "Guardar cambios" : "Crear alerta"}
-            />
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showForm}
+        onClose={resetForm}
+        title={editingAlert ? "Editar alerta" : "Nueva alerta"}
+      >
+        <CreateForm
+          form={form}
+          setForm={setForm}
+          creating={creating || updating}
+          formDisabled={formDisabled}
+          onCreate={editingAlert ? handleUpdate : handleCreate}
+          onCancel={resetForm}
+          submitLabel={editingAlert ? "Guardar cambios" : "Crear alerta"}
+        />
+      </Modal>
 
-      {detailAlert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setDetailAlert(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-lg p-6 animate-scale-in max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-text">Detalle de alerta</h3>
-              <button onClick={() => setDetailAlert(null)} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
+      <Modal
+        open={detailAlert !== null}
+        onClose={() => setDetailAlert(null)}
+        title="Detalle de alerta"
+        scrollable
+      >
+        {detailAlert && (
+          <div className="space-y-4">
+            <div>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold ${detailAlert.activa ? nivelBadge[detailAlert.nivel] || "bg-gray/10 text-gray" : "bg-gray/10 text-gray"}`}>
+                {detailAlert.activa ? detailAlert.nivel : "Inactiva"}
+              </span>
             </div>
 
-            <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray mb-1">Título</label>
+              <p className="text-text font-semibold">{detailAlert.titulo}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
+              <p className="text-sm text-text whitespace-pre-wrap">{detailAlert.descripcion || "Sin descripción"}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-button text-xs font-semibold ${detailAlert.activa ? nivelBadge[detailAlert.nivel] || "bg-gray/10 text-gray" : "bg-gray/10 text-gray"}`}>
-                  {detailAlert.activa ? detailAlert.nivel : "Inactiva"}
-                </span>
+                <label className="block text-xs font-medium text-gray mb-1">Nivel</label>
+                <p className="text-sm text-text capitalize">{detailAlert.nivel}</p>
               </div>
-
               <div>
-                <label className="block text-xs font-medium text-gray mb-1">Título</label>
-                <p className="text-text font-semibold">{detailAlert.titulo}</p>
+                <label className="block text-xs font-medium text-gray mb-1">Estado</label>
+                <p className="text-sm text-text">{detailAlert.activa ? "Activa" : "Inactiva"}</p>
               </div>
-
               <div>
-                <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
-                <p className="text-sm text-text whitespace-pre-wrap">{detailAlert.descripcion || "Sin descripción"}</p>
+                <label className="block text-xs font-medium text-gray mb-1">Departamento</label>
+                <p className="text-sm text-text">{detailAlert.departamento || "—"}</p>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Nivel</label>
-                  <p className="text-sm text-text capitalize">{detailAlert.nivel}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Estado</label>
-                  <p className="text-sm text-text">{detailAlert.activa ? "Activa" : "Inactiva"}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Departamento</label>
-                  <p className="text-sm text-text">{detailAlert.departamento || "—"}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Fuente</label>
-                  <p className="text-sm text-text">{detailAlert.fuente || "—"}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Creada</label>
-                  <p className="text-sm text-text">{formatDate(detailAlert.created_at)}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Actualizada</label>
-                  <p className="text-sm text-text">{formatDate(detailAlert.updated_at)}</p>
-                </div>
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Fuente</label>
+                <p className="text-sm text-text">{detailAlert.fuente || "—"}</p>
               </div>
-
-              <div className="flex items-center justify-end pt-2 border-t border-gray/20">
-                <button
-                  onClick={() => setDetailAlert(null)}
-                  className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
-                >
-                  Cerrar
-                </button>
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Creada</label>
+                <p className="text-sm text-text">{formatDate(detailAlert.created_at)}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Actualizada</label>
+                <p className="text-sm text-text">{formatDate(detailAlert.updated_at)}</p>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {confirmDeactivate !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeactivate(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-sm p-6 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-semibold text-text mb-2">Desactivar alerta</h3>
-            <p className="text-sm text-gray mb-6">¿Estás seguro? La alerta dejará de mostrarse como activa.</p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setConfirmDeactivate(null)}
-                className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  const id = confirmDeactivate;
-                  setConfirmDeactivate(null);
-                  handleDeactivate(id);
-                }}
-                disabled={desactivando === confirmDeactivate}
-                className="bg-danger hover:bg-danger/80 disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
-              >
-                {desactivando === confirmDeactivate ? "Desactivando..." : "Desactivar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmDeactivate !== null}
+        onClose={() => setConfirmDeactivate(null)}
+        onConfirm={() => {
+          const id = confirmDeactivate!;
+          setConfirmDeactivate(null);
+          handleDeactivate(id);
+        }}
+        title="Desactivar alerta"
+        message="¿Estás seguro? La alerta dejará de mostrarse como activa."
+        confirmLabel="Desactivar"
+        confirmLoading={desactivando === confirmDeactivate}
+      />
 
-      {confirmDelete !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-sm p-6 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-semibold text-text mb-2">Eliminar alerta</h3>
-            <p className="text-sm text-gray mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => handleDelete(confirmDelete)}
-                disabled={deleting}
-                className="bg-danger hover:bg-danger/80 disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
-              >
-                {deleting ? "Eliminando..." : "Eliminar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete!)}
+        title="Eliminar alerta"
+        message="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        confirmLoading={deleting}
+      />
     </div>
   );
 }
