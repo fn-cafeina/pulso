@@ -63,7 +63,7 @@ Base URL: `http://localhost:8080`
 
 **Response 409 (username duplicado):**
 ```json
-{ "error": "UNIQUE constraint failed: users.username" }
+{ "error": "el nombre de usuario ya está en uso" }
 ```
 </details>
 
