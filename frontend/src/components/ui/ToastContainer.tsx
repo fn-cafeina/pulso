@@ -22,7 +22,7 @@ export default function ToastContainer() {
   if (queue.length === 0) return null;
 
   return createPortal(
-    <div className="fixed top-[calc(69px+env(safe-area-inset-top))] md:top-4 right-4 z-[9999] flex flex-col-reverse gap-2">
+    <div className="fixed top-[calc(77px+env(safe-area-inset-top))] md:top-4 right-4 z-[9999] flex flex-col-reverse gap-2">
       {queue.map((toast) => {
         const { icon } = config[toast.type];
         return (
