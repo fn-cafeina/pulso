@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Plus, X, Trash2, Check, Calendar, Syringe, FileText, Clock, AlertCircle, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, Plus, Trash2, Check, Calendar, Syringe, FileText, Clock, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRemindersStore } from "../stores/reminders";
 import { useToastStore } from "../stores/toast";
 import { useDelayedLoading } from "../lib/useDelayedLoading";
+import Modal from "../components/ui/Modal";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import SkeletonCard from "../components/ui/SkeletonCard";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
 import type { Reminder, ReminderTipo } from "../types";
 
 type Tab = "pendientes" | "historial";
@@ -52,22 +57,6 @@ function toDatetimeLocal(dateStr: string): string {
   const d = new Date(dateStr);
   const pad = (n: number) => n.toString().padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function SkeletonCard() {
-  return (
-    <div className="bg-surface rounded-card p-6 animate-pulse-gentle">
-      <div className="flex gap-2 mb-3">
-        <div className="h-5 w-16 bg-gray/20 rounded-button" />
-      </div>
-      <div className="h-4 bg-gray/20 rounded w-3/4 mb-2" />
-      <div className="h-3 bg-gray/10 rounded w-full mb-1" />
-      <div className="h-3 bg-gray/10 rounded w-2/3 mb-3" />
-      <div className="flex gap-4">
-        <div className="h-3 bg-gray/10 rounded w-24" />
-      </div>
-    </div>
-  );
 }
 
 export default function RecordatoriosPage() {
@@ -216,11 +205,7 @@ export default function RecordatoriosPage() {
 
       {errorInitial && (
         <>
-          <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake" role="alert">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span className="flex-1">{error}</span>
-            <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium">Cerrar</button>
-          </div>
+          <AlertBanner message={error} onClose={clearError} />
           <button
             onClick={handleRefresh}
             className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all cursor-pointer"
@@ -270,11 +255,8 @@ export default function RecordatoriosPage() {
       )}
 
       {error && !errorInitial && (
-        <div className="flex items-center gap-2 bg-danger/10 border border-danger/30 text-danger rounded-button px-4 py-3 text-sm animate-shake mb-4" role="alert">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span className="flex-1">{error}</span>
-          <button onClick={clearError} className="text-danger/70 hover:text-danger underline font-medium mr-2">Cerrar</button>
-          <button onClick={handleRefresh} className="text-primary hover:text-primary-dark underline font-medium text-xs">Reintentar</button>
+        <div className="mb-4">
+          <AlertBanner message={error} onClose={clearError} onRetry={handleRefresh} />
         </div>
       )}
 
@@ -286,20 +268,13 @@ export default function RecordatoriosPage() {
 
       <div className="transition-opacity duration-200">
         {empty && (
-          <div className="flex flex-col items-center justify-center min-h-[40vh] text-center animate-fade-in-up">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Bell className="w-5 h-5 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-text mb-1">
-              {tab === "pendientes" ? "No hay recordatorios pendientes" : "No hay historial"}
-            </h2>
-            <p className="text-sm text-gray max-w-md">
-              {tab === "pendientes"
-                ? "No tienes recordatorios pendientes. Usa el botón superior para crear uno."
-                : "Aún no hay recordatorios en tu historial."}
-            </p>
-
-          </div>
+          <EmptyState
+            icon={<Bell className="w-5 h-5 text-primary" />}
+            title={tab === "pendientes" ? "No hay recordatorios pendientes" : "No hay historial"}
+            description={tab === "pendientes"
+              ? "No tienes recordatorios pendientes. Usa el botón superior para crear uno."
+              : "Aún no hay recordatorios en tu historial."}
+          />
         )}
 
         {activeItems.length > 0 && (
@@ -413,193 +388,143 @@ export default function RecordatoriosPage() {
         )}
       </div>
 
-      {/* create / edit modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={resetForm}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-lg p-6 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-text">
-                {editingReminder ? "Editar recordatorio" : "Nuevo recordatorio"}
-              </h3>
-              <button onClick={resetForm} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-text mb-1">Título <span className="text-danger">*</span></label>
-                <input
-                  type="text"
-                  value={form.titulo}
-                  onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                  placeholder="Ej: Revisión con Dr. Pérez"
-                  className="w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text mb-1">Descripción</label>
-                <textarea
-                  value={form.descripcion}
-                  onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                  placeholder="Notas adicionales..."
-                  rows={3}
-                  className="w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary resize-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text mb-1">Fecha y hora <span className="text-danger">*</span></label>
-                <input
-                  type="datetime-local"
-                  value={form.fecha}
-                  onChange={(e) => setForm({ ...form, fecha: e.target.value })}
-                  className="w-full rounded-button border border-gray/30 bg-surface px-3 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text mb-1">Tipo <span className="text-danger">*</span></label>
-                <select
-                  value={form.tipo}
-                  onChange={(e) => setForm({ ...form, tipo: e.target.value as ReminderTipo })}
-                  className="w-full rounded-button border border-gray/30 bg-surface px-3 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                  required
-                >
-                  <option value="">Seleccionar tipo</option>
-                  <option value="cita">Cita médica</option>
-                  <option value="vacuna">Vacuna</option>
-                  <option value="manual">Manual</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={formDisabled}
-                  className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {(creating || updating)
-                    ? (editingReminder ? "Guardando..." : "Creando...")
-                    : (editingReminder ? "Guardar cambios" : "Crear recordatorio")}
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={showForm}
+        onClose={resetForm}
+        title={editingReminder ? "Editar recordatorio" : "Nuevo recordatorio"}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-text mb-1">Título <span className="text-danger">*</span></label>
+            <input
+              type="text"
+              value={form.titulo}
+              onChange={(e) => setForm({ ...form, titulo: e.target.value })}
+              placeholder="Ej: Revisión con Dr. Pérez"
+              className="w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary"
+              required
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="block text-sm font-medium text-text mb-1">Descripción</label>
+            <textarea
+              value={form.descripcion}
+              onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
+              placeholder="Notas adicionales..."
+              rows={3}
+              className="w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text mb-1">Fecha y hora <span className="text-danger">*</span></label>
+            <input
+              type="datetime-local"
+              value={form.fecha}
+              onChange={(e) => setForm({ ...form, fecha: e.target.value })}
+              className="w-full rounded-button border border-gray/30 bg-surface px-3 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text mb-1">Tipo <span className="text-danger">*</span></label>
+            <select
+              value={form.tipo}
+              onChange={(e) => setForm({ ...form, tipo: e.target.value as ReminderTipo })}
+              className="w-full rounded-button border border-gray/30 bg-surface px-3 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+              required
+            >
+              <option value="">Seleccionar tipo</option>
+              <option value="cita">Cita médica</option>
+              <option value="vacuna">Vacuna</option>
+              <option value="manual">Manual</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={resetForm}
+              className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={formDisabled}
+              className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {(creating || updating)
+                ? (editingReminder ? "Guardando..." : "Creando...")
+                : (editingReminder ? "Guardar cambios" : "Crear recordatorio")}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
-      {/* detail modal */}
-      {detailReminder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setDetailReminder(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-lg p-6 animate-scale-in max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-text">Detalle de recordatorio</h3>
-              <button onClick={() => setDetailReminder(null)} className="p-1.5 text-gray hover:text-text hover:bg-gray/10 rounded-button transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${tipoBadge[detailReminder.tipo] || "bg-gray/10 text-gray"}`}>
-                  {(() => {
-                    const Icon = tipoIcon[detailReminder.tipo] || FileText;
-                    return <Icon className="w-3 h-3" />;
-                  })()}
-                  {tipoLabel[detailReminder.tipo]}
+      <Modal
+        open={detailReminder !== null}
+        onClose={() => setDetailReminder(null)}
+        title="Detalle de recordatorio"
+        scrollable
+      >
+        {detailReminder && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${tipoBadge[detailReminder.tipo] || "bg-gray/10 text-gray"}`}>
+                {(() => {
+                  const Icon = tipoIcon[detailReminder.tipo] || FileText;
+                  return <Icon className="w-3 h-3" />;
+                })()}
+                {tipoLabel[detailReminder.tipo]}
+              </span>
+              {detailReminder.leido && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold bg-gray/10 text-gray">
+                  <Check className="w-3 h-3" />
+                  Leído
                 </span>
-                {detailReminder.leido && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold bg-gray/10 text-gray">
-                    <Check className="w-3 h-3" />
-                    Leído
-                  </span>
-                )}
-              </div>
+              )}
+            </div>
 
+            <div>
+              <label className="block text-xs font-medium text-gray mb-1">Título</label>
+              <p className="text-text font-semibold">{detailReminder.titulo}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
+              <p className="text-sm text-text whitespace-pre-wrap">{detailReminder.descripcion || "Sin descripción"}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray mb-1">Título</label>
-                <p className="text-text font-semibold">{detailReminder.titulo}</p>
+                <label className="block text-xs font-medium text-gray mb-1">Fecha</label>
+                <p className="text-sm text-text">{formatDateTime(detailReminder.fecha)}</p>
               </div>
-
               <div>
-                <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
-                <p className="text-sm text-text whitespace-pre-wrap">{detailReminder.descripcion || "Sin descripción"}</p>
+                <label className="block text-xs font-medium text-gray mb-1">Tipo</label>
+                <p className="text-sm text-text capitalize">{tipoLabel[detailReminder.tipo]}</p>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Fecha</label>
-                  <p className="text-sm text-text">{formatDateTime(detailReminder.fecha)}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Tipo</label>
-                  <p className="text-sm text-text capitalize">{tipoLabel[detailReminder.tipo]}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Creado</label>
-                  <p className="text-sm text-text">{formatDate(detailReminder.created_at)}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray mb-1">Actualizado</label>
-                  <p className="text-sm text-text">{formatDate(detailReminder.updated_at)}</p>
-                </div>
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Creado</label>
+                <p className="text-sm text-text">{formatDate(detailReminder.created_at)}</p>
               </div>
-
-              <div className="flex items-center justify-end pt-2 border-t border-gray/20">
-                <button
-                  onClick={() => setDetailReminder(null)}
-                  className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
-                >
-                  Cerrar
-                </button>
+              <div>
+                <label className="block text-xs font-medium text-gray mb-1">Actualizado</label>
+                <p className="text-sm text-text">{formatDate(detailReminder.updated_at)}</p>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
-      {/* delete confirmation */}
-      {confirmDelete !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            className="relative bg-surface rounded-card shadow-xl w-full max-w-sm p-6 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-semibold text-text mb-2">Eliminar recordatorio</h3>
-            <p className="text-sm text-gray mb-6">¿Estás seguro? Esta acción no se puede deshacer.</p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => handleDelete(confirmDelete)}
-                disabled={deleting}
-                className="bg-danger hover:bg-danger/80 disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
-              >
-                {deleting ? "Eliminando..." : "Eliminar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete!)}
+        title="Eliminar recordatorio"
+        message="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        confirmLoading={deleting}
+      />
     </div>
   );
 }
