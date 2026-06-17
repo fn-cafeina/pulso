@@ -476,14 +476,16 @@ export default function AlertasPage() {
               </div>
             )}
 
-            <Pagination
-              page={meta!.page}
-              totalPages={Math.ceil(meta!.total / meta!.per_page)}
-              totalItems={meta!.total}
-              itemLabel="alertas"
-              onPrev={() => setPage(page - 1)}
-              onNext={() => setPage(page + 1)}
-            />
+            {meta && meta.total > perPage && (
+              <Pagination
+                page={meta.page}
+                totalPages={Math.ceil(meta.total / meta.per_page)}
+                totalItems={meta.total}
+                itemLabel="alertas"
+                onPrev={() => setPage(page - 1)}
+                onNext={() => setPage(page + 1)}
+              />
+            )}
           </div>
         </>
       )}
