@@ -320,9 +320,7 @@ export default function AlertasPage() {
         <>
           {!errorInitial && (
             <>
-              <div className="mb-4">
-                <h2 className="hidden md:block text-lg font-bold text-text">Alertas Epidemiológicas</h2>
-              </div>
+              <h2 className="hidden md:block text-lg font-bold text-text mb-4">Alertas Epidemiológicas</h2>
 
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
