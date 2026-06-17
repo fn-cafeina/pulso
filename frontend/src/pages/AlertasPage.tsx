@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { AlertTriangle, Plus, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, Plus, Pencil, Trash2, Search } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -12,14 +12,6 @@ import EmptyState from "../components/ui/EmptyState";
 import AlertBanner from "../components/ui/AlertBanner";
 import Pagination from "../components/ui/Pagination";
 import type { AlertNivel, EpiAlert } from "../types";
-
-const niveles: { value: string; label: string }[] = [
-  { value: "", label: "Todos los niveles" },
-  { value: "bajo", label: "Bajo" },
-  { value: "medio", label: "Medio" },
-  { value: "alto", label: "Alto" },
-  { value: "critico", label: "Crítico" },
-];
 
 const nivelesForm: { value: AlertNivel; label: string }[] = [
   { value: "bajo", label: "Bajo" },
@@ -143,7 +135,7 @@ function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel,
 export default function AlertasPage() {
   const { rol } = useAuthStore();
   const { items, loading, error, meta, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
-  const { nivel, soloActivas, departamento, page, perPage, setNivel, setSoloActivas, setDepartamento, setPage, setPerPage, limpiar } = useAlertFiltersStore();
+  const { soloActivas, departamento, page, perPage, setSoloActivas, setDepartamento, setPage, setPerPage } = useAlertFiltersStore();
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
@@ -161,13 +153,12 @@ export default function AlertasPage() {
 
   const buildParams = useCallback((pg: number): Record<string, unknown> => {
     const params: Record<string, unknown> = {};
-    if (nivel) params.nivel = nivel;
     if (soloActivas) params.activas = true;
     if (departamento) params.departamento = departamento;
     params.page = pg;
     params.per_page = perPage;
     return params;
-  }, [nivel, soloActivas, departamento, perPage]);
+  }, [soloActivas, departamento, perPage]);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -176,14 +167,10 @@ export default function AlertasPage() {
     } else {
       refresh(buildParams(page));
     }
-  }, [nivel, soloActivas, departamento, page, perPage, fetch, refresh, buildParams]);
+  }, [soloActivas, departamento, page, perPage, fetch, refresh, buildParams]);
 
   function handleRefresh() {
     fetch(buildParams(page));
-  }
-
-  function clearFilters() {
-    limpiar();
   }
 
   async function handleDeactivate(id: number) {
@@ -301,7 +288,6 @@ export default function AlertasPage() {
   const formDisabled = (creating || updating) || !form.titulo || !form.nivel;
   const errorInitial = error && items.length === 0 && !loading;
   const empty = !loading && items.length === 0;
-  const hasActiveFilters = nivel !== "" || departamento !== "" || !soloActivas;
 
   const shouldSort = !meta;
   const sorted = useMemo(
@@ -336,51 +322,45 @@ export default function AlertasPage() {
             <>
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 className="text-lg font-bold text-text">Alertas Epidemiológicas</h2>
-                <div className="flex flex-wrap items-center gap-2">
-                  {rol === "health_worker" && (
-                    <button
-                      onClick={() => setShowForm(true)}
-                      className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-button transition-all cursor-pointer flex items-center gap-2 text-sm"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Crear alerta
-                    </button>
-                  )}
-                  <input
-                    type="text"
-                    value={departamento}
-                    onChange={(e) => setDepartamento(e.target.value)}
-                    placeholder="Departamento..."
-                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors w-32"
-                  />
-                  <select
-                    value={nivel}
-                    onChange={(e) => setNivel(e.target.value)}
-                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                {rol === "health_worker" && (
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-button transition-all cursor-pointer flex items-center gap-2 text-sm"
                   >
-                    {niveles.map((n) => (
-                      <option key={n.value} value={n.value}>{n.label}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={perPage}
-                    onChange={(e) => setPerPage(Number(e.target.value))}
-                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                  >
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                  </select>
-                  <label className="flex items-center gap-1.5 text-sm text-text cursor-pointer select-none whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={soloActivas}
-                      onChange={(e) => setSoloActivas(e.target.checked)}
-                      className="accent-primary w-3.5 h-3.5 rounded border-gray/30"
-                    />
-                    Solo activas
-                  </label>
-                </div>
+                    <Plus className="w-4 h-4" />
+                    Crear alerta
+                  </button>
+                )}
+              </div>
+
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
+                <input
+                  type="text"
+                  value={departamento}
+                  onChange={(e) => setDepartamento(e.target.value)}
+                  placeholder="Buscar departamento..."
+                  className="w-full rounded-button border border-gray/30 bg-surface pl-9 pr-3 py-2 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
+                <button
+                  onClick={() => setSoloActivas(true)}
+                  className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                    soloActivas ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+                  }`}
+                >
+                  Activas
+                </button>
+                <button
+                  onClick={() => setSoloActivas(false)}
+                  className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                    !soloActivas ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+                  }`}
+                >
+                  Todas
+                </button>
               </div>
             </>
           )}
@@ -393,22 +373,13 @@ export default function AlertasPage() {
 
           <div className="transition-opacity duration-200">
             {empty && !errorInitial && (
-              hasActiveFilters ? (
-                <EmptyState
-                  icon={<AlertTriangle className="w-5 h-5 text-primary" />}
-                  title="Sin resultados"
-                  description="No hay alertas que coincidan con los filtros seleccionados."
-                  action={{ label: "Limpiar filtros", onClick: clearFilters }}
-                />
-              ) : (
-                <EmptyState
-                  icon={<AlertTriangle className="w-5 h-5 text-primary" />}
-                  title={soloActivas ? "No hay alertas activas" : "No hay alertas"}
-                  description={soloActivas
-                    ? "No hay alertas epidemiológicas activas en este momento."
-                    : "No hay alertas epidemiológicas registradas."}
-                />
-              )
+              <EmptyState
+                icon={<AlertTriangle className="w-5 h-5 text-primary" />}
+                title={soloActivas ? "No hay alertas activas" : "No hay alertas"}
+                description={soloActivas
+                  ? "No hay alertas epidemiológicas activas en este momento."
+                  : "No hay alertas epidemiológicas registradas."}
+              />
             )}
 
             {items.length > 0 && (
@@ -477,14 +448,27 @@ export default function AlertasPage() {
             )}
 
             {meta && meta.total > perPage && (
-              <Pagination
-                page={meta.page}
-                totalPages={Math.ceil(meta.total / meta.per_page)}
-                totalItems={meta.total}
-                itemLabel="alertas"
-                onPrev={() => setPage(page - 1)}
-                onNext={() => setPage(page + 1)}
-              />
+              <>
+                <Pagination
+                  page={meta.page}
+                  totalPages={Math.ceil(meta.total / meta.per_page)}
+                  totalItems={meta.total}
+                  itemLabel="alertas"
+                  onPrev={() => setPage(page - 1)}
+                  onNext={() => setPage(page + 1)}
+                />
+                <div className="flex justify-end mt-2">
+                  <select
+                    value={perPage}
+                    onChange={(e) => setPerPage(Number(e.target.value))}
+                    className="rounded-button border border-gray/30 bg-surface px-2 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+              </>
             )}
           </div>
         </>
