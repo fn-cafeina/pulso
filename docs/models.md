@@ -92,7 +92,7 @@ No hay endpoint para listar usuarios. El password se guarda hasheado con bcrypt.
 | Nivel | `string` | `nivel` | `binding:"required,oneof=bajo medio alto critico"` |
 | Departamento | `string` | `departamento` | opcional |
 | Fuente | `string` | `fuente` | opcional |
-| Activa | `bool` | `activa` | `gorm:"default:false"`, inicia `true` en handler |
+| Activa | `bool` | `activa` | inicia `true` en handler |
 
 ---
 
