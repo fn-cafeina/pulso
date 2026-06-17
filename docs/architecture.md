@@ -10,16 +10,31 @@ backend/
 │   ├── config/config.go      # Env vars via godotenv
 │   ├── db/sqlite.go          # Conexión GORM + AutoMigrate (9 modelos)
 │   ├── handlers/             # Handlers HTTP (Gin)
+│   │   ├── ai_handler.go
+│   │   ├── alert_handler.go
+│   │   ├── appointment_handler.go
+│   │   ├── auth_handler.go
+│   │   ├── event_handler.go
+│   │   ├── health_handler.go
 │   │   ├── pagination.go     # Parseo de ?page=&per_page=
+│   │   ├── reminder_handler.go
+│   │   ├── requests.go       # DTOs tipados para create/update
 │   │   ├── response.go       # Envoltorio uniforme: Success, Error, Msg
-│   │   └── requests.go       # DTOs tipados para create/update
+│   │   └── service_handler.go
 │   ├── middleware/
 │   │   ├── auth.go           # JWT Bearer validation
 │   │   ├── role.go           # RoleRequired("health_worker")
 │   │   └── cors.go           # CORS configurable vía CORS_ORIGIN
 │   ├── models/               # 9 modelos GORM (embed BaseModel)
+│   │   ├── ai.go
+│   │   ├── alert.go
+│   │   ├── appointment.go
 │   │   ├── base.go           # BaseModel: id, created_at, updated_at, deleted_at oculto
-│   │   └── health.go         # SymptomReport + VaccinationRecord
+│   │   ├── event.go
+│   │   ├── health.go         # SymptomReport + VaccinationRecord
+│   │   ├── reminder.go
+│   │   ├── service.go
+│   │   └── user.go
 │   ├── repository/           # Interfaces + implementaciones GORM
 │   └── service/              # Lógica de negocio + tests
 │       └── geo.go            # Haversine (distancia entre coordenadas)
@@ -151,7 +166,7 @@ El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s
 Component → Store (Zustand: createCrudStore) → createCrudApi → apiFetch → Backend REST
 ```
 
-Cada entidad del dominio tiene un store Zustand construido a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `meta`, `fetch`, `refresh`, `add`, `updateItem`, `removeItem` de forma consistente.
+Los stores CRUD se construyen a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `meta`, `fetch`, `refresh`, `add`, `updateItem`, `removeItem` de forma consistente. Solo `alerts` usa este patrón; `reminders` tiene store manual por su lógica de tabs (pendientes/historial).
 
 ### Componentes
 
@@ -164,9 +179,9 @@ src/
 │   ├── ai/                     ChatInterface, ChatInput, MessageBubble, SuggestionsPanel, useChat
 │   ├── auth/                   LoginForm, RegisterForm
 │   ├── layout/                 AppLayout, AuthLayout, AuthGuard, SidebarNav, BottomNav, MobileDrawer, ThemeToggle, navConfig
-│   └── ui/                     ToastContainer
-├── pages/                      DashboardPage, AsistentePage, AlertasPage, RecordatoriosPage y placeholders
-├── stores/                     auth, alerts, alertFilters, appointments, events, reminders, services, symptoms, toast, vaccines
+│   └── ui/                     Modal, ConfirmDialog, SkeletonCard, EmptyState, AlertBanner, Pagination, ToastContainer
+├── pages/                      DashboardPage, AsistentePage, AlertasPage, RecordatoriosPage, HistorialPage, EventosPage, ServiciosPage, LoginPage, RegisterPage, PlaceholderPage
+├── stores/                     auth, alerts, alertFilters, reminders, toast
 ├── lib/                        api, createCrudApi, createStore (createCrudStore), useDelayedLoading, theme
 └── types/                      Tipos compartidos
 ```
@@ -177,7 +192,7 @@ src/
 - El modal de login/register se implementa como layouts separados, no como modales flotantes.
 - El sidebar (desktop) y bottom nav + drawer (mobile) comparten la misma configuración de rutas desde `navConfig.ts`.
 - El ToastContainer se renderiza en `main.tsx`, fuera del router pero dentro del `BrowserRouter`, asegurando que las notificaciones sean globales y no interfieran con el layout de página.
-- `AlertasPage` y `RecordatoriosPage` tienen CRUD completo implementado; las demás páginas (Historial, Servicios, Eventos) muestran placeholders funcionales.
+- `AlertasPage` y `RecordatoriosPage` tienen CRUD completo implementado (ambas usan los componentes UI compartidos). Las páginas `HistorialPage`, `EventosPage` y `ServiciosPage` tienen backend completo pero frontend placeholder.
 
 ## Tests
 

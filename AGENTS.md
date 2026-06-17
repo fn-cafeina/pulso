@@ -54,10 +54,18 @@ Component → Store (Zustand) → createCrudApi → Backend
 
 - **Layouts**: `AuthLayout` (login/register), `AppLayout` (sidebar + bottom nav + `<Outlet />`)
 - **Routing**: react-router-dom v7, `<AuthGuard>` wrapping `AppLayout`, split auth/app
-- **Stores**: Zustand 5 — `auth`, `alerts`, `alertFilters`, `toast`, `appointments`, `events`, `reminders`, `services`, `symptoms`, `vaccines`
+- **Stores**: Zustand 5 — `auth`, `alerts`, `alertFilters`, `reminders`, `toast`
 - **CRUD**: `createCrudApi(path)` returns `{ list, getById, create, update, del, action }`; `createCrudStore(api)` builds a Zustand store around it. Stores have `refresh(params?)` — fetches items without setting `loading: true` (used for filter changes).
 - **Toast**: `useToastStore` (queue of toasts, each 4s auto-dismiss) + `ToastContainer` mounted in `main.tsx`, positioned `bottom-24 md:bottom-4 right-4`
 - **Theme**: `ThemeToggle` component with light/dark via Tailwind CSS `@variant dark`
+- **UI components** (in `src/components/ui/`):
+  - `Modal` — overlay + backdrop + header + close + size/scrollable props
+  - `ConfirmDialog` — wrapper over Modal with Cancel/Confirm (danger/primary)
+  - `SkeletonCard` — pulse skeleton for loading states
+  - `EmptyState` — icon + title + description + optional action
+  - `AlertBanner` — error banner with close/retry buttons
+  - `Pagination` — prev/next buttons with page info (pure component, no stores)
+  - `ToastContainer` — global toast queue mounted in `main.tsx`
 - **Loading gating**: `useDelayedLoading` hook (default 200ms) delays skeleton/spinner display to prevent flash on rapid API responses.
 - **AI typing**: Simulated typing animation — AI response text appears at 4 chars / 12ms. `loading` state shows dots while waiting for response, then `streaming` takes over during typing.
 
