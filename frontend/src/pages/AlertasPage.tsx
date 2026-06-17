@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { AlertTriangle, Plus, Pencil, Trash2, Search, Ban } from "lucide-react";
+import { AlertTriangle, Plus, Pencil, Trash2, Ban } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -135,7 +135,7 @@ function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel,
 export default function AlertasPage() {
   const { rol } = useAuthStore();
   const { items, loading, error, meta, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
-  const { soloActivas, departamento, page, perPage, setSoloActivas, setDepartamento, setPage, setPerPage } = useAlertFiltersStore();
+  const { soloActivas, page, perPage, setSoloActivas, setPage, setPerPage } = useAlertFiltersStore();
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
@@ -154,11 +154,10 @@ export default function AlertasPage() {
   const buildParams = useCallback((pg: number): Record<string, unknown> => {
     const params: Record<string, unknown> = {};
     if (soloActivas) params.activas = true;
-    if (departamento) params.departamento = departamento;
     params.page = pg;
     params.per_page = perPage;
     return params;
-  }, [soloActivas, departamento, perPage]);
+  }, [soloActivas, perPage]);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -167,7 +166,7 @@ export default function AlertasPage() {
     } else {
       refresh(buildParams(page));
     }
-  }, [soloActivas, departamento, page, perPage, fetch, refresh, buildParams]);
+  }, [soloActivas, page, perPage, fetch, refresh, buildParams]);
 
   function handleRefresh() {
     fetch(buildParams(page));
@@ -321,17 +320,6 @@ export default function AlertasPage() {
           {!errorInitial && (
             <>
               <h2 className="hidden md:block text-lg font-bold text-text mb-4">Alertas Epidemiológicas</h2>
-
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray" />
-                <input
-                  type="text"
-                  value={departamento}
-                  onChange={(e) => setDepartamento(e.target.value)}
-                  placeholder="Buscar departamento..."
-                  className="w-full rounded-button border border-gray/30 bg-surface pl-9 pr-3 py-2 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
 
               <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
                 <button
