@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Plus, Trash2, Check, Calendar, Syringe, FileText, Clock, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, Plus, Trash2, Check, Calendar, Syringe, FileText, Clock, Pencil } from "lucide-react";
 import { useRemindersStore } from "../stores/reminders";
 import { useToastStore } from "../stores/toast";
 import { useDelayedLoading } from "../lib/useDelayedLoading";
@@ -8,6 +8,7 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import SkeletonCard from "../components/ui/SkeletonCard";
 import EmptyState from "../components/ui/EmptyState";
 import AlertBanner from "../components/ui/AlertBanner";
+import Pagination from "../components/ui/Pagination";
 import type { Reminder, ReminderTipo } from "../types";
 
 type Tab = "pendientes" | "historial";
@@ -359,30 +360,15 @@ export default function RecordatoriosPage() {
             </div>
 
             {/* pagination — history only */}
-            {tab === "historial" && meta && totalPages > 1 && (
-              <div className="flex items-center justify-between pt-4 pb-2 text-sm text-gray">
-                <span>
-                  Página {meta.page} de {totalPages} ({meta.total} recordatorios)
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setHistoryPage(historyPage - 1)}
-                    disabled={historyPage <= 1}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-text hover:bg-gray/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer disabled:cursor-not-allowed text-sm"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    Anterior
-                  </button>
-                  <button
-                    onClick={() => setHistoryPage(historyPage + 1)}
-                    disabled={historyPage >= totalPages}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-text hover:bg-gray/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer disabled:cursor-not-allowed text-sm"
-                  >
-                    Siguiente
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
+            {tab === "historial" && meta && (
+              <Pagination
+                page={historyPage}
+                totalPages={totalPages}
+                totalItems={meta.total}
+                itemLabel="recordatorios"
+                onPrev={() => setHistoryPage(historyPage - 1)}
+                onNext={() => setHistoryPage(historyPage + 1)}
+              />
             )}
           </>
         )}
