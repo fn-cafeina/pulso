@@ -318,9 +318,10 @@ export default function RecordatoriosPage() {
                           <button
                             onClick={() => handleEdit(reminder)}
                             className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            title="Editar"
                           >
-                            <Pencil className="w-3 h-3" />
-                            Editar
+                            <Pencil className="w-3.5 h-3.5" />
+                            <span className="hidden md:inline">Editar</span>
                           </button>
                         )}
                         {tab === "pendientes" && !reminder.leido && (
@@ -328,17 +329,19 @@ export default function RecordatoriosPage() {
                             onClick={() => handleMarkRead(reminder.id)}
                             disabled={marking === reminder.id}
                             className="text-xs text-gray hover:text-success font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            title="Marcar leído"
                           >
-                            <Check className="w-3 h-3" />
-                            {marking === reminder.id ? "..." : "Marcar leído"}
+                            <Check className="w-3.5 h-3.5" />
+                            <span className="hidden md:inline">{marking === reminder.id ? "..." : "Marcar leído"}</span>
                           </button>
                         )}
                         <button
                           onClick={() => setConfirmDelete(reminder.id)}
                           className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer flex items-center gap-1"
+                          title="Eliminar"
                         >
-                          <Trash2 className="w-3 h-3" />
-                          Eliminar
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span className="hidden md:inline">Eliminar</span>
                         </button>
                       </div>
                     </div>

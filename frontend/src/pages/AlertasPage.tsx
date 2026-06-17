@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { AlertTriangle, Plus, Pencil, Trash2, Search } from "lucide-react";
+import { AlertTriangle, Plus, Pencil, Trash2, Search, Ban } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -409,25 +409,29 @@ export default function AlertasPage() {
                               <>
                                 <button
                                   onClick={() => setConfirmDeactivate(alert.id)}
-                                  className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer"
+                                  className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer flex items-center gap-1"
+                                  title="Desactivar"
                                 >
-                                  Desactivar
+                                  <Ban className="w-3.5 h-3.5" />
+                                  <span className="hidden md:inline">Desactivar</span>
                                 </button>
                                 <button
                                   onClick={() => handleEdit(alert)}
                                   className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
+                                  title="Editar"
                                 >
-                                  <Pencil className="w-3 h-3" />
-                                  Editar
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span className="hidden md:inline">Editar</span>
                                 </button>
                               </>
                             )}
                             <button
                               onClick={() => setConfirmDelete(alert.id)}
                               className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer flex items-center gap-1"
+                              title="Eliminar"
                             >
-                              <Trash2 className="w-3 h-3" />
-                              Eliminar
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span className="hidden md:inline">Eliminar</span>
                             </button>
                           </div>
                         ) : null}
