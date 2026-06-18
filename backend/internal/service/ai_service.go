@@ -67,11 +67,29 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	}
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "│ Fecha: %s | Hora: %s\n\n", time.Now().Format("02/01/2006"), time.Now().Format("15:04"))
+
+	now := time.Now()
+	days := []string{"domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"}
+	months := []string{"enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"}
+
+	greeting := "día"
+	h := now.Hour()
+	switch {
+	case h >= 6 && h < 12:
+		greeting = "mañana"
+	case h >= 12 && h < 19:
+		greeting = "tarde"
+	}
+
+	fmt.Fprintf(&b, "│ Hoy es %s %d de %s de %d, %s (%s)\n\n",
+		days[now.Weekday()], now.Day(), months[now.Month()-1], now.Year(), now.Format("15:04"), greeting)
 	b.WriteString("### Contexto del usuario\n")
 
+	if user != nil {
+		fmt.Fprintf(&b, "Usuario: %s\n", user.Username)
+	}
 	if user != nil && user.AntecedentesMedicos != "" {
-		fmt.Fprintf(&b, "Antecedentes médicos: %s\n\n", user.AntecedentesMedicos)
+		fmt.Fprintf(&b, "\nAntecedentes médicos: %s", user.AntecedentesMedicos)
 	}
 
 	if len(symptoms) > 0 {
@@ -112,6 +130,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 		for _, h := range recent {
 			fmt.Fprintf(&b, "  Pregunta: %s\n  Respuesta: %s\n\n", h.Pregunta, h.Respuesta)
 		}
+		fmt.Fprintf(&b, "│ Total de consultas realizadas: %d\n\n", len(history))
 	}
 
 	b.WriteString("### Consulta\n")
