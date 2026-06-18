@@ -121,16 +121,10 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 
 	history, err := s.aiRepo.FindByUserID(userID)
 	if err == nil && len(history) > 0 {
-		n := 2
-		if len(history) < n {
-			n = len(history)
+		b.WriteString("### Conversación reciente\n")
+		for _, h := range history {
+			fmt.Fprintf(&b, "Usuario: %s\nPulso: %s\n\n", h.Pregunta, h.Respuesta)
 		}
-		recent := history[len(history)-n:]
-		b.WriteString("### Últimas consultas\n")
-		for _, h := range recent {
-			fmt.Fprintf(&b, "  - %s\n", h.Pregunta)
-		}
-		b.WriteString("\n")
 	}
 
 	b.WriteString("### Consulta\n")
