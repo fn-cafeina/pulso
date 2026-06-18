@@ -18,7 +18,6 @@ func NewClient() *Client {
 func (c *Client) Synthesize(ctx context.Context, text string) ([]byte, error) {
 	cfg := edgetts.DefaultConfig()
 	cfg.Voice = defaultVoice
-	cfg.Rate = "+25%"
 
 	comm, err := edgetts.NewCommunicate(text, cfg)
 	if err != nil {
