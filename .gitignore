@@ -7,6 +7,3 @@
 
 # OpenCode AI session cache & config
 .opencode/
-
-# Edge TTS audio cache
-backend/cache/
