@@ -16,6 +16,7 @@ import (
 	"github.com/fn-cafeina/pulso/backend/internal/middleware"
 	"github.com/fn-cafeina/pulso/backend/internal/repository"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
+	"github.com/fn-cafeina/pulso/backend/internal/tts"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,6 +57,11 @@ func main() {
 	aiHandler := handlers.NewAIHandler(aiSvc)
 	reminderHandler := handlers.NewReminderHandler(reminderSvc)
 
+	ttsClient := tts.NewClient()
+	ttsCache := tts.NewCache(cfg.TTSCachePath)
+	ttsSvc := service.NewTTSService(ttsClient, ttsCache, time.Duration(cfg.TTSTimeout)*time.Second)
+	ttsHandler := handlers.NewTTSHandler(ttsSvc)
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.CORS(cfg.CORSOrigin))
@@ -91,6 +97,7 @@ func main() {
 	auth.POST("/appointments", apptHandler.Create)
 	auth.POST("/ai/consult", aiHandler.Consult)
 	auth.GET("/ai/history", aiHandler.GetHistory)
+	auth.POST("/tts", ttsHandler.Synthesize)
 	auth.GET("/reminders", reminderHandler.GetPending)
 	auth.POST("/reminders", reminderHandler.Create)
 	auth.GET("/reminders/history", reminderHandler.GetHistory)

@@ -1,7 +1,10 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useRef } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Stethoscope, User, Volume2, VolumeX } from "lucide-react";
+import { getAuth } from "../../stores/auth";
+
+const API_BASE = "http://localhost:8080";
 
 function normalizeMarkdown(text: string): string {
   let result = text;
@@ -73,20 +76,64 @@ export interface Message {
 export default function MessageBubble({ msg }: { msg: Message }) {
   const normalized = useMemo(() => normalizeMarkdown(msg.content), [msg.content]);
   const [speaking, setSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const urlRef = useRef<string | null>(null);
 
-  const handleSpeak = useCallback(() => {
+  const handleSpeak = useCallback(async () => {
     if (speaking) {
-      speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (urlRef.current) {
+        URL.revokeObjectURL(urlRef.current);
+        urlRef.current = null;
+      }
       setSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(stripMarkdown(msg.content));
-    utterance.lang = "es-NI";
-    utterance.rate = 1.0;
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    speechSynthesis.speak(utterance);
+
+    const { token } = getAuth();
+    if (!token) return;
+
     setSpeaking(true);
+
+    try {
+      const resp = await fetch(`${API_BASE}/tts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: stripMarkdown(msg.content) }),
+      });
+
+      if (!resp.ok) {
+        setSpeaking(false);
+        return;
+      }
+
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      urlRef.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        urlRef.current = null;
+        audioRef.current = null;
+        setSpeaking(false);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        urlRef.current = null;
+        audioRef.current = null;
+        setSpeaking(false);
+      };
+      audio.play();
+    } catch {
+      setSpeaking(false);
+    }
   }, [msg.content, speaking]);
 
   return (
