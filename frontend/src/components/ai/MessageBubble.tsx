@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Stethoscope, User } from "lucide-react";
+import { Stethoscope, User, Volume2, VolumeX } from "lucide-react";
 
 function normalizeMarkdown(text: string): string {
   let result = text;
@@ -44,6 +44,26 @@ function normalizeMarkdown(text: string): string {
   return normalized.join("\n");
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/!\[.*?\]\(.*?\)/g, "")
+    .replace(/\[([^\]]*)\]\(.*?\)/g, "$1")
+    .replace(/`{1,3}[^`\n]*`{1,3}/g, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/^###\s+/gm, "")
+    .replace(/^##\s+/gm, "")
+    .replace(/^#\s+/gm, "")
+    .replace(/^[-*]\s+/gm, "")
+    .replace(/^\d+\.\s+/gm, "")
+    .replace(/^>\s+/gm, "")
+    .replace(/---+/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export interface Message {
   id: number;
   role: "user" | "ai";
@@ -52,6 +72,22 @@ export interface Message {
 
 export default function MessageBubble({ msg }: { msg: Message }) {
   const normalized = useMemo(() => normalizeMarkdown(msg.content), [msg.content]);
+  const [speaking, setSpeaking] = useState(false);
+
+  const handleSpeak = useCallback(() => {
+    if (speaking) {
+      speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(stripMarkdown(msg.content));
+    utterance.lang = "es-NI";
+    utterance.rate = 1.0;
+    utterance.onend = () => setSpeaking(false);
+    utterance.onerror = () => setSpeaking(false);
+    speechSynthesis.speak(utterance);
+    setSpeaking(true);
+  }, [msg.content, speaking]);
 
   return (
     <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -73,9 +109,24 @@ export default function MessageBubble({ msg }: { msg: Message }) {
           {msg.role === "user" ? (
             msg.content
           ) : (
-            <div className="prose prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-headings:my-2 prose-headings:text-sm prose-headings:font-semibold prose-strong:text-text max-w-none">
-              <Markdown remarkPlugins={[remarkGfm]}>{normalized}</Markdown>
-            </div>
+            <>
+              <div className="prose prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-headings:my-2 prose-headings:text-sm prose-headings:font-semibold prose-strong:text-text max-w-none">
+                <Markdown remarkPlugins={[remarkGfm]}>{normalized}</Markdown>
+              </div>
+              <button
+                onClick={handleSpeak}
+                className="mt-2 flex items-center gap-1 text-xs text-gray hover:text-text transition-colors cursor-pointer"
+                aria-label={speaking ? "Detener" : "Escuchar"}
+                title={speaking ? "Detener" : "Escuchar"}
+              >
+                {speaking ? (
+                  <VolumeX className="w-3.5 h-3.5" />
+                ) : (
+                  <Volume2 className="w-3.5 h-3.5" />
+                )}
+                {speaking ? "Detener" : "Escuchar"}
+              </button>
+            </>
           )}
         </div>
       </div>

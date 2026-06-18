@@ -23,7 +23,7 @@ type aiService struct {
 	userRepo   repository.UserRepository
 	healthRepo repository.HealthRepository
 	apptRepo   repository.AppointmentRepository
-	gemini     *ai.Client
+	provider   ai.Provider
 }
 
 func NewAIService(
@@ -31,19 +31,19 @@ func NewAIService(
 	userRepo repository.UserRepository,
 	healthRepo repository.HealthRepository,
 	apptRepo repository.AppointmentRepository,
-	gemini *ai.Client,
+	provider ai.Provider,
 ) AIService {
 	return &aiService{
 		aiRepo:     aiRepo,
 		userRepo:   userRepo,
 		healthRepo: healthRepo,
 		apptRepo:   apptRepo,
-		gemini:     gemini,
+		provider:   provider,
 	}
 }
 
 func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultation, error) {
-	if s.gemini == nil {
+	if s.provider == nil {
 		return nil, fmt.Errorf("AI assistant not available")
 	}
 
@@ -117,7 +117,7 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	b.WriteString("### Consulta\n")
 	b.WriteString(pregunta)
 
-	respuesta, err := s.gemini.GenerateContent(ctx, b.String())
+	respuesta, err := s.provider.GenerateContent(ctx, b.String())
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-import { Send, Square } from "lucide-react";
+import { Mic, MicOff, Send, Square } from "lucide-react";
 
 interface Props {
   input: string;
@@ -10,6 +10,10 @@ interface Props {
   onKeyDown: (e: React.KeyboardEvent) => void;
   onInput: () => void;
   onErrorClear: () => void;
+  voiceSupported: boolean;
+  isListening: boolean;
+  voiceInterim: string;
+  onMicToggle: () => void;
 }
 
 export default function ChatInput({
@@ -22,19 +26,44 @@ export default function ChatInput({
   onKeyDown,
   onInput,
   onErrorClear,
+  voiceSupported,
+  isListening,
+  voiceInterim,
+  onMicToggle,
 }: Props) {
   return (
-    <div className="flex items-end gap-2">
-      <textarea
-        ref={textareaRef}
-        value={input}
-        onChange={(e) => { onInputChange(e.target.value); onErrorClear(); }}
-        onKeyDown={onKeyDown}
-        onInput={onInput}
-        placeholder="Pregunta sobre tu salud..."
-        rows={1}
-        className="flex-1 resize-none rounded-card border border-gray/30 bg-neutral px-4 py-2.5 text-base text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors overflow-y-auto"
-      />
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-end gap-2">
+        <textarea
+          ref={textareaRef}
+          value={isListening && voiceInterim ? (input ? input + " " + voiceInterim : voiceInterim) : input}
+          readOnly={isListening}
+          onChange={(e) => { onInputChange(e.target.value); onErrorClear(); }}
+          onKeyDown={onKeyDown}
+          onInput={onInput}
+          placeholder={isListening ? "Escuchando..." : "Pregunta sobre tu salud..."}
+          rows={1}
+          className="flex-1 resize-none rounded-card border border-gray/30 bg-neutral px-4 py-2.5 text-base text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors overflow-y-auto"
+        />
+      {voiceSupported && (
+        <button
+          onClick={onMicToggle}
+          disabled={loading}
+          className={`p-2.5 rounded-card shadow hover:shadow-md active:shadow-sm active:scale-95 hover:scale-105 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+            isListening
+              ? "bg-error text-white animate-pulse"
+              : "bg-neutral border border-gray/30 text-gray hover:text-text"
+          }`}
+          aria-label={isListening ? "Detener grabación" : "Hablar"}
+          title={isListening ? "Detener" : "Hablar"}
+        >
+          {isListening ? (
+            <MicOff className="w-5 h-5" />
+          ) : (
+            <Mic className="w-5 h-5" />
+          )}
+        </button>
+      )}
       <button
         onClick={loading ? onCancel : onSend}
         disabled={!input.trim() && !loading}
@@ -47,6 +76,7 @@ export default function ChatInput({
           <Send className="w-5 h-5" />
         )}
       </button>
+      </div>
     </div>
   );
 }

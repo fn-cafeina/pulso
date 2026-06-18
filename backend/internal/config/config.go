@@ -11,7 +11,8 @@ type Config struct {
 	JWTSecret          string
 	Port               string
 	DBPath             string
-	GeminiAPIKey       string
+	NVIDIAAPIKey       string
+	NVIDIAModel        string
 	HealthWorkerSecret string
 	CORSOrigin         string
 }
@@ -35,7 +36,8 @@ func Load() *Config {
 		JWTSecret:          jwt,
 		Port:               getEnv("PORT", ":8080"),
 		DBPath:             getEnv("DB_PATH", "pulso.db"),
-		GeminiAPIKey:       getEnv("GEMINI_API_KEY", ""),
+		NVIDIAAPIKey:       getEnv("NVIDIA_API_KEY", ""),
+		NVIDIAModel:        getEnv("NVIDIA_MODEL", "mistralai/mistral-large-3-675b-instruct"),
 		HealthWorkerSecret: secret,
 		CORSOrigin:         getEnv("CORS_ORIGIN", "http://localhost:5173"),
 	}

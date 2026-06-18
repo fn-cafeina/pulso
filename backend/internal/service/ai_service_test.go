@@ -82,7 +82,7 @@ func (m *mockAIApptRepo) FindByUserID(userID uint) ([]models.Appointment, error)
 	return m.appts, nil
 }
 
-func TestAIConsult_GeminiNil(t *testing.T) {
+func TestAIConsult_ProviderNil(t *testing.T) {
 	svc := service.NewAIService(
 		&mockAIRepo{},
 		&mockAIUserRepo{},
@@ -92,7 +92,7 @@ func TestAIConsult_GeminiNil(t *testing.T) {
 	)
 	_, err := svc.Consult(1, "¿Qué síntomas tengo?")
 	if err == nil {
-		t.Fatal("expected error when gemini client is nil")
+		t.Fatal("expected error when provider is nil")
 	}
 }
 

@@ -3,6 +3,7 @@ import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import SuggestionsPanel from "./SuggestionsPanel";
 import useChat from "./useChat";
+import useVoiceInput from "../../lib/useVoiceInput";
 
 export default function ChatInterface() {
   const {
@@ -11,6 +12,10 @@ export default function ChatInterface() {
     handleSend, handleKeyDown, handleInput,
     setInput, setError, cancel, retry,
   } = useChat();
+
+  const voice = useVoiceInput((text) => {
+    setInput((prev: string) => prev + text);
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -83,6 +88,10 @@ export default function ChatInterface() {
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onErrorClear={() => setError("")}
+          voiceSupported={voice.supported}
+          isListening={voice.isListening}
+          voiceInterim={voice.interimText}
+          onMicToggle={voice.toggleListening}
         />
         <p className="text-xs text-gray mt-2 text-center">
           Pulso orienta, no diagnostica ni receta medicamentos.

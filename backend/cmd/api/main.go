@@ -33,13 +33,9 @@ func main() {
 	aiRepo := repository.NewAIRepository(db.DB)
 	reminderRepo := repository.NewReminderRepository(db.DB)
 
-	var geminiClient *ai.Client
-	if cfg.GeminiAPIKey != "" {
-		var err error
-		geminiClient, err = ai.NewClient(context.Background(), cfg.GeminiAPIKey)
-		if err != nil {
-			log.Printf("warning: Gemini client failed: %v", err)
-		}
+	var provider ai.Provider
+	if cfg.NVIDIAAPIKey != "" {
+		provider = ai.NewProvider(cfg.NVIDIAAPIKey, cfg.NVIDIAModel)
 	}
 
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.HealthWorkerSecret)
@@ -48,7 +44,7 @@ func main() {
 	svcSvc := service.NewServiceService(serviceRepo)
 	eventSvc := service.NewEventService(eventRepo)
 	alertSvc := service.NewAlertService(alertRepo)
-	aiSvc := service.NewAIService(aiRepo, userRepo, healthRepo, apptRepo, geminiClient)
+	aiSvc := service.NewAIService(aiRepo, userRepo, healthRepo, apptRepo, provider)
 	reminderSvc := service.NewReminderService(reminderRepo)
 
 	authHandler := handlers.NewAuthHandler(authSvc)
