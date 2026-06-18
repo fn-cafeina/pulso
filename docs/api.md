@@ -595,12 +595,12 @@ Todos los campos opcionales. Incluye `activa` como bool.
 | POST | `/ai/consult` | ✅ | Consultar al asistente IA |
 | GET | `/ai/history` | ✅ | Historial de consultas |
 
-Requiere `GEMINI_API_KEY` configurada. Sin key → 503.
+Requiere `NVIDIA_API_KEY` configurada. Sin key → 503.
 
 <details>
 <summary><code>POST /ai/consult</code></summary>
 
-Inyecta contexto del usuario (antecedentes, síntomas, vacunas, citas futuras) en el prompt.
+Inyecta contexto del usuario (nombre, hora/día, antecedentes, síntomas, vacunas, citas futuras, últimas preguntas) en el prompt.
 
 **Request:**
 ```json
@@ -756,5 +756,40 @@ Scoped al usuario autenticado. No requiere body.
 **Response 200:**
 ```json
 { "message": "recordatorio eliminado" }
+```
+</details>
+
+---
+
+### 10. Síntesis de voz (TTS) — requiere auth
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| POST | `/tts` | ✅ | Convertir texto a voz |
+
+<details>
+<summary><code>POST /tts</code></summary>
+
+Convierte texto a voz usando Edge TTS (Microsoft neural voices). El texto se limpia de Markdown antes de sintetizar.
+
+**Request:**
+```json
+{
+  "text": "Hola, ¿cómo estás?"
+}
+```
+
+`text` debe tener entre 1 y 2000 caracteres.
+
+**Response 200:** `audio/mpeg` (binario MP3).
+
+**Response 400:**
+```json
+{ "error": "texto requerido (1-2000 caracteres)" }
+```
+
+**Response 504:**
+```json
+{ "error": "el servicio TTS no respondió a tiempo" }
 ```
 </details>

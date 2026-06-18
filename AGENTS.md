@@ -42,7 +42,8 @@ Manual DI in `cmd/api/main.go`. Interfaces at service/repo layers.
 
 - Auth: JWT Bearer (72h, HS256), roles `family` | `health_worker`
 - Geo: Haversine in Go memory, not SQL
-- AI: Gemini 3.1 Flash Lite, 3 retries w/ backoff, 30s timeout, 503 if key missing
+- AI: NVIDIA NIM (OpenAI-compatible), modelo configurable via `NVIDIA_MODEL` (default `openai/gpt-oss-120b`), 3 retries w/ backoff, 30s timeout, 503 if key missing
+- TTS: Edge TTS (Microsoft neural voices) via `foresturquhart/edge-tts`, cache SHA256 en disco, voice `es-NI-YolandaNeural`
 - DB: SQLite via `glebarez/sqlite` (pure-Go), WAL mode, AutoMigrate on startup
 - CORS: `CORS_ORIGIN` env (default `http://localhost:5173`)
 

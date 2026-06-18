@@ -6,7 +6,7 @@
 backend/
 ├── cmd/api/main.go           # Entry point: init DB, DI, routes
 ├── internal/
-│   ├── ai/client.go          # Cliente Gemini 3.1 Flash Lite
+│   ├── ai/nvidia.go          # Proveedor NVIDIA NIM (OpenAI-compatible)
 │   ├── config/config.go      # Env vars via godotenv
 │   ├── db/sqlite.go          # Conexión GORM + AutoMigrate (9 modelos)
 │   ├── handlers/             # Handlers HTTP (Gin)
@@ -20,7 +20,8 @@ backend/
 │   │   ├── reminder_handler.go
 │   │   ├── requests.go       # DTOs tipados para create/update
 │   │   ├── response.go       # Envoltorio uniforme: Success, Error, Msg
-│   │   └── service_handler.go
+│   │   ├── service_handler.go
+│   │   └── tts_handler.go      # POST /tts → Edge TTS
 │   ├── middleware/
 │   │   ├── auth.go           # JWT Bearer validation
 │   │   ├── role.go           # RoleRequired("health_worker")
@@ -36,8 +37,12 @@ backend/
 │   │   ├── service.go
 │   │   └── user.go
 │   ├── repository/           # Interfaces + implementaciones GORM
-│   └── service/              # Lógica de negocio + tests
-│       └── geo.go            # Haversine (distancia entre coordenadas)
+│   ├── service/              # Lógica de negocio + tests
+│   │   ├── geo.go            # Haversine (distancia entre coordenadas)
+│   │   └── tts_service.go    # TTS con cache + timeout
+│   └── tts/
+│       ├── client.go         # Edge TTS via foresturquhart/edge-tts
+│       └── cache.go          # Cache SHA256 en disco
 ├── .env.example               # Variables de entorno requeridas
 ├── .air.toml                  # Config hot-reload (Air)
 ├── Makefile                   # dev, build, test, vet, lint, tidy, clean
@@ -80,7 +85,10 @@ Cada capa se comunica mediante interfaces definidas en `repository/` y `service/
 | `JWT_SECRET` | **requerido** | Clave para firmar tokens JWT (server falla si vacío) |
 | `PORT` | `:8080` | Puerto del servidor |
 | `DB_PATH` | `pulso.db` | Ruta del archivo SQLite |
-| `GEMINI_API_KEY` | `""` | API key de Gemini (opcional → AI da 503 si falta) |
+| `NVIDIA_API_KEY` | `""` | API key de NVIDIA NIM (opcional → AI da 503 si falta) |
+| `NVIDIA_MODEL` | `openai/gpt-oss-120b` | Modelo de IA |
+| `TTS_CACHE_PATH` | `cache/tts` | Directorio para cache de audio TTS |
+| `TTS_TIMEOUT` | `30` | Timeout en segundos para síntesis de voz |
 | `CORS_ORIGIN` | `http://localhost:5173` | Origen permitido por CORS |
 | `HEALTH_WORKER_SECRET` | **requerido** | Código secreto para rol health_worker (server falla si vacío) |
 
@@ -96,7 +104,7 @@ Las variables se cargan desde `backend/.env` vía `godotenv.Load()`. Variables d
 | Base de datos | SQLite via `github.com/glebarez/sqlite` (pure-Go, sin CGO) |
 | Autenticación | JWT (HS256, 72h exp) via `github.com/golang-jwt/jwt/v5` |
 | Contraseñas | bcrypt via `golang.org/x/crypto` |
-| IA | Google Gemini 3.1 Flash Lite via `google.golang.org/genai` |
+| IA | NVIDIA NIM (OpenAI-compatible) via `sashabaranov/go-openai` |
 
 ## Decisiones técnicas
 
@@ -121,18 +129,24 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 - Se asigna al registrar con `codigo` igual a `HEALTH_WORKER_SECRET`.
 
 ### Asistente IA
-- Gemini 3.1 Flash Lite (GA desde mayo 2026, $0.25/1M input tokens).
-- Modelo: `gemini-3.1-flash-lite`.
-- Temperatura 0.8. Sin streaming (frontend simula typing: 4 chars / 12ms).
-- Inyecta contexto del usuario (antecedentes, síntomas, vacunas, citas futuras) en el prompt.
-- 30s timeout, 3 retries con backoff. Sin key o rate-limit → 503.
-- Prompt del sistema en español con personalidad cálida y lenguaje nicaragüense (vos).
+- NVIDIA NIM (OpenAI-compatible) via `sashabaranov/go-openai`.
+- Modelo configurable via `NVIDIA_MODEL` (default: `openai/gpt-oss-120b`).
+- Temperatura 0.8, max tokens 2048. Sin streaming (frontend simula typing: 4 chars / 12ms).
+- Inyecta contexto del usuario (nombre, hora/día, antecedentes, síntomas, vacunas, citas futuras, últimas preguntas) en el prompt.
+- 30s timeout, 3 retries con backoff. Sin key → 503.
+- Prompt en español, personalidad directa y cercana, vos nicaragüense.
 - NormalizeResponse: bold en emergencias, colapso de saltos de línea.
 
 ### Recordatorios automáticos
 - Al crear cita → recordatorio tipo `cita`.
 - Al registrar vacuna → recordatorio tipo `vacuna`.
 - Errores de creación se loggean, no rompen la operación principal.
+
+### Síntesis de voz (Edge TTS)
+- Microsoft neural voices vía `foresturquhart/edge-tts` (WebSocket a `speech.platform.bing.com`).
+- Voz: `es-NI-YolandaNeural`, rate +10%.
+- Cache SHA256 en disco (`TTS_CACHE_PATH`), timeout configurable (`TTS_TIMEOUT`).
+- POST /tts auth con JWT, devuelve `audio/mpeg`. Frontend reproduce con `Audio` API.
 
 ### Respuestas
 - Envelope uniforme: `{"data": ..., "message": "..."}` éxito, `{"error": "..."}` error.

@@ -102,7 +102,7 @@ No hay endpoint para listar usuarios. El password se guarda hasheado con bcrypt.
 |-------|---------|------|-------------|
 | UserID | `uint` | `user_id` | FK implícita a User |
 | Pregunta | `string` | `pregunta` | `binding:"required"` |
-| Respuesta | `string` | `respuesta` | generada por Gemini |
+| Respuesta | `string` | `respuesta` | generada por el asistente IA |
 
 ---
 
