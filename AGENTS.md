@@ -24,6 +24,9 @@ make lint     # golangci-lint (gofmt, govet, errcheck, staticcheck, gosimple)
 cd frontend
 npm run dev   # vite dev :5173
 npm run build  # tsc && vite build
+
+# Both
+./scripts/dev.sh  # backend + frontend concurrently
 ```
 
 ## Required env

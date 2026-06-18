@@ -29,6 +29,10 @@ Go 1.26 + Gin + GORM + SQLite + React 19 + TypeScript 6 + Vite 8 + Tailwind CSS 
 ## Desarrollo
 
 ```bash
+./scripts/dev.sh        # Backend + Frontend simultáneo
+```
+
+```bash
 cd backend
 cp .env.example .env    # JWT_SECRET y HEALTH_WORKER_SECRET requeridos
 make dev                # Backend :8080 (hot-reload)
