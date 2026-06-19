@@ -1,13 +1,44 @@
-import { useEffect, useRef } from "react";
-import { Stethoscope, Syringe, CalendarDays } from "lucide-react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { ClipboardList, Stethoscope, Syringe, CalendarDays, Plus } from "lucide-react";
 import { useSymptomsStore } from "../stores/symptoms";
 import { useVaccinesStore } from "../stores/vaccines";
 import { useAppointmentsStore } from "../stores/appointments";
-import ResourceSection from "../components/historial/ResourceSection";
+import { useDelayedLoading } from "../lib/useDelayedLoading";
+import Modal from "../components/ui/Modal";
+import SkeletonCard from "../components/ui/SkeletonCard";
+import EmptyState from "../components/ui/EmptyState";
+import AlertBanner from "../components/ui/AlertBanner";
 import CreateSymptomForm from "../components/historial/CreateSymptomForm";
 import CreateVaccineForm from "../components/historial/CreateVaccineForm";
 import CreateAppointmentForm from "../components/historial/CreateAppointmentForm";
-import type { SymptomReport, VaccinationRecord, Appointment } from "../types";
+
+type Tab = "todos" | "sintomas" | "vacunas" | "citas";
+type CreateTab = "sintoma" | "vacuna" | "cita";
+
+const tabs: { key: Tab; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "sintomas", label: "Síntomas" },
+  { key: "vacunas", label: "Vacunas" },
+  { key: "citas", label: "Citas" },
+];
+
+const createTabs: { key: CreateTab; label: string; icon: React.ReactNode }[] = [
+  { key: "sintoma", label: "Síntoma", icon: <Stethoscope className="w-4 h-4" /> },
+  { key: "vacuna", label: "Vacuna", icon: <Syringe className="w-4 h-4" /> },
+  { key: "cita", label: "Cita", icon: <CalendarDays className="w-4 h-4" /> },
+];
+
+const typeBadge: Record<CreateTab, string> = {
+  sintoma: "bg-info/10 text-info",
+  vacuna: "bg-success/10 text-success",
+  cita: "bg-primary/10 text-primary",
+};
+
+const typeIcon: Record<CreateTab, React.ReactNode> = {
+  sintoma: <Stethoscope className="w-3.5 h-3.5" />,
+  vacuna: <Syringe className="w-3.5 h-3.5" />,
+  cita: <CalendarDays className="w-3.5 h-3.5" />,
+};
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-ES", {
@@ -27,29 +58,24 @@ function formatDateTime(dateStr: string): string {
   });
 }
 
-function SymptomCard(s: SymptomReport) {
-  return (
-    <div className="bg-surface rounded-card p-5 transition-all animate-fade-in-up">
-      <p className="text-text text-sm leading-relaxed">{s.descripcion}</p>
-      <p className="text-xs text-gray mt-2">{formatDate(s.fecha)}</p>
-    </div>
-  );
+interface HistoryCardItem {
+  id: number
+  type: CreateTab
+  title: string
+  date: string
 }
 
-function VaccineCard(v: VaccinationRecord) {
+function HistoryCard({ item }: { item: HistoryCardItem }) {
   return (
-    <div className="bg-surface rounded-card p-5 transition-all animate-fade-in-up">
-      <p className="text-text font-semibold">{v.nombre_vacuna}</p>
-      <p className="text-xs text-gray mt-1">{formatDate(v.fecha_aplicacion)}</p>
-    </div>
-  );
-}
-
-function AppointmentCard(a: Appointment) {
-  return (
-    <div className="bg-surface rounded-card p-5 transition-all animate-fade-in-up">
-      <p className="text-text text-sm leading-relaxed">{a.descripcion}</p>
-      <p className="text-xs text-gray mt-2">{formatDateTime(a.fecha)}</p>
+    <div className="bg-surface rounded-card p-5 transition-all animate-fade-in-up hover:ring-1 hover:ring-primary/20">
+      <div className="flex items-center gap-2 mb-2">
+        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${typeBadge[item.type]}`}>
+          {typeIcon[item.type]}
+          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+        </span>
+      </div>
+      <p className="text-text text-sm leading-relaxed">{item.title}</p>
+      <p className="text-xs text-gray mt-2">{item.date}</p>
     </div>
   );
 }
@@ -58,7 +84,17 @@ export default function HistorialPage() {
   const sym = useSymptomsStore();
   const vac = useVaccinesStore();
   const appt = useAppointmentsStore();
+  const [tab, setTab] = useState<Tab>("todos");
+  const [showCreate, setShowCreate] = useState(false);
+  const [createTab, setCreateTab] = useState<CreateTab>("sintoma");
   const initialLoad = useRef(true);
+
+  const loading = sym.loading || vac.loading || appt.loading;
+  const error = sym.error || vac.error || appt.error;
+  const hasItems = sym.items.length > 0 || vac.items.length > 0 || appt.items.length > 0;
+  const loadingInitial = loading && !hasItems;
+  const showSkeleton = useDelayedLoading(loadingInitial);
+  const errorInitial = error && !hasItems && !loading;
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -69,58 +105,184 @@ export default function HistorialPage() {
     }
   }, []);
 
+  function handleRefresh() {
+    sym.fetch();
+    vac.fetch();
+    appt.fetch();
+  }
+
+  const items = useMemo(() => {
+    switch (tab) {
+      case "sintomas":
+        return sym.items.map((s) => ({
+          id: s.id,
+          type: "sintoma" as CreateTab,
+          title: s.descripcion,
+          date: formatDate(s.fecha || s.created_at),
+        }));
+      case "vacunas":
+        return vac.items.map((v) => ({
+          id: v.id,
+          type: "vacuna" as CreateTab,
+          title: v.nombre_vacuna,
+          date: formatDate(v.fecha_aplicacion || v.created_at),
+        }));
+      case "citas":
+        return appt.items.map((a) => ({
+          id: a.id,
+          type: "cita" as CreateTab,
+          title: a.descripcion,
+          date: formatDateTime(a.fecha),
+        }));
+      default: {
+        const all: HistoryCardItem[] = [
+          ...sym.items.map((s) => ({ id: s.id, type: "sintoma" as CreateTab, title: s.descripcion, date: s.fecha || s.created_at })),
+          ...vac.items.map((v) => ({ id: v.id, type: "vacuna" as CreateTab, title: v.nombre_vacuna, date: v.fecha_aplicacion || v.created_at })),
+          ...appt.items.map((a) => ({ id: a.id, type: "cita" as CreateTab, title: a.descripcion, date: a.fecha })),
+        ];
+        all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return all.map((item) => ({
+          ...item,
+          date: item.type === "cita" ? formatDateTime(item.date) : formatDate(item.date),
+        }));
+      }
+    }
+  }, [tab, sym.items, vac.items, appt.items]);
+
+  const empty = !loading && items.length === 0;
+
+  const emptyConfig: Record<Tab, { title: string; description: string }> = {
+    todos: { title: "No hay registros", description: "Agregá síntomas, vacunas o citas para ver tu historial médico." },
+    sintomas: { title: "No hay síntomas registrados", description: "Registrá tus síntomas para llevar un control de tu salud." },
+    vacunas: { title: "No hay vacunas registradas", description: "Registrá tus vacunas para mantener tu historial al día." },
+    citas: { title: "No hay citas agendadas", description: "Agendá tus citas médicas para recibir recordatorios." },
+  };
+
+  const partialError = error && hasItems && !loading;
+
   return (
-    <div className="py-4 md:py-6 px-4 md:px-8 space-y-10">
-      <ResourceSection
-        title="Síntomas"
-        icon={<Stethoscope className="w-5 h-5" />}
-        items={sym.items}
-        loading={sym.loading}
-        error={sym.error}
-        emptyTitle="No hay síntomas registrados"
-        emptyDescription="Registrá tus síntomas para llevar un control de tu salud."
-        createLabel="Nuevo síntoma"
-        onRefresh={() => sym.fetch()}
-        onClearError={sym.clearError}
-        renderCard={(item) => <SymptomCard {...(item as SymptomReport)} />}
-        renderCreateForm={({ onSuccess, onCancel }) => (
-          <CreateSymptomForm onCreate={sym.add} onSuccess={onSuccess} onCancel={onCancel} />
-        )}
-      />
+    <div className="py-4 md:py-6 px-4 md:px-8">
+      {showSkeleton && (
+        <div className="space-y-4">
+          <div className="h-8 bg-gray/20 rounded w-48 animate-pulse-gentle" />
+          <div className="flex gap-1 bg-gray/10 rounded-button p-1 w-fit animate-pulse-gentle">
+            <div className="h-8 w-16 bg-gray/20 rounded-button" />
+            <div className="h-8 w-20 bg-gray/20 rounded-button" />
+            <div className="h-8 w-20 bg-gray/20 rounded-button" />
+            <div className="h-8 w-16 bg-gray/20 rounded-button" />
+          </div>
+          {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+        </div>
+      )}
 
-      <ResourceSection
-        title="Vacunas"
-        icon={<Syringe className="w-5 h-5" />}
-        items={vac.items}
-        loading={vac.loading}
-        error={vac.error}
-        emptyTitle="No hay vacunas registradas"
-        emptyDescription="Registrá tus vacunas para mantener tu historial al día."
-        createLabel="Nueva vacuna"
-        onRefresh={() => vac.fetch()}
-        onClearError={vac.clearError}
-        renderCard={(item) => <VaccineCard {...(item as VaccinationRecord)} />}
-        renderCreateForm={({ onSuccess, onCancel }) => (
-          <CreateVaccineForm onCreate={vac.add} onSuccess={onSuccess} onCancel={onCancel} />
-        )}
-      />
+      {errorInitial && (
+        <>
+          <AlertBanner message={error} onClose={() => { sym.clearError(); vac.clearError(); appt.clearError(); }} />
+          <button
+            onClick={handleRefresh}
+            className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all cursor-pointer"
+          >
+            Reintentar
+          </button>
+        </>
+      )}
 
-      <ResourceSection
-        title="Citas"
-        icon={<CalendarDays className="w-5 h-5" />}
-        items={appt.items}
-        loading={appt.loading}
-        error={appt.error}
-        emptyTitle="No hay citas agendadas"
-        emptyDescription="Agendá tus citas médicas para recibir recordatorios."
-        createLabel="Nueva cita"
-        onRefresh={() => appt.fetch()}
-        onClearError={appt.clearError}
-        renderCard={(item) => <AppointmentCard {...(item as Appointment)} />}
-        renderCreateForm={({ onSuccess, onCancel }) => (
-          <CreateAppointmentForm onCreate={appt.add} onSuccess={onSuccess} onCancel={onCancel} />
+      {!showSkeleton && (
+        <>
+          <h2 className="hidden md:block text-lg font-bold text-text mb-4">Mi Historial</h2>
+
+          <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                  tab === t.key ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {partialError && (
+            <div className="mb-4">
+              <AlertBanner message={error} onClose={() => { sym.clearError(); vac.clearError(); appt.clearError(); }} onRetry={handleRefresh} />
+            </div>
+          )}
+
+          {empty && !errorInitial && (
+            <EmptyState
+              icon={<ClipboardList className="w-5 h-5 text-primary" />}
+              title={emptyConfig[tab].title}
+              description={emptyConfig[tab].description}
+              action={{ label: "Agregar", onClick: () => setShowCreate(true) }}
+            />
+          )}
+
+          {items.length > 0 && (
+            <div className="space-y-3">
+              {items.map((item) => (
+                <HistoryCard key={`${item.type}-${item.id}`} item={item} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      <Modal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        title="Nuevo registro"
+        size="sm"
+      >
+        <div className="flex gap-1 mb-5 bg-gray/10 rounded-button p-1 w-fit">
+          {createTabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setCreateTab(t.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                createTab === t.key ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+              }`}
+            >
+              {t.icon}
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {createTab === "sintoma" && (
+          <CreateSymptomForm
+            onCreate={sym.add}
+            onSuccess={() => { setShowCreate(false); setCreateTab("sintoma"); }}
+            onCancel={() => setShowCreate(false)}
+          />
         )}
-      />
+        {createTab === "vacuna" && (
+          <CreateVaccineForm
+            onCreate={vac.add}
+            onSuccess={() => { setShowCreate(false); setCreateTab("sintoma"); }}
+            onCancel={() => setShowCreate(false)}
+          />
+        )}
+        {createTab === "cita" && (
+          <CreateAppointmentForm
+            onCreate={appt.add}
+            onSuccess={() => { setShowCreate(false); setCreateTab("sintoma"); }}
+            onCancel={() => setShowCreate(false)}
+          />
+        )}
+      </Modal>
+
+      {!showSkeleton && !errorInitial && (
+        <button
+          onClick={() => setShowCreate(true)}
+          className="fixed bottom-24 md:bottom-6 right-4 z-40 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+          aria-label="Nuevo registro"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }
