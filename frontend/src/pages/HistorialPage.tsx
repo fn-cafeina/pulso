@@ -127,7 +127,7 @@ function DetailView({ detail, onClose }: { detail: DetailData; onClose: () => vo
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {detail.type === "vacuna" ? (
             <div>
               <label className="block text-xs font-medium text-gray mb-1">Fecha de aplicación</label>
@@ -222,7 +222,7 @@ export default function HistorialPage() {
       {showSkeleton && (
         <div className="space-y-4">
           <div className="h-8 bg-gray/20 rounded w-48 animate-pulse-gentle" />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-20 bg-gray/10 rounded-card animate-pulse-gentle" />
             ))}
@@ -247,32 +247,32 @@ export default function HistorialPage() {
         <>
           <h2 className="hidden md:block text-lg font-bold text-text mb-6">Mi Salud</h2>
 
-          <div className="grid grid-cols-3 gap-3 mb-8">
-            <div className="bg-surface rounded-card p-4 flex items-center gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+            <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center flex-shrink-0">
                 <Stethoscope className="w-5 h-5 text-info" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xl font-bold text-text">{sym.items.length}</p>
-                <p className="text-xs text-gray">Síntomas</p>
+                <p className="text-xs text-gray truncate">Síntomas</p>
               </div>
             </div>
-            <div className="bg-surface rounded-card p-4 flex items-center gap-3">
+            <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
                 <Syringe className="w-5 h-5 text-success" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xl font-bold text-text">{vac.items.length}</p>
-                <p className="text-xs text-gray">Vacunas</p>
+                <p className="text-xs text-gray truncate">Vacunas</p>
               </div>
             </div>
-            <div className="bg-surface rounded-card p-4 flex items-center gap-3">
+            <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <CalendarDays className="w-5 h-5 text-primary" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xl font-bold text-text">{appt.items.length}</p>
-                <p className="text-xs text-gray">Citas</p>
+                <p className="text-xs text-gray truncate">Citas</p>
               </div>
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function HistorialPage() {
           )}
 
           {items.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-1 pb-20 md:pb-0">
               {items.map((item, idx) => {
                 const period = getPeriod(item.rawDate);
                 const prevPeriod = idx > 0 ? getPeriod(items[idx - 1].rawDate) : null;
@@ -311,13 +311,13 @@ export default function HistorialPage() {
                       className="bg-surface rounded-card p-5 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
                       onClick={() => handleDetail(item.type, item.raw)}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-text text-sm leading-relaxed font-medium flex-1">{item.title}</p>
+                      <div className="flex items-center justify-between gap-3 min-w-0">
+                        <p className="text-text text-sm leading-relaxed font-medium flex-1 break-words">{item.title}</p>
                         <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${typeColors[item.type]}`}>
                           {typeBigIcon[item.type]}
                         </span>
                       </div>
-                      <p className="text-xs text-gray mt-2">
+                      <p className="text-xs text-gray mt-2 break-words">
                         {getRelativeTime(item.rawDate)} · {getAbsoluteDate(item.rawDate, item.type)}
                       </p>
                     </div>
