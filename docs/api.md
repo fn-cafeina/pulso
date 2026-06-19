@@ -600,7 +600,7 @@ Requiere `NVIDIA_API_KEY` configurada. Sin key → 503.
 <details>
 <summary><code>POST /ai/consult</code></summary>
 
-Inyecta contexto del usuario (nombre, hora/día, antecedentes, síntomas, vacunas, citas futuras, últimas preguntas) en el prompt.
+Inyecta contexto del usuario (nombre, hora/día, antecedentes, síntomas, vacunas, citas futuras, historial completo en formato diálogo Usuario/Pulso) en el prompt.
 
 **Request:**
 ```json

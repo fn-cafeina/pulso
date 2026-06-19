@@ -53,6 +53,9 @@ frontend/
 ├── package.json               # Vite + React + Tailwind CSS 4
 ├── vite.config.ts             # Vite config (react + tailwindcss plugins)
 └── tsconfig.json
+
+scripts/
+└── dev.sh                     # Backend + frontend en paralelo
 ```
 
 ## Capas
@@ -131,8 +134,8 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 ### Asistente IA
 - NVIDIA NIM (OpenAI-compatible) via `sashabaranov/go-openai`.
 - Modelo configurable via `NVIDIA_MODEL` (default: `openai/gpt-oss-120b`).
-- Temperatura 0.8, max tokens 2048. Sin streaming (frontend simula typing: 4 chars / 12ms).
-- Inyecta contexto del usuario (nombre, hora/día, antecedentes, síntomas, vacunas, citas futuras, últimas preguntas) en el prompt.
+- Temperatura 0.9, max tokens 4096, presence penalty 0.5, reasoning effort "high". Sin streaming (frontend simula typing: 4 chars / 12ms).
+- Inyecta contexto del usuario (nombre, hora/día, antecedentes, síntomas, vacunas, citas futuras, historial completo en formato diálogo Usuario/Pulso) en el prompt. System prompt en `internal/ai/provider.go` con regla "no repetir intención/propósito de respuesta".
 - 30s timeout, 3 retries con backoff. Sin key → 503.
 - Prompt en español, personalidad directa y cercana, vos nicaragüense.
 - NormalizeResponse: bold en emergencias, colapso de saltos de línea.
@@ -144,7 +147,7 @@ PUT busca el registro existente, sobreescribe campos no vacíos, preserva `creat
 
 ### Síntesis de voz (Edge TTS)
 - Microsoft neural voices vía `foresturquhart/edge-tts` (WebSocket a `speech.platform.bing.com`).
-- Voz: `es-NI-YolandaNeural`, rate +10%.
+- Voz: `es-NI-YolandaNeural`, rate +30%.
 - Cache SHA256 en disco (`TTS_CACHE_PATH`), timeout configurable (`TTS_TIMEOUT`).
 - POST /tts auth con JWT, devuelve `audio/mpeg`. Frontend reproduce con `Audio` API.
 

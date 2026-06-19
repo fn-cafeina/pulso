@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	maxTokens        = 4096
-	temperature      = 0.9
-	presencePenalty  = 0.5
-	reasoningEffort  = "high"
+	maxTokens       = 4096
+	temperature     = 0.9
+	presencePenalty = 0.5
+	reasoningEffort = "high"
 )
 
 type NVIDIAProvider struct {
@@ -41,10 +41,10 @@ func (p *NVIDIAProvider) GenerateContent(ctx context.Context, prompt string) (st
 				{Role: openai.ChatMessageRoleSystem, Content: SystemPrompt},
 				{Role: openai.ChatMessageRoleUser, Content: prompt},
 			},
-			MaxTokens:        maxTokens,
-			Temperature:      temperature,
-			PresencePenalty:  presencePenalty,
-			ReasoningEffort:  reasoningEffort,
+			MaxTokens:       maxTokens,
+			Temperature:     temperature,
+			PresencePenalty: presencePenalty,
+			ReasoningEffort: reasoningEffort,
 		})
 		cancel()
 
