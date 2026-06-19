@@ -11,6 +11,7 @@ import AlertBanner from "../components/ui/AlertBanner";
 import CreateSymptomForm from "../components/historial/CreateSymptomForm";
 import CreateVaccineForm from "../components/historial/CreateVaccineForm";
 import CreateAppointmentForm from "../components/historial/CreateAppointmentForm";
+import type { SymptomReport, VaccinationRecord, Appointment } from "../types";
 
 type Tab = "todos" | "sintomas" | "vacunas" | "citas";
 type CreateTab = "sintoma" | "vacuna" | "cita";
@@ -28,6 +29,13 @@ const createTabs: { key: CreateTab; label: string; icon: React.ReactNode }[] = [
   { key: "cita", label: "Cita", icon: <CalendarDays className="w-4 h-4" /> },
 ];
 
+const tabToCreate: Record<Tab, CreateTab> = {
+  todos: "sintoma",
+  sintomas: "sintoma",
+  vacunas: "vacuna",
+  citas: "cita",
+};
+
 const typeBadge: Record<CreateTab, string> = {
   sintoma: "bg-info/10 text-info",
   vacuna: "bg-success/10 text-success",
@@ -39,6 +47,17 @@ const typeIcon: Record<CreateTab, React.ReactNode> = {
   vacuna: <Syringe className="w-3.5 h-3.5" />,
   cita: <CalendarDays className="w-3.5 h-3.5" />,
 };
+
+const typeLabel: Record<CreateTab, string> = {
+  sintoma: "Síntoma",
+  vacuna: "Vacuna",
+  cita: "Cita",
+};
+
+interface DetailData {
+  type: CreateTab
+  raw: SymptomReport | VaccinationRecord | Appointment
+}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-ES", {
@@ -63,20 +82,74 @@ interface HistoryCardItem {
   type: CreateTab
   title: string
   date: string
+  raw: SymptomReport | VaccinationRecord | Appointment
 }
 
-function HistoryCard({ item }: { item: HistoryCardItem }) {
+function HistoryCard({ item, onClick }: { item: HistoryCardItem; onClick: () => void }) {
   return (
-    <div className="bg-surface rounded-card p-5 transition-all animate-fade-in-up hover:ring-1 hover:ring-primary/20">
+    <div
+      className="bg-surface rounded-card p-6 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
+      onClick={onClick}
+    >
       <div className="flex items-center gap-2 mb-2">
         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${typeBadge[item.type]}`}>
           {typeIcon[item.type]}
-          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+          {typeLabel[item.type]}
         </span>
       </div>
       <p className="text-text text-sm leading-relaxed">{item.title}</p>
       <p className="text-xs text-gray mt-2">{item.date}</p>
     </div>
+  );
+}
+
+function DetailView({ detail, onClose }: { detail: DetailData; onClose: () => void }) {
+  return (
+    <Modal open onClose={onClose} title={`Detalle de ${typeLabel[detail.type].toLowerCase()}`} scrollable>
+      <div className="space-y-4">
+        <div>
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${typeBadge[detail.type]}`}>
+            {typeIcon[detail.type]}
+            {typeLabel[detail.type]}
+          </span>
+        </div>
+
+        {"descripcion" in detail.raw && (
+          <div>
+            <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
+            <p className="text-sm text-text whitespace-pre-wrap">{detail.raw.descripcion || "Sin descripción"}</p>
+          </div>
+        )}
+        {"nombre_vacuna" in detail.raw && (
+          <div>
+            <label className="block text-xs font-medium text-gray mb-1">Vacuna</label>
+            <p className="text-sm text-text font-semibold">{detail.raw.nombre_vacuna}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          {detail.type === "vacuna" ? (
+            <div>
+              <label className="block text-xs font-medium text-gray mb-1">Fecha de aplicación</label>
+              <p className="text-sm text-text">{formatDate("fecha_aplicacion" in detail.raw ? detail.raw.fecha_aplicacion : "")}</p>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-medium text-gray mb-1">Fecha</label>
+              <p className="text-sm text-text">{detail.type === "cita" ? formatDateTime((detail.raw as Appointment).fecha) : formatDate((detail.raw as SymptomReport).fecha)}</p>
+            </div>
+          )}
+          <div>
+            <label className="block text-xs font-medium text-gray mb-1">Registrado</label>
+            <p className="text-sm text-text">{formatDate(detail.raw.created_at)}</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray mb-1">Actualizado</label>
+            <p className="text-sm text-text">{formatDate(detail.raw.updated_at)}</p>
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -87,6 +160,7 @@ export default function HistorialPage() {
   const [tab, setTab] = useState<Tab>("todos");
   const [showCreate, setShowCreate] = useState(false);
   const [createTab, setCreateTab] = useState<CreateTab>("sintoma");
+  const [detail, setDetail] = useState<DetailData | null>(null);
   const initialLoad = useRef(true);
 
   const loading = sym.loading || vac.loading || appt.loading;
@@ -111,6 +185,15 @@ export default function HistorialPage() {
     appt.fetch();
   }
 
+  function handleFabClick() {
+    setCreateTab(tabToCreate[tab]);
+    setShowCreate(true);
+  }
+
+  function handleDetail(type: CreateTab, raw: SymptomReport | VaccinationRecord | Appointment) {
+    setDetail({ type, raw });
+  }
+
   const items = useMemo(() => {
     switch (tab) {
       case "sintomas":
@@ -119,6 +202,7 @@ export default function HistorialPage() {
           type: "sintoma" as CreateTab,
           title: s.descripcion,
           date: formatDate(s.fecha || s.created_at),
+          raw: s,
         }));
       case "vacunas":
         return vac.items.map((v) => ({
@@ -126,6 +210,7 @@ export default function HistorialPage() {
           type: "vacuna" as CreateTab,
           title: v.nombre_vacuna,
           date: formatDate(v.fecha_aplicacion || v.created_at),
+          raw: v,
         }));
       case "citas":
         return appt.items.map((a) => ({
@@ -133,12 +218,13 @@ export default function HistorialPage() {
           type: "cita" as CreateTab,
           title: a.descripcion,
           date: formatDateTime(a.fecha),
+          raw: a,
         }));
       default: {
         const all: HistoryCardItem[] = [
-          ...sym.items.map((s) => ({ id: s.id, type: "sintoma" as CreateTab, title: s.descripcion, date: s.fecha || s.created_at })),
-          ...vac.items.map((v) => ({ id: v.id, type: "vacuna" as CreateTab, title: v.nombre_vacuna, date: v.fecha_aplicacion || v.created_at })),
-          ...appt.items.map((a) => ({ id: a.id, type: "cita" as CreateTab, title: a.descripcion, date: a.fecha })),
+          ...sym.items.map((s) => ({ id: s.id, type: "sintoma" as CreateTab, title: s.descripcion, date: s.fecha || s.created_at, raw: s })),
+          ...vac.items.map((v) => ({ id: v.id, type: "vacuna" as CreateTab, title: v.nombre_vacuna, date: v.fecha_aplicacion || v.created_at, raw: v })),
+          ...appt.items.map((a) => ({ id: a.id, type: "cita" as CreateTab, title: a.descripcion, date: a.fecha, raw: a })),
         ];
         all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         return all.map((item) => ({
@@ -192,17 +278,29 @@ export default function HistorialPage() {
           <h2 className="hidden md:block text-lg font-bold text-text mb-4">Mi Historial</h2>
 
           <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
-                  tab === t.key ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+            {tabs.map((t) => {
+              const count = t.key === "todos"
+                ? sym.items.length + vac.items.length + appt.items.length
+                : t.key === "sintomas" ? sym.items.length
+                : t.key === "vacunas" ? vac.items.length
+                : appt.items.length;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`flex items-center px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                    tab === t.key ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+                  }`}
+                >
+                  {t.label}
+                  {count > 0 && (
+                    <span className="ml-1.5 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold bg-primary/20 text-primary rounded-full">
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {partialError && (
@@ -216,19 +314,24 @@ export default function HistorialPage() {
               icon={<ClipboardList className="w-5 h-5 text-primary" />}
               title={emptyConfig[tab].title}
               description={emptyConfig[tab].description}
-              action={{ label: "Agregar", onClick: () => setShowCreate(true) }}
             />
           )}
 
           {items.length > 0 && (
             <div className="space-y-3">
               {items.map((item) => (
-                <HistoryCard key={`${item.type}-${item.id}`} item={item} />
+                <HistoryCard
+                  key={`${item.type}-${item.id}`}
+                  item={item}
+                  onClick={() => handleDetail(item.type, item.raw)}
+                />
               ))}
             </div>
           )}
         </>
       )}
+
+      {detail && <DetailView detail={detail} onClose={() => setDetail(null)} />}
 
       <Modal
         open={showCreate}
@@ -254,21 +357,21 @@ export default function HistorialPage() {
         {createTab === "sintoma" && (
           <CreateSymptomForm
             onCreate={sym.add}
-            onSuccess={() => { setShowCreate(false); setCreateTab("sintoma"); }}
+            onSuccess={() => setShowCreate(false)}
             onCancel={() => setShowCreate(false)}
           />
         )}
         {createTab === "vacuna" && (
           <CreateVaccineForm
             onCreate={vac.add}
-            onSuccess={() => { setShowCreate(false); setCreateTab("sintoma"); }}
+            onSuccess={() => setShowCreate(false)}
             onCancel={() => setShowCreate(false)}
           />
         )}
         {createTab === "cita" && (
           <CreateAppointmentForm
             onCreate={appt.add}
-            onSuccess={() => { setShowCreate(false); setCreateTab("sintoma"); }}
+            onSuccess={() => setShowCreate(false)}
             onCancel={() => setShowCreate(false)}
           />
         )}
@@ -276,7 +379,7 @@ export default function HistorialPage() {
 
       {!showSkeleton && !errorInitial && (
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={handleFabClick}
           className="fixed bottom-24 md:bottom-6 right-4 z-40 w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-xl flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
           aria-label="Nuevo registro"
         >
