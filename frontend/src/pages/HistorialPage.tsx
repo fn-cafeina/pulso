@@ -13,40 +13,13 @@ import CreateVaccineForm from "../components/historial/CreateVaccineForm";
 import CreateAppointmentForm from "../components/historial/CreateAppointmentForm";
 import type { SymptomReport, VaccinationRecord, Appointment } from "../types";
 
-type Tab = "todos" | "sintomas" | "vacunas" | "citas";
 type CreateTab = "sintoma" | "vacuna" | "cita";
-
-const tabs: { key: Tab; label: string }[] = [
-  { key: "todos", label: "Todos" },
-  { key: "sintomas", label: "Síntomas" },
-  { key: "vacunas", label: "Vacunas" },
-  { key: "citas", label: "Citas" },
-];
 
 const createTabs: { key: CreateTab; label: string; icon: React.ReactNode }[] = [
   { key: "sintoma", label: "Síntoma", icon: <Stethoscope className="w-4 h-4" /> },
   { key: "vacuna", label: "Vacuna", icon: <Syringe className="w-4 h-4" /> },
   { key: "cita", label: "Cita", icon: <CalendarDays className="w-4 h-4" /> },
 ];
-
-const tabToCreate: Record<Tab, CreateTab> = {
-  todos: "sintoma",
-  sintomas: "sintoma",
-  vacunas: "vacuna",
-  citas: "cita",
-};
-
-const typeBadge: Record<CreateTab, string> = {
-  sintoma: "bg-info/10 text-info",
-  vacuna: "bg-success/10 text-success",
-  cita: "bg-primary/10 text-primary",
-};
-
-const typeIcon: Record<CreateTab, React.ReactNode> = {
-  sintoma: <Stethoscope className="w-3.5 h-3.5" />,
-  vacuna: <Syringe className="w-3.5 h-3.5" />,
-  cita: <CalendarDays className="w-3.5 h-3.5" />,
-};
 
 const typeLabel: Record<CreateTab, string> = {
   sintoma: "Síntoma",
@@ -56,6 +29,14 @@ const typeLabel: Record<CreateTab, string> = {
 
 interface DetailData {
   type: CreateTab
+  raw: SymptomReport | VaccinationRecord | Appointment
+}
+
+interface RawItem {
+  id: number
+  type: CreateTab
+  title: string
+  rawDate: string
   raw: SymptomReport | VaccinationRecord | Appointment
 }
 
@@ -77,30 +58,50 @@ function formatDateTime(dateStr: string): string {
   });
 }
 
-interface HistoryCardItem {
-  id: number
-  type: CreateTab
-  title: string
-  date: string
-  raw: SymptomReport | VaccinationRecord | Appointment
+type Period = "hoy" | "ayer" | "semana" | "mes" | "antes";
+
+const periodLabel: Record<Period, string> = {
+  hoy: "HOY",
+  ayer: "AYER",
+  semana: "ESTA SEMANA",
+  mes: "ESTE MES",
+  antes: "ANTES",
+};
+
+function getPeriod(dateStr: string): Period {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days < 0) return "hoy";
+  if (days === 0) return "hoy";
+  if (days === 1) return "ayer";
+  if (days <= 7) return "semana";
+  if (days <= 30) return "mes";
+  return "antes";
 }
 
-function HistoryCard({ item, onClick }: { item: HistoryCardItem; onClick: () => void }) {
-  return (
-    <div
-      className="bg-surface rounded-card p-6 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
-      onClick={onClick}
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${typeBadge[item.type]}`}>
-          {typeIcon[item.type]}
-          {typeLabel[item.type]}
-        </span>
-      </div>
-      <p className="text-text text-sm leading-relaxed">{item.title}</p>
-      <p className="text-xs text-gray mt-2">{item.date}</p>
-    </div>
-  );
+function getRelativeTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (minutes < 1) return "Ahora";
+  if (minutes < 60) return `Hace ${minutes} min`;
+  if (hours < 6) return `Hace ${hours} h`;
+  if (days === 0) return `Hace ${hours} h`;
+  if (days === 1) return "Ayer";
+  if (days <= 7) return `Hace ${days} días`;
+  return formatDate(dateStr);
+}
+
+function getAbsoluteDate(dateStr: string, type: CreateTab): string {
+  if (type === "cita") return formatDateTime(dateStr);
+  return formatDate(dateStr);
 }
 
 function DetailView({ detail, onClose }: { detail: DetailData; onClose: () => void }) {
@@ -108,8 +109,7 @@ function DetailView({ detail, onClose }: { detail: DetailData; onClose: () => vo
     <Modal open onClose={onClose} title={`Detalle de ${typeLabel[detail.type].toLowerCase()}`} scrollable>
       <div className="space-y-4">
         <div>
-          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${typeBadge[detail.type]}`}>
-            {typeIcon[detail.type]}
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold bg-primary/10 text-primary">
             {typeLabel[detail.type]}
           </span>
         </div>
@@ -157,7 +157,6 @@ export default function HistorialPage() {
   const sym = useSymptomsStore();
   const vac = useVaccinesStore();
   const appt = useAppointmentsStore();
-  const [tab, setTab] = useState<Tab>("todos");
   const [showCreate, setShowCreate] = useState(false);
   const [createTab, setCreateTab] = useState<CreateTab>("sintoma");
   const [detail, setDetail] = useState<DetailData | null>(null);
@@ -186,7 +185,7 @@ export default function HistorialPage() {
   }
 
   function handleFabClick() {
-    setCreateTab(tabToCreate[tab]);
+    setCreateTab("sintoma");
     setShowCreate(true);
   }
 
@@ -195,67 +194,38 @@ export default function HistorialPage() {
   }
 
   const items = useMemo(() => {
-    switch (tab) {
-      case "sintomas":
-        return sym.items.map((s) => ({
-          id: s.id,
-          type: "sintoma" as CreateTab,
-          title: s.descripcion,
-          date: formatDate(s.fecha || s.created_at),
-          raw: s,
-        }));
-      case "vacunas":
-        return vac.items.map((v) => ({
-          id: v.id,
-          type: "vacuna" as CreateTab,
-          title: v.nombre_vacuna,
-          date: formatDate(v.fecha_aplicacion || v.created_at),
-          raw: v,
-        }));
-      case "citas":
-        return appt.items.map((a) => ({
-          id: a.id,
-          type: "cita" as CreateTab,
-          title: a.descripcion,
-          date: formatDateTime(a.fecha),
-          raw: a,
-        }));
-      default: {
-        const all: HistoryCardItem[] = [
-          ...sym.items.map((s) => ({ id: s.id, type: "sintoma" as CreateTab, title: s.descripcion, date: s.fecha || s.created_at, raw: s })),
-          ...vac.items.map((v) => ({ id: v.id, type: "vacuna" as CreateTab, title: v.nombre_vacuna, date: v.fecha_aplicacion || v.created_at, raw: v })),
-          ...appt.items.map((a) => ({ id: a.id, type: "cita" as CreateTab, title: a.descripcion, date: a.fecha, raw: a })),
-        ];
-        all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        return all.map((item) => ({
-          ...item,
-          date: item.type === "cita" ? formatDateTime(item.date) : formatDate(item.date),
-        }));
-      }
-    }
-  }, [tab, sym.items, vac.items, appt.items]);
+    const all: RawItem[] = [
+      ...sym.items.map((s) => ({ id: s.id, type: "sintoma" as CreateTab, title: s.descripcion, rawDate: s.fecha || s.created_at, raw: s })),
+      ...vac.items.map((v) => ({ id: v.id, type: "vacuna" as CreateTab, title: v.nombre_vacuna, rawDate: v.fecha_aplicacion || v.created_at, raw: v })),
+      ...appt.items.map((a) => ({ id: a.id, type: "cita" as CreateTab, title: a.descripcion, rawDate: a.fecha, raw: a })),
+    ];
+    return all.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
+  }, [sym.items, vac.items, appt.items]);
 
   const empty = !loading && items.length === 0;
+  const partialError = error && hasItems && !loading;
 
-  const emptyConfig: Record<Tab, { title: string; description: string }> = {
-    todos: { title: "No hay registros", description: "Agregá síntomas, vacunas o citas para ver tu historial médico." },
-    sintomas: { title: "No hay síntomas registrados", description: "Registrá tus síntomas para llevar un control de tu salud." },
-    vacunas: { title: "No hay vacunas registradas", description: "Registrá tus vacunas para mantener tu historial al día." },
-    citas: { title: "No hay citas agendadas", description: "Agendá tus citas médicas para recibir recordatorios." },
+  const typeColors: Record<CreateTab, string> = {
+    sintoma: "bg-info/10 text-info",
+    vacuna: "bg-success/10 text-success",
+    cita: "bg-primary/10 text-primary",
   };
 
-  const partialError = error && hasItems && !loading;
+  const typeBigIcon: Record<CreateTab, React.ReactNode> = {
+    sintoma: <Stethoscope className="w-5 h-5" />,
+    vacuna: <Syringe className="w-5 h-5" />,
+    cita: <CalendarDays className="w-5 h-5" />,
+  };
 
   return (
     <div className="py-4 md:py-6 px-4 md:px-8">
       {showSkeleton && (
         <div className="space-y-4">
           <div className="h-8 bg-gray/20 rounded w-48 animate-pulse-gentle" />
-          <div className="flex gap-1 bg-gray/10 rounded-button p-1 w-fit animate-pulse-gentle">
-            <div className="h-8 w-16 bg-gray/20 rounded-button" />
-            <div className="h-8 w-20 bg-gray/20 rounded-button" />
-            <div className="h-8 w-20 bg-gray/20 rounded-button" />
-            <div className="h-8 w-16 bg-gray/20 rounded-button" />
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-gray/10 rounded-card animate-pulse-gentle" />
+            ))}
           </div>
           {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
         </div>
@@ -275,32 +245,36 @@ export default function HistorialPage() {
 
       {!showSkeleton && (
         <>
-          <h2 className="hidden md:block text-lg font-bold text-text mb-4">Mi Historial</h2>
+          <h2 className="hidden md:block text-lg font-bold text-text mb-6">Mi Salud</h2>
 
-          <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
-            {tabs.map((t) => {
-              const count = t.key === "todos"
-                ? sym.items.length + vac.items.length + appt.items.length
-                : t.key === "sintomas" ? sym.items.length
-                : t.key === "vacunas" ? vac.items.length
-                : appt.items.length;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={`flex items-center px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
-                    tab === t.key ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
-                  }`}
-                >
-                  {t.label}
-                  {count > 0 && (
-                    <span className="ml-1.5 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold bg-primary/20 text-primary rounded-full">
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-3 gap-3 mb-8">
+            <div className="bg-surface rounded-card p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center flex-shrink-0">
+                <Stethoscope className="w-5 h-5 text-info" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-text">{sym.items.length}</p>
+                <p className="text-xs text-gray">Síntomas</p>
+              </div>
+            </div>
+            <div className="bg-surface rounded-card p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                <Syringe className="w-5 h-5 text-success" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-text">{vac.items.length}</p>
+                <p className="text-xs text-gray">Vacunas</p>
+              </div>
+            </div>
+            <div className="bg-surface rounded-card p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <CalendarDays className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-text">{appt.items.length}</p>
+                <p className="text-xs text-gray">Citas</p>
+              </div>
+            </div>
           </div>
 
           {partialError && (
@@ -312,20 +286,44 @@ export default function HistorialPage() {
           {empty && !errorInitial && (
             <EmptyState
               icon={<ClipboardList className="w-5 h-5 text-primary" />}
-              title={emptyConfig[tab].title}
-              description={emptyConfig[tab].description}
+              title="No hay registros de salud"
+              description="Empezá registrando un síntoma, una vacuna o una cita. Pulso usa esta información para conocerte mejor."
+              action={{ label: "Registrar síntoma", onClick: () => { setCreateTab("sintoma"); setShowCreate(true); } }}
             />
           )}
 
           {items.length > 0 && (
-            <div className="space-y-3">
-              {items.map((item) => (
-                <HistoryCard
-                  key={`${item.type}-${item.id}`}
-                  item={item}
-                  onClick={() => handleDetail(item.type, item.raw)}
-                />
-              ))}
+            <div className="space-y-1">
+              {items.map((item, idx) => {
+                const period = getPeriod(item.rawDate);
+                const prevPeriod = idx > 0 ? getPeriod(items[idx - 1].rawDate) : null;
+                const showPeriod = period !== prevPeriod;
+
+                return (
+                  <div key={`${item.type}-${item.id}`}>
+                    {showPeriod && (
+                      <div className="flex items-center gap-3 py-3">
+                        <span className="text-xs font-bold text-gray tracking-widest">{periodLabel[period]}</span>
+                        <div className="flex-1 h-px bg-gray/10" />
+                      </div>
+                    )}
+                    <div
+                      className="bg-surface rounded-card p-5 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
+                      onClick={() => handleDetail(item.type, item.raw)}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-text text-sm leading-relaxed font-medium flex-1">{item.title}</p>
+                        <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${typeColors[item.type]}`}>
+                          {typeBigIcon[item.type]}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray mt-2">
+                        {getRelativeTime(item.rawDate)} · {getAbsoluteDate(item.rawDate, item.type)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </>
