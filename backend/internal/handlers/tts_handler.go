@@ -19,7 +19,7 @@ func NewTTSHandler(svc service.TTSService) *TTSHandler {
 }
 
 type TTSRequest struct {
-	Text string `json:"text" binding:"required,min=1,max=2000"`
+	Text string `json:"text" binding:"required,min=1,max=4096"`
 }
 
 func (h *TTSHandler) Synthesize(c *gin.Context) {

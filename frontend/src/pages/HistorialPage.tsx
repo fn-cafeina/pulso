@@ -162,12 +162,18 @@ export default function HistorialPage() {
   const [detail, setDetail] = useState<DetailData | null>(null);
   const initialLoad = useRef(true);
 
-  const loading = sym.loading || vac.loading || appt.loading;
-  const error = sym.error || vac.error || appt.error;
   const hasItems = sym.items.length > 0 || vac.items.length > 0 || appt.items.length > 0;
-  const loadingInitial = loading && !hasItems;
+  const anyLoading = sym.loading || vac.loading || appt.loading;
+  const loadingInitial = anyLoading && !hasItems;
   const showSkeleton = useDelayedLoading(loadingInitial);
-  const errorInitial = error && !hasItems && !loading;
+  const errors = useMemo(() => {
+    const e: { source: string; msg: string }[] = [];
+    if (sym.error) e.push({ source: "síntomas", msg: sym.error });
+    if (vac.error) e.push({ source: "vacunas", msg: vac.error });
+    if (appt.error) e.push({ source: "citas", msg: appt.error });
+    return e;
+  }, [sym.error, vac.error, appt.error]);
+  const errorInitial = errors.length > 0 && !hasItems && !anyLoading;
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -202,8 +208,8 @@ export default function HistorialPage() {
     return all.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
   }, [sym.items, vac.items, appt.items]);
 
-  const empty = !loading && items.length === 0;
-  const partialError = error && hasItems && !loading;
+  const empty = !anyLoading && items.length === 0;
+  const partialError = errors.length > 0 && hasItems && !anyLoading;
 
   const typeColors: Record<CreateTab, string> = {
     sintoma: "bg-info/10 text-info",
@@ -233,7 +239,11 @@ export default function HistorialPage() {
 
       {errorInitial && (
         <>
-          <AlertBanner message={error} onClose={() => { sym.clearError(); vac.clearError(); appt.clearError(); }} />
+          {errors.map((e) => (
+            <div key={e.source} className="mb-2">
+              <AlertBanner message={`${e.source}: ${e.msg}`} onClose={() => { sym.clearError(); vac.clearError(); appt.clearError(); }} />
+            </div>
+          ))}
           <button
             onClick={handleRefresh}
             className="mt-4 bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-button transition-all cursor-pointer"
@@ -278,8 +288,10 @@ export default function HistorialPage() {
           </div>
 
           {partialError && (
-            <div className="mb-4">
-              <AlertBanner message={error} onClose={() => { sym.clearError(); vac.clearError(); appt.clearError(); }} onRetry={handleRefresh} />
+            <div className="space-y-2 mb-4">
+              {errors.map((e) => (
+                <AlertBanner key={e.source} message={`${e.source}: ${e.msg}`} onClose={() => { sym.clearError(); vac.clearError(); appt.clearError(); }} onRetry={handleRefresh} />
+              ))}
             </div>
           )}
 

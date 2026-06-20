@@ -105,7 +105,7 @@ export default function MessageBubble({ msg }: { msg: Message }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ text: stripMarkdown(msg.content) }),
+        body: JSON.stringify({ text: stripMarkdown(msg.content).slice(0, 4096) }),
       });
 
       if (!resp.ok) {

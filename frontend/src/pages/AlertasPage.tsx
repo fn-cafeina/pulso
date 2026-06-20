@@ -135,7 +135,7 @@ function CreateForm({ form, setForm, creating, formDisabled, onCreate, onCancel,
 export default function AlertasPage() {
   const { rol } = useAuthStore();
   const { items, loading, error, meta, fetch, refresh, add, updateItem, removeItem, clearError } = useAlertsStore();
-  const { soloActivas, page, perPage, setSoloActivas, setPage, setPerPage } = useAlertFiltersStore();
+  const { soloActivas, nivel, departamento, page, perPage, setSoloActivas, setNivel, setDepartamento, setPage, setPerPage } = useAlertFiltersStore();
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingAlert, setEditingAlert] = useState<EpiAlert | null>(null);
@@ -154,10 +154,12 @@ export default function AlertasPage() {
   const buildParams = useCallback((pg: number): Record<string, unknown> => {
     const params: Record<string, unknown> = {};
     if (soloActivas) params.activas = true;
+    if (nivel) params.nivel = nivel;
+    if (departamento) params.departamento = departamento;
     params.page = pg;
     params.per_page = perPage;
     return params;
-  }, [soloActivas, perPage]);
+  }, [soloActivas, nivel, departamento, perPage]);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -321,23 +323,42 @@ export default function AlertasPage() {
             <>
               <h2 className="hidden md:block text-lg font-bold text-text mb-4">Alertas Epidemiológicas</h2>
 
-              <div className="flex gap-1 mb-6 bg-gray/10 rounded-button p-1 w-fit">
-                <button
-                  onClick={() => setSoloActivas(true)}
-                  className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
-                    soloActivas ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
-                  }`}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <div className="flex gap-1 bg-gray/10 rounded-button p-1 w-fit">
+                  <button
+                    onClick={() => setSoloActivas(true)}
+                    className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                      soloActivas ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+                    }`}
+                  >
+                    Activas
+                  </button>
+                  <button
+                    onClick={() => setSoloActivas(false)}
+                    className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                      !soloActivas ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
+                    }`}
+                  >
+                    Todas
+                  </button>
+                </div>
+                <select
+                  value={nivel}
+                  onChange={(e) => setNivel(e.target.value)}
+                  className="rounded-button border border-gray/30 bg-surface px-3 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                 >
-                  Activas
-                </button>
-                <button
-                  onClick={() => setSoloActivas(false)}
-                  className={`px-4 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
-                    !soloActivas ? "bg-surface text-text shadow-xs" : "text-gray hover:text-text"
-                  }`}
-                >
-                  Todas
-                </button>
+                  <option value="">Todos los niveles</option>
+                  {nivelesForm.map((n) => (
+                    <option key={n.value} value={n.value}>{n.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={departamento}
+                  onChange={(e) => setDepartamento(e.target.value)}
+                  placeholder="Departamento"
+                  className="rounded-button border border-gray/30 bg-surface px-3 py-1.5 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors w-36"
+                />
               </div>
             </>
           )}

@@ -181,7 +181,7 @@ export default function RecordatoriosPage() {
     try {
       await remove(id);
       useToastStore.getState().add("Recordatorio eliminado");
-      if (tab === "historial" && activeItems.length === 0 && historyPage > 1) {
+      if (tab === "historial" && activeItems.length === 1 && historyPage > 1) {
         setHistoryPage(historyPage - 1);
       }
     } catch {
