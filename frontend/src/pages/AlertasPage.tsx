@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { AlertTriangle, Plus, Pencil, Trash2, Ban } from "lucide-react";
+import { AlertTriangle, Plus, Pencil, Trash2, Ban, Filter } from "lucide-react";
 import { useAuthStore } from "../stores/auth";
 import { useAlertFiltersStore } from "../stores/alertFilters";
 import { useAlertsStore, deactivateAlert } from "../stores/alerts";
@@ -146,6 +146,8 @@ export default function AlertasPage() {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [detailAlert, setDetailAlert] = useState<EpiAlert | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
   const initialLoad = useRef(true);
 
   const loadingInitial = loading && items.length === 0 && !creating;
@@ -168,7 +170,19 @@ export default function AlertasPage() {
     } else {
       refresh(buildParams(page));
     }
-  }, [soloActivas, page, perPage, fetch, refresh, buildParams]);
+  }, [soloActivas, nivel, departamento, page, perPage, fetch, refresh, buildParams]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilters(false);
+      }
+    }
+    if (showFilters) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showFilters]);
 
   function handleRefresh() {
     fetch(buildParams(page));
@@ -323,7 +337,7 @@ export default function AlertasPage() {
             <>
               <h2 className="hidden md:block text-lg font-bold text-text mb-4">Alertas Epidemiológicas</h2>
 
-              <div className="flex flex-wrap items-center gap-2 mb-6">
+              <div className="flex items-center gap-2 mb-6">
                 <div className="flex gap-1 bg-gray/10 rounded-button p-1 w-fit">
                   <button
                     onClick={() => setSoloActivas(true)}
@@ -342,23 +356,50 @@ export default function AlertasPage() {
                     Todas
                   </button>
                 </div>
-                <select
-                  value={nivel}
-                  onChange={(e) => setNivel(e.target.value)}
-                  className="rounded-button border border-gray/30 bg-surface px-3 py-1.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                >
-                  <option value="">Todos los niveles</option>
-                  {nivelesForm.map((n) => (
-                    <option key={n.value} value={n.value}>{n.label}</option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  value={departamento}
-                  onChange={(e) => setDepartamento(e.target.value)}
-                  placeholder="Departamento"
-                  className="rounded-button border border-gray/30 bg-surface px-3 py-1.5 text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors w-36"
-                />
+                <div ref={filterRef} className="relative">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
+                      nivel || departamento ? "bg-primary/10 text-primary" : "text-gray hover:text-text bg-gray/10 hover:bg-gray/15"
+                    }`}
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    Filtrar
+                  </button>
+                  {showFilters && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 bg-surface rounded-card shadow-lg border border-gray/10 p-4 w-64 animate-scale-in">
+                      <p className="text-xs font-semibold text-gray mb-2">Nivel</p>
+                      <div className="space-y-1 mb-4">
+                        <label className="flex items-center gap-2 px-2 py-1.5 rounded-button text-sm cursor-pointer hover:bg-gray/10 transition-colors">
+                          <input type="radio" name="nivel" checked={nivel === ""} onChange={() => setNivel("")} className="accent-primary" />
+                          <span className="text-text">Todos</span>
+                        </label>
+                        {nivelesForm.map((n) => (
+                          <label key={n.value} className="flex items-center gap-2 px-2 py-1.5 rounded-button text-sm cursor-pointer hover:bg-gray/10 transition-colors">
+                            <input type="radio" name="nivel" checked={nivel === n.value} onChange={() => setNivel(n.value)} className="accent-primary" />
+                            <span className="text-text">{n.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <p className="text-xs font-semibold text-gray mb-2">Departamento</p>
+                      <input
+                        type="text"
+                        value={departamento}
+                        onChange={(e) => setDepartamento(e.target.value)}
+                        placeholder="Ej: Managua, León..."
+                        className="w-full px-3 py-1.5 rounded-button border border-gray/30 bg-surface text-sm text-text placeholder:text-gray focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      />
+                      {(nivel || departamento) && (
+                        <button
+                          onClick={() => { setNivel(""); setDepartamento(""); }}
+                          className="mt-3 text-xs text-danger hover:text-danger/80 font-medium transition-colors cursor-pointer"
+                        >
+                          Limpiar filtros
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
