@@ -147,8 +147,19 @@ export default function AlertasPage() {
   const [deleting, setDeleting] = useState(false);
   const [detailAlert, setDetailAlert] = useState<EpiAlert | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [filterOffset, setFilterOffset] = useState(0);
   const filterRef = useRef<HTMLDivElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
   const initialLoad = useRef(true);
+
+  useEffect(() => {
+    if (showFilters && filterButtonRef.current) {
+      const rect = filterButtonRef.current.getBoundingClientRect();
+      const gap = 12;
+      const overflow = rect.left + 224 + gap - window.innerWidth;
+      setFilterOffset(overflow > 0 ? -(overflow) : 0);
+    }
+  }, [showFilters]);
 
   const loadingInitial = loading && items.length === 0 && !creating;
   const showSkeleton = useDelayedLoading(loadingInitial);
@@ -358,6 +369,7 @@ export default function AlertasPage() {
                 </div>
                 <div ref={filterRef} className="relative">
                   <button
+                    ref={filterButtonRef}
                     onClick={() => setShowFilters(!showFilters)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-button text-sm font-medium transition-all cursor-pointer ${
                       nivel || departamento ? "bg-primary/10 text-primary" : "text-gray hover:text-text bg-gray/10 hover:bg-gray/15"
@@ -367,7 +379,7 @@ export default function AlertasPage() {
                     Filtrar
                   </button>
                   {showFilters && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 bg-surface rounded-card shadow-lg border border-gray/10 p-4 w-64 animate-scale-in">
+                    <div className="absolute top-full mt-2 z-50 bg-surface rounded-card shadow-lg border border-gray/10 p-4 w-56 animate-scale-in" style={{ left: filterOffset }}>
                       <p className="text-xs font-semibold text-gray mb-2">Nivel</p>
                       <div className="space-y-1 mb-4">
                         <label className="flex items-center gap-2 px-2 py-1.5 rounded-button text-sm cursor-pointer hover:bg-gray/10 transition-colors">
