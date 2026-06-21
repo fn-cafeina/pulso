@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { ClipboardList, Stethoscope, Syringe, CalendarDays, Plus } from "lucide-react";
+import { ClipboardList, Stethoscope, Syringe, CalendarDays, Plus, Pencil, Trash2 } from "lucide-react";
 import { useSymptomsStore } from "../stores/symptoms";
 import { useVaccinesStore } from "../stores/vaccines";
 import { useAppointmentsStore } from "../stores/appointments";
+import { useToastStore } from "../stores/toast";
 import { useDelayedLoading } from "../lib/useDelayedLoading";
 import Modal from "../components/ui/Modal";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import SkeletonCard from "../components/ui/SkeletonCard";
 import EmptyState from "../components/ui/EmptyState";
 import AlertBanner from "../components/ui/AlertBanner";
@@ -160,6 +162,10 @@ export default function HistorialPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [createTab, setCreateTab] = useState<CreateTab>("sintoma");
   const [detail, setDetail] = useState<DetailData | null>(null);
+  const [editing, setEditing] = useState<DetailData | null>(null);
+  const [editForm, setEditForm] = useState({ descripcion: "", fecha: "" });
+  const [confirmDelete, setConfirmDelete] = useState<DetailData | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const initialLoad = useRef(true);
 
   const hasItems = sym.items.length > 0 || vac.items.length > 0 || appt.items.length > 0;
@@ -197,6 +203,65 @@ export default function HistorialPage() {
 
   function handleDetail(type: CreateTab, raw: SymptomReport | VaccinationRecord | Appointment) {
     setDetail({ type, raw });
+  }
+
+  function handleEditClick(type: CreateTab, raw: SymptomReport | VaccinationRecord | Appointment) {
+    if ("fecha" in raw && typeof raw.fecha === "string") {
+      setEditForm({ descripcion: (raw as SymptomReport).descripcion || "", fecha: raw.fecha.slice(0, 10) });
+    } else if ("fecha_aplicacion" in raw && typeof raw.fecha_aplicacion === "string") {
+      setEditForm({ descripcion: (raw as VaccinationRecord).nombre_vacuna || "", fecha: raw.fecha_aplicacion.slice(0, 10) });
+    } else if ("fecha" in raw && typeof raw.fecha === "string") {
+      const d = new Date(raw.fecha);
+      const pad = (n: number) => String(n).padStart(2, "0");
+      setEditForm({
+        descripcion: (raw as Appointment).descripcion || "",
+        fecha: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
+      });
+    }
+    setEditing({ type, raw });
+  }
+
+  async function handleEditSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editing || !editForm.descripcion.trim()) return;
+    setSubmitting(true);
+    try {
+      const body: Record<string, unknown> = {};
+      if (editing.type === "sintoma") {
+        body.descripcion = editForm.descripcion.trim();
+        if (editForm.fecha) body.fecha = new Date(editForm.fecha + "T00:00:00").toISOString();
+        await sym.updateItem(editing.raw.id, body);
+      } else if (editing.type === "vacuna") {
+        body.nombre_vacuna = editForm.descripcion.trim();
+        if (editForm.fecha) body.fecha_aplicacion = new Date(editForm.fecha + "T00:00:00").toISOString();
+        await vac.updateItem(editing.raw.id, body);
+      } else {
+        body.descripcion = editForm.descripcion.trim();
+        if (editForm.fecha) body.fecha = new Date(editForm.fecha).toISOString();
+        await appt.updateItem(editing.raw.id, body);
+      }
+      useToastStore.getState().add("Registro actualizado");
+      setEditing(null);
+    } catch {
+      useToastStore.getState().add("Error al actualizar", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirmDelete) return;
+    const { type, raw } = confirmDelete;
+    try {
+      if (type === "sintoma") await sym.removeItem(raw.id);
+      else if (type === "vacuna") await vac.removeItem(raw.id);
+      else await appt.removeItem(raw.id);
+      useToastStore.getState().add("Registro eliminado");
+      setConfirmDelete(null);
+      if (detail?.raw.id === raw.id) setDetail(null);
+    } catch {
+      useToastStore.getState().add("Error al eliminar", "error");
+    }
   }
 
   const items = useMemo(() => {
@@ -325,9 +390,25 @@ export default function HistorialPage() {
                     >
                       <div className="flex items-center justify-between gap-3 min-w-0">
                         <p className="text-text text-sm leading-relaxed font-medium flex-1 break-words">{item.title}</p>
-                        <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${typeColors[item.type]}`}>
-                          {typeBigIcon[item.type]}
-                        </span>
+                        <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleEditClick(item.type, item.raw)}
+                            className="text-gray hover:text-primary transition-colors cursor-pointer"
+                            title="Editar"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete({ type: item.type, raw: item.raw })}
+                            className="text-gray hover:text-danger transition-colors cursor-pointer"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center ${typeColors[item.type]}`}>
+                            {typeBigIcon[item.type]}
+                          </span>
+                        </div>
                       </div>
                       <p className="text-xs text-gray mt-2 break-words">
                         {getRelativeTime(item.rawDate)} · {getAbsoluteDate(item.rawDate, item.type)}
@@ -386,6 +467,73 @@ export default function HistorialPage() {
           />
         )}
       </Modal>
+
+      <Modal
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={`Editar ${typeLabel[editing?.type ?? "sintoma"].toLowerCase()}`}
+        size="sm"
+      >
+        {editing && (
+          <form onSubmit={handleEditSave} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-text mb-1">
+                {editing.type === "vacuna" ? "Nombre de la vacuna" : "Descripción"} <span className="text-danger">*</span>
+              </label>
+              {editing.type === "vacuna" ? (
+                <input
+                  type="text"
+                  value={editForm.descripcion}
+                  onChange={(e) => setEditForm({ ...editForm, descripcion: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-button border bg-surface text-text text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary"
+                  required
+                />
+              ) : (
+                <textarea
+                  value={editForm.descripcion}
+                  onChange={(e) => setEditForm({ ...editForm, descripcion: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary resize-none"
+                  required
+                />
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text mb-1">
+                {editing.type === "cita" ? "Fecha y hora" : "Fecha"}
+              </label>
+              <input
+                type={editing.type === "cita" ? "datetime-local" : "date"}
+                value={editForm.fecha}
+                onChange={(e) => setEditForm({ ...editForm, fecha: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-button border bg-surface text-text text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button type="button" onClick={() => setEditing(null)} className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5">
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={submitting || !editForm.descripcion.trim()}
+                className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
+              >
+                {submitting ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDelete}
+        title="Eliminar registro"
+        message="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        confirmLoading={submitting}
+      />
 
       {!showSkeleton && !errorInitial && (
         <button
