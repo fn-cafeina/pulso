@@ -3,10 +3,12 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type HealthHandler struct {
@@ -96,4 +98,116 @@ func (h *HealthHandler) CreateSymptom(c *gin.Context) {
 	}
 
 	SuccessMsg(c, http.StatusCreated, "síntoma registrado", report)
+}
+
+func (h *HealthHandler) UpdateSymptom(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "id inválido")
+		return
+	}
+
+	var req UpdateSymptomRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	fecha := time.Now()
+	if req.Fecha != "" {
+		fecha, err = parseTime(req.Fecha)
+		if err != nil {
+			Error(c, http.StatusBadRequest, "formato de fecha inválido")
+			return
+		}
+	}
+
+	report, err := h.healthSvc.UpdateSymptom(uint(id), userID.(uint), req.Descripcion, fecha)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			Error(c, http.StatusNotFound, "síntoma no encontrado")
+			return
+		}
+		InternalError(c, err)
+		return
+	}
+
+	SuccessMsg(c, http.StatusOK, "síntoma actualizado", report)
+}
+
+func (h *HealthHandler) DeleteSymptom(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "id inválido")
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	if err := h.healthSvc.DeleteSymptom(uint(id), userID.(uint)); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			Error(c, http.StatusNotFound, "síntoma no encontrado")
+			return
+		}
+		InternalError(c, err)
+		return
+	}
+
+	Msg(c, http.StatusOK, "síntoma eliminado")
+}
+
+func (h *HealthHandler) UpdateVaccine(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "id inválido")
+		return
+	}
+
+	var req UpdateVaccineRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	fecha := time.Now()
+	if req.FechaAplicacion != "" {
+		fecha, err = parseTime(req.FechaAplicacion)
+		if err != nil {
+			Error(c, http.StatusBadRequest, "formato de fecha inválido")
+			return
+		}
+	}
+
+	record, err := h.healthSvc.UpdateVaccine(uint(id), userID.(uint), req.NombreVacuna, fecha)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			Error(c, http.StatusNotFound, "vacuna no encontrada")
+			return
+		}
+		InternalError(c, err)
+		return
+	}
+
+	SuccessMsg(c, http.StatusOK, "vacuna actualizada", record)
+}
+
+func (h *HealthHandler) DeleteVaccine(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "id inválido")
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	if err := h.healthSvc.DeleteVaccine(uint(id), userID.(uint)); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			Error(c, http.StatusNotFound, "vacuna no encontrada")
+			return
+		}
+		InternalError(c, err)
+		return
+	}
+
+	Msg(c, http.StatusOK, "vacuna eliminada")
 }

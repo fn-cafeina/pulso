@@ -20,6 +20,21 @@ type CreateAppointmentRequest struct {
 	Descripcion string `json:"descripcion" binding:"required"`
 }
 
+type UpdateSymptomRequest struct {
+	Descripcion string `json:"descripcion"`
+	Fecha       string `json:"fecha"`
+}
+
+type UpdateVaccineRequest struct {
+	NombreVacuna    string `json:"nombre_vacuna"`
+	FechaAplicacion string `json:"fecha_aplicacion"`
+}
+
+type UpdateAppointmentRequest struct {
+	Fecha       string `json:"fecha"`
+	Descripcion string `json:"descripcion"`
+}
+
 type CreateServiceRequest struct {
 	Nombre   string  `json:"nombre" binding:"required"`
 	Tipo     string  `json:"tipo" binding:"required,oneof=hospital clinica puesto_salud"`

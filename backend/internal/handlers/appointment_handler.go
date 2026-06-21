@@ -3,9 +3,11 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AppointmentHandler struct {
@@ -52,4 +54,57 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 	}
 
 	SuccessMsg(c, http.StatusCreated, "cita creada", appt)
+}
+
+func (h *AppointmentHandler) Update(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "id inválido")
+		return
+	}
+
+	var req UpdateAppointmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	fecha, err := parseTime(req.Fecha)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "formato de fecha inválido")
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	appt, err := h.apptSvc.Update(uint(id), userID.(uint), req.Descripcion, fecha)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			Error(c, http.StatusNotFound, "cita no encontrada")
+			return
+		}
+		InternalError(c, err)
+		return
+	}
+
+	SuccessMsg(c, http.StatusOK, "cita actualizada", appt)
+}
+
+func (h *AppointmentHandler) Delete(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		Error(c, http.StatusBadRequest, "id inválido")
+		return
+	}
+
+	userID, _ := c.Get("user_id")
+	if err := h.apptSvc.Delete(uint(id), userID.(uint)); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			Error(c, http.StatusNotFound, "cita no encontrada")
+			return
+		}
+		InternalError(c, err)
+		return
+	}
+
+	Msg(c, http.StatusOK, "cita eliminada")
 }

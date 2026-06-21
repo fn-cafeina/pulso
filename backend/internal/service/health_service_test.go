@@ -53,6 +53,64 @@ func (m *mockHealthRepo) FindVaccinesByUserID(userID uint) ([]models.Vaccination
 	return result, nil
 }
 
+func (m *mockHealthRepo) FindSymptomByID(id, userID uint) (*models.SymptomReport, error) {
+	for _, s := range m.symptoms {
+		if s.ID == id && s.UserID == userID {
+			return &s, nil
+		}
+	}
+	return nil, errors.New("not found")
+}
+
+func (m *mockHealthRepo) UpdateSymptom(report *models.SymptomReport) error {
+	for i, s := range m.symptoms {
+		if s.ID == report.ID {
+			m.symptoms[i] = *report
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
+
+func (m *mockHealthRepo) DeleteSymptom(id, userID uint) error {
+	for i, s := range m.symptoms {
+		if s.ID == id && s.UserID == userID {
+			m.symptoms = append(m.symptoms[:i], m.symptoms[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
+
+func (m *mockHealthRepo) FindVaccineByID(id, userID uint) (*models.VaccinationRecord, error) {
+	for _, v := range m.vaccines {
+		if v.ID == id && v.UserID == userID {
+			return &v, nil
+		}
+	}
+	return nil, errors.New("not found")
+}
+
+func (m *mockHealthRepo) UpdateVaccine(record *models.VaccinationRecord) error {
+	for i, v := range m.vaccines {
+		if v.ID == record.ID {
+			m.vaccines[i] = *record
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
+
+func (m *mockHealthRepo) DeleteVaccine(id, userID uint) error {
+	for i, v := range m.vaccines {
+		if v.ID == id && v.UserID == userID {
+			m.vaccines = append(m.vaccines[:i], m.vaccines[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
+
 func TestCreateSymptom_Success(t *testing.T) {
 	svc := service.NewHealthService(&mockHealthRepo{})
 	report, err := svc.CreateSymptom(1, "fiebre", time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC))

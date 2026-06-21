@@ -33,6 +33,35 @@ func (m *mockAppointmentRepo) FindByUserID(userID uint) ([]models.Appointment, e
 	return result, nil
 }
 
+func (m *mockAppointmentRepo) FindByID(id, userID uint) (*models.Appointment, error) {
+	for _, a := range m.appts {
+		if a.ID == id && a.UserID == userID {
+			return &a, nil
+		}
+	}
+	return nil, errors.New("not found")
+}
+
+func (m *mockAppointmentRepo) Update(appt *models.Appointment) error {
+	for i, a := range m.appts {
+		if a.ID == appt.ID {
+			m.appts[i] = *appt
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
+
+func (m *mockAppointmentRepo) Delete(id, userID uint) error {
+	for i, a := range m.appts {
+		if a.ID == id && a.UserID == userID {
+			m.appts = append(m.appts[:i], m.appts[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("not found")
+}
+
 func TestAppointmentCreate_Success(t *testing.T) {
 	svc := service.NewAppointmentService(&mockAppointmentRepo{})
 	appt, err := svc.Create(1, "Control general", time.Date(2026, 6, 1, 10, 0, 0, 0, time.UTC))

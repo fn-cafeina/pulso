@@ -70,6 +70,30 @@ func (m *mockAIHealthRepo) FindVaccinesByUserID(userID uint) ([]models.Vaccinati
 	return m.vaccines, nil
 }
 
+func (m *mockAIHealthRepo) FindSymptomByID(id, userID uint) (*models.SymptomReport, error) {
+	return nil, nil
+}
+
+func (m *mockAIHealthRepo) UpdateSymptom(report *models.SymptomReport) error {
+	return nil
+}
+
+func (m *mockAIHealthRepo) DeleteSymptom(id, userID uint) error {
+	return nil
+}
+
+func (m *mockAIHealthRepo) FindVaccineByID(id, userID uint) (*models.VaccinationRecord, error) {
+	return nil, nil
+}
+
+func (m *mockAIHealthRepo) UpdateVaccine(record *models.VaccinationRecord) error {
+	return nil
+}
+
+func (m *mockAIHealthRepo) DeleteVaccine(id, userID uint) error {
+	return nil
+}
+
 type mockAIApptRepo struct {
 	appts []models.Appointment
 }
@@ -80,6 +104,18 @@ func (m *mockAIApptRepo) Create(appt *models.Appointment) error {
 
 func (m *mockAIApptRepo) FindByUserID(userID uint) ([]models.Appointment, error) {
 	return m.appts, nil
+}
+
+func (m *mockAIApptRepo) FindByID(id, userID uint) (*models.Appointment, error) {
+	return nil, nil
+}
+
+func (m *mockAIApptRepo) Update(appt *models.Appointment) error {
+	return nil
+}
+
+func (m *mockAIApptRepo) Delete(id, userID uint) error {
+	return nil
 }
 
 func TestAIConsult_ProviderNil(t *testing.T) {
