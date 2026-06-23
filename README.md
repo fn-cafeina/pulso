@@ -46,4 +46,4 @@ npm run dev             # Frontend :5173
 
 ## Licencia
 
-MIT © Jasmir Medina — Hackathon Nicaragua 2026
+GNU AGPLv3 © Jasmir Medina — Hackathon Nicaragua 2026
