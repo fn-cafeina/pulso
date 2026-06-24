@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { ClipboardList, Stethoscope, Syringe, CalendarDays, Plus, Pencil, Trash2 } from "lucide-react";
+import { ClipboardList, Stethoscope, Syringe, CalendarDays, Plus, Pencil, Trash2, type LucideIcon } from "lucide-react";
 import { useSymptomsStore } from "../stores/symptoms";
 import { useVaccinesStore } from "../stores/vaccines";
 import { useAppointmentsStore } from "../stores/appointments";
@@ -282,10 +282,10 @@ export default function HistorialPage() {
     cita: "bg-primary/10 text-primary",
   };
 
-  const typeBigIcon: Record<CreateTab, React.ReactNode> = {
-    sintoma: <Stethoscope className="w-5 h-5" />,
-    vacuna: <Syringe className="w-5 h-5" />,
-    cita: <CalendarDays className="w-5 h-5" />,
+  const typeIconComponent: Record<CreateTab, LucideIcon> = {
+    sintoma: Stethoscope,
+    vacuna: Syringe,
+    cita: CalendarDays,
   };
 
   return (
@@ -320,7 +320,7 @@ export default function HistorialPage() {
 
       {!showSkeleton && (
         <>
-          <h2 className="hidden md:block text-lg font-bold text-text mb-6">Mi Salud</h2>
+          <h2 className="hidden md:block text-lg font-bold text-text mb-6">Mi Historial</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
             <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
@@ -360,16 +360,16 @@ export default function HistorialPage() {
             </div>
           )}
 
-          {empty && !errorInitial && (
-            <EmptyState
-              icon={<ClipboardList className="w-5 h-5 text-primary" />}
-              title="No hay registros de salud"
-              description="Empezá registrando un síntoma, una vacuna o una cita. Pulso usa esta información para conocerte mejor."
-              action={{ label: "Registrar síntoma", onClick: () => { setCreateTab("sintoma"); setShowCreate(true); } }}
-            />
-          )}
+          <div className="transition-opacity duration-200">
+            {empty && !errorInitial && (
+              <EmptyState
+                icon={<ClipboardList className="w-5 h-5 text-primary" />}
+                title="No hay registros en tu historial"
+                description="Empezá registrando un síntoma, una vacuna o una cita. Pulso usa esta información para conocerte mejor."
+              />
+            )}
 
-          {items.length > 0 && (
+            {items.length > 0 && (
             <div className="space-y-1 pb-20 md:pb-0">
               {items.map((item, idx) => {
                 const period = getPeriod(item.rawDate);
@@ -385,32 +385,42 @@ export default function HistorialPage() {
                       </div>
                     )}
                     <div
-                      className="bg-surface rounded-card p-5 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
+                      className="bg-surface rounded-card p-6 transition-all animate-fade-in-up cursor-pointer hover:ring-1 hover:ring-primary/20"
                       onClick={() => handleDetail(item.type, item.raw)}
                     >
-                      <div className="flex items-center justify-between gap-3 min-w-0">
-                        <p className="text-text text-sm leading-relaxed font-medium flex-1 break-words">{item.title}</p>
-                        <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {(() => {
+                            const Icon = typeIconComponent[item.type];
+                            return (
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold ${typeColors[item.type]}`}>
+                                <Icon className="w-3 h-3" />
+                                {typeLabel[item.type]}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleEditClick(item.type, item.raw)}
-                            className="text-gray hover:text-primary transition-colors cursor-pointer"
+                            className="text-xs text-gray hover:text-primary font-medium transition-colors cursor-pointer flex items-center gap-1"
                             title="Editar"
                           >
-                            <Pencil className="w-4 h-4" />
+                            <Pencil className="w-3.5 h-3.5" />
+                            <span className="hidden md:inline">Editar</span>
                           </button>
                           <button
                             onClick={() => setConfirmDelete({ type: item.type, raw: item.raw })}
-                            className="text-gray hover:text-danger transition-colors cursor-pointer"
+                            className="text-xs text-gray hover:text-danger font-medium transition-colors cursor-pointer flex items-center gap-1"
                             title="Eliminar"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span className="hidden md:inline">Eliminar</span>
                           </button>
-                          <span className={`w-8 h-8 rounded-full flex items-center justify-center ${typeColors[item.type]}`}>
-                            {typeBigIcon[item.type]}
-                          </span>
                         </div>
                       </div>
-                      <p className="text-xs text-gray mt-2 break-words">
+                      <h3 className="font-semibold text-text break-words">{item.title}</h3>
+                      <p className="text-xs text-gray mt-1 break-words">
                         {getRelativeTime(item.rawDate)} · {getAbsoluteDate(item.rawDate, item.type)}
                       </p>
                     </div>
@@ -419,6 +429,7 @@ export default function HistorialPage() {
               })}
             </div>
           )}
+          </div>
         </>
       )}
 
