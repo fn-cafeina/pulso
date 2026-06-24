@@ -58,7 +58,7 @@ Component → Store (Zustand) → createCrudApi → Backend
 
 - **Layouts**: `AuthLayout` (login/register), `AppLayout` (sidebar + bottom nav + `<Outlet />`)
 - **Routing**: react-router-dom v7, `<AuthGuard>` wrapping `AppLayout`, split auth/app
-- **Stores**: Zustand 5 — `auth`, `alerts`, `alertFilters`, `reminders`, `toast`
+- **Stores**: Zustand 5 — `auth`, `alerts`, `alertFilters`, `appointments`, `reminders`, `symptoms`, `toast`, `vaccines`
 - **CRUD**: `createCrudApi(path)` returns `{ list, getById, create, update, del, action }`; `createCrudStore(api)` builds a Zustand store around it. Stores have `refresh(params?)` — fetches items without setting `loading: true` (used for filter changes).
 - **Toast**: `useToastStore` (queue of toasts, each 4s auto-dismiss) + `ToastContainer` mounted in `main.tsx`, positioned `bottom-24 md:bottom-4 right-4`
 - **Theme**: `ThemeToggle` component with light/dark via Tailwind CSS `@variant dark`

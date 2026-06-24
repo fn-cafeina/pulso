@@ -100,6 +100,8 @@ Base URL: `http://localhost:8080`
 |--------|------|------|-------------|
 | GET | `/symptoms` | ✅ | Listar síntomas del usuario |
 | POST | `/symptoms` | ✅ | Reportar síntoma |
+| PUT | `/symptoms/:id` | ✅ | Actualizar síntoma |
+| DELETE | `/symptoms/:id` | ✅ | Eliminar síntoma |
 
 <details>
 <summary><code>POST /symptoms</code></summary>
@@ -130,25 +132,7 @@ Base URL: `http://localhost:8080`
 ```
 </details>
 
-<details>
-<summary><code>GET /symptoms</code></summary>
-
-**Response 200:**
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "user_id": 1,
-      "descripcion": "Dolor de cabeza y fiebre",
-      "fecha": "2026-05-20T00:00:00Z",
-      "created_at": "2026-05-25T10:00:00Z",
-      "updated_at": "2026-05-25T10:00:00Z"
-    }
-  ]
-}
-```
-</details>
+`GET`, `PUT` y `DELETE` siguen el mismo envelope. `PUT /symptoms/:id` acepta los mismos campos que POST (todos opcionales). `DELETE /symptoms/:id` retorna `{ "message" }`. Los listados devuelven `{ "data": [ ... ] }`.
 
 ---
 
@@ -158,6 +142,8 @@ Base URL: `http://localhost:8080`
 |--------|------|------|-------------|
 | GET | `/vaccines` | ✅ | Listar vacunas del usuario |
 | POST | `/vaccines` | ✅ | Registrar vacuna |
+| PUT | `/vaccines/:id` | ✅ | Actualizar vacuna |
+| DELETE | `/vaccines/:id` | ✅ | Eliminar vacuna |
 
 <details>
 <summary><code>POST /vaccines</code></summary>
@@ -188,14 +174,7 @@ Base URL: `http://localhost:8080`
 ```
 </details>
 
-<details>
-<summary><code>GET /vaccines</code></summary>
-
-**Response 200:**
-```json
-{ "data": [ { "id": 1, "user_id": 1, "nombre_vacuna": "Influenza", ... } ] }
-```
-</details>
+`GET`, `PUT` y `DELETE` siguen el mismo envelope y patrón que síntomas.
 
 ---
 
@@ -205,6 +184,8 @@ Base URL: `http://localhost:8080`
 |--------|------|------|-------------|
 | GET | `/appointments` | ✅ | Listar citas del usuario |
 | POST | `/appointments` | ✅ | Agendar cita |
+| PUT | `/appointments/:id` | ✅ | Actualizar cita |
+| DELETE | `/appointments/:id` | ✅ | Eliminar cita |
 
 <details>
 <summary><code>POST /appointments</code></summary>
@@ -235,14 +216,7 @@ Crea recordatorio automático tipo `cita`.
 ```
 </details>
 
-<details>
-<summary><code>GET /appointments</code></summary>
-
-**Response 200:**
-```json
-{ "data": [ { "id": 1, "user_id": 1, "fecha": "2026-06-10T09:00:00Z", "descripcion": "Control general", ... } ] }
-```
-</details>
+`GET`, `PUT` y `DELETE` siguen el mismo envelope y patrón que síntomas.
 
 ---
 
@@ -389,7 +363,7 @@ Todos los campos opcionales en update.
 <details>
 <summary><code>GET /events</code> — listar todos</summary>
 
-`?upcoming=true` filita solo eventos con `fecha_inicio >= now`.
+`?upcoming=true` filtra solo eventos con `fecha_inicio >= now`.
 
 **Response 200:**
 ```json

@@ -4,58 +4,30 @@
 
 ```
 backend/
-├── cmd/api/main.go           # Entry point: init DB, DI, routes
+├── cmd/api/          # Entry point, route registration, DI
 ├── internal/
-│   ├── ai/nvidia.go          # Proveedor NVIDIA NIM (OpenAI-compatible)
-│   ├── config/config.go      # Env vars via godotenv
-│   ├── db/sqlite.go          # Conexión GORM + AutoMigrate (9 modelos)
-│   ├── handlers/             # Handlers HTTP (Gin)
-│   │   ├── ai_handler.go
-│   │   ├── alert_handler.go
-│   │   ├── appointment_handler.go
-│   │   ├── auth_handler.go
-│   │   ├── event_handler.go
-│   │   ├── health_handler.go
-│   │   ├── pagination.go     # Parseo de ?page=&per_page=
-│   │   ├── reminder_handler.go
-│   │   ├── requests.go       # DTOs tipados para create/update
-│   │   ├── response.go       # Envoltorio uniforme: Success, Error, Msg
-│   │   ├── service_handler.go
-│   │   └── tts_handler.go      # POST /tts → Edge TTS
-│   ├── middleware/
-│   │   ├── auth.go           # JWT Bearer validation
-│   │   ├── role.go           # RoleRequired("health_worker")
-│   │   └── cors.go           # CORS configurable vía CORS_ORIGIN
-│   ├── models/               # 9 modelos GORM (embed BaseModel)
-│   │   ├── ai.go
-│   │   ├── alert.go
-│   │   ├── appointment.go
-│   │   ├── base.go           # BaseModel: id, created_at, updated_at, deleted_at oculto
-│   │   ├── event.go
-│   │   ├── health.go         # SymptomReport + VaccinationRecord
-│   │   ├── reminder.go
-│   │   ├── service.go
-│   │   └── user.go
-│   ├── repository/           # Interfaces + implementaciones GORM
-│   ├── service/              # Lógica de negocio + tests
-│   │   ├── geo.go            # Haversine (distancia entre coordenadas)
-│   │   └── tts_service.go    # TTS con cache + timeout
-│   └── tts/
-│       ├── client.go         # Edge TTS via foresturquhart/edge-tts
-│       └── cache.go          # Cache SHA256 en disco
-├── .env.example               # Variables de entorno requeridas
-├── .air.toml                  # Config hot-reload (Air)
-├── Makefile                   # dev, build, test, vet, lint, tidy, clean
+│   ├── ai/           # NVIDIA NIM provider
+│   ├── config/       # Env vars via godotenv
+│   ├── db/           # SQLite connection, AutoMigrate (9 models)
+│   ├── handlers/     # HTTP handlers (Gin)
+│   ├── middleware/   # JWT, roles, CORS
+│   ├── models/       # 9 GORM models
+│   ├── repository/   # Data access interfaces + GORM implementations
+│   ├── service/      # Business logic + tests
+│   └── tts/          # Edge TTS client + disk cache
+├── .env.example
+├── .air.toml
+├── Makefile
 └── go.mod
 
 frontend/
 ├── src/
-├── package.json               # Vite + React + Tailwind CSS 4
-├── vite.config.ts             # Vite config (react + tailwindcss plugins)
+├── package.json
+├── vite.config.ts
 └── tsconfig.json
 
 scripts/
-└── dev.sh                     # Backend + frontend en paralelo
+└── dev.sh
 ```
 
 ## Capas
@@ -183,7 +155,7 @@ El servidor captura SIGINT/SIGTERM e inicia shutdown graceful con timeout de 10s
 Component → Store (Zustand: createCrudStore) → createCrudApi → apiFetch → Backend REST
 ```
 
-Los stores CRUD se construyen a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `meta`, `fetch`, `refresh`, `add`, `updateItem`, `removeItem` de forma consistente. Solo `alerts` usa este patrón; `reminders` tiene store manual por su lógica de tabs (pendientes/historial).
+Los stores CRUD se construyen a partir de `createCrudStore(createCrudApi(...))`, que expone `items`, `loading`, `error`, `meta`, `fetch`, `refresh`, `add`, `updateItem`, `removeItem` de forma consistente. `alerts`, `symptoms`, `vaccines` y `appointments` usan este patrón. `reminders` tiene store manual por su lógica de tabs (pendientes/historial).
 
 ### Componentes
 
@@ -195,11 +167,12 @@ src/
 │   ├── Home.tsx                Dashboard content (bienvenida, stats)
 │   ├── ai/                     ChatInterface, ChatInput, MessageBubble, SuggestionsPanel, useChat
 │   ├── auth/                   LoginForm, RegisterForm
+│   ├── historial/              CreateSymptomForm, CreateVaccineForm, CreateAppointmentForm
 │   ├── layout/                 AppLayout, AuthLayout, AuthGuard, SidebarNav, BottomNav, MobileDrawer, ThemeToggle, navConfig
 │   └── ui/                     Modal, ConfirmDialog, SkeletonCard, EmptyState, AlertBanner, Pagination, ToastContainer
 ├── pages/                      DashboardPage, AsistentePage, AlertasPage, RecordatoriosPage, HistorialPage, EventosPage, ServiciosPage, LoginPage, RegisterPage, PlaceholderPage
-├── stores/                     auth, alerts, alertFilters, reminders, toast
-├── lib/                        api, createCrudApi, createStore (createCrudStore), useDelayedLoading, theme
+├── stores/                     auth, alerts, alertFilters, appointments, reminders, symptoms, toast, vaccines
+├── lib/                        api, createCrudApi, createStore (createCrudStore), useDelayedLoading, useVoiceInput, theme
 └── types/                      Tipos compartidos
 ```
 
@@ -209,7 +182,7 @@ src/
 - El modal de login/register se implementa como layouts separados, no como modales flotantes.
 - El sidebar (desktop) y bottom nav + drawer (mobile) comparten la misma configuración de rutas desde `navConfig.ts`.
 - El ToastContainer se renderiza en `main.tsx`, fuera del router pero dentro del `BrowserRouter`, asegurando que las notificaciones sean globales y no interfieran con el layout de página.
-- `AlertasPage` y `RecordatoriosPage` tienen CRUD completo implementado (ambas usan los componentes UI compartidos). Las páginas `HistorialPage`, `EventosPage` y `ServiciosPage` tienen backend completo pero frontend placeholder.
+- `AlertasPage`, `RecordatoriosPage` y `HistorialPage` tienen CRUD completo implementado (usan los componentes UI compartidos). `EventosPage` y `ServiciosPage` tienen backend completo pero frontend placeholder.
 
 ## Tests
 
