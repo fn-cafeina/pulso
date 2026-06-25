@@ -3,29 +3,28 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type HealthHandler struct {
-	healthSvc   service.HealthService
+	symptomSvc  service.SymptomService
+	vaccineSvc  service.VaccineService
 	reminderSvc service.ReminderService
 }
 
-func NewHealthHandler(healthSvc service.HealthService, reminderSvc service.ReminderService) *HealthHandler {
-	return &HealthHandler{healthSvc: healthSvc, reminderSvc: reminderSvc}
+func NewHealthHandler(symptomSvc service.SymptomService, vaccineSvc service.VaccineService, reminderSvc service.ReminderService) *HealthHandler {
+	return &HealthHandler{symptomSvc: symptomSvc, vaccineSvc: vaccineSvc, reminderSvc: reminderSvc}
 }
 
 func (h *HealthHandler) GetSymptoms(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	reports, err := h.healthSvc.GetSymptoms(userID.(uint))
+	reports, err := h.symptomSvc.GetByUserID(userID.(uint))
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "síntoma")
 		return
 	}
 	Success(c, http.StatusOK, reports)
@@ -49,9 +48,13 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 		}
 	}
 
-	record, err := h.healthSvc.CreateVaccine(userID.(uint), req.NombreVacuna, fecha)
-	if err != nil {
-		InternalError(c, err)
+	record := &models.VaccinationRecord{
+		UserID:          userID.(uint),
+		NombreVacuna:    req.NombreVacuna,
+		FechaAplicacion: fecha,
+	}
+	if err := h.vaccineSvc.Create(record); err != nil {
+		NotFoundOrInternal(c, err, "vacuna")
 		return
 	}
 
@@ -72,9 +75,9 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 
 func (h *HealthHandler) GetVaccines(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	records, err := h.healthSvc.GetVaccines(userID.(uint))
+	records, err := h.vaccineSvc.GetByUserID(userID.(uint))
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "vacuna")
 		return
 	}
 	Success(c, http.StatusOK, records)
@@ -98,9 +101,13 @@ func (h *HealthHandler) CreateSymptom(c *gin.Context) {
 		}
 	}
 
-	report, err := h.healthSvc.CreateSymptom(userID.(uint), req.Descripcion, fecha)
-	if err != nil {
-		InternalError(c, err)
+	report := &models.SymptomReport{
+		UserID:      userID.(uint),
+		Descripcion: req.Descripcion,
+		Fecha:       fecha,
+	}
+	if err := h.symptomSvc.Create(report); err != nil {
+		NotFoundOrInternal(c, err, "síntoma")
 		return
 	}
 
@@ -108,9 +115,8 @@ func (h *HealthHandler) CreateSymptom(c *gin.Context) {
 }
 
 func (h *HealthHandler) UpdateSymptom(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
@@ -130,13 +136,14 @@ func (h *HealthHandler) UpdateSymptom(c *gin.Context) {
 		}
 	}
 
-	report, err := h.healthSvc.UpdateSymptom(uint(id), userID.(uint), req.Descripcion, fecha)
+	report, err := h.symptomSvc.Update(&models.SymptomReport{
+		BaseModel:   models.BaseModel{ID: id},
+		UserID:      userID.(uint),
+		Descripcion: req.Descripcion,
+		Fecha:       fecha,
+	})
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "síntoma no encontrado")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "síntoma")
 		return
 	}
 
@@ -144,19 +151,14 @@ func (h *HealthHandler) UpdateSymptom(c *gin.Context) {
 }
 
 func (h *HealthHandler) DeleteSymptom(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	if err := h.healthSvc.DeleteSymptom(uint(id), userID.(uint)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "síntoma no encontrado")
-			return
-		}
-		InternalError(c, err)
+	if err := h.symptomSvc.Delete(id, userID.(uint)); err != nil {
+		NotFoundOrInternal(c, err, "síntoma")
 		return
 	}
 
@@ -164,9 +166,8 @@ func (h *HealthHandler) DeleteSymptom(c *gin.Context) {
 }
 
 func (h *HealthHandler) UpdateVaccine(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
@@ -186,13 +187,14 @@ func (h *HealthHandler) UpdateVaccine(c *gin.Context) {
 		}
 	}
 
-	record, err := h.healthSvc.UpdateVaccine(uint(id), userID.(uint), req.NombreVacuna, fecha)
+	record, err := h.vaccineSvc.Update(&models.VaccinationRecord{
+		BaseModel:       models.BaseModel{ID: id},
+		UserID:          userID.(uint),
+		NombreVacuna:    req.NombreVacuna,
+		FechaAplicacion: fecha,
+	})
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "vacuna no encontrada")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "vacuna")
 		return
 	}
 
@@ -200,19 +202,14 @@ func (h *HealthHandler) UpdateVaccine(c *gin.Context) {
 }
 
 func (h *HealthHandler) DeleteVaccine(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	if err := h.healthSvc.DeleteVaccine(uint(id), userID.(uint)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "vacuna no encontrada")
-			return
-		}
-		InternalError(c, err)
+	if err := h.vaccineSvc.Delete(id, userID.(uint)); err != nil {
+		NotFoundOrInternal(c, err, "vacuna")
 		return
 	}
 

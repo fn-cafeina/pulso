@@ -26,7 +26,8 @@ func main() {
 
 	userRepo := repository.NewUserRepository(db.DB)
 	apptRepo := repository.NewAppointmentRepository(db.DB)
-	healthRepo := repository.NewHealthRepository(db.DB)
+	symptomRepo := repository.NewSymptomRepository(db.DB)
+	vaccineRepo := repository.NewVaccineRepository(db.DB)
 	serviceRepo := repository.NewServiceRepository(db.DB)
 	eventRepo := repository.NewEventRepository(db.DB)
 	alertRepo := repository.NewAlertRepository(db.DB)
@@ -40,16 +41,17 @@ func main() {
 	}
 
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.HealthWorkerSecret)
-	healthSvc := service.NewHealthService(healthRepo)
+	symptomSvc := service.NewSymptomService(symptomRepo)
+	vaccineSvc := service.NewVaccineService(vaccineRepo)
 	apptSvc := service.NewAppointmentService(apptRepo)
 	svcSvc := service.NewServiceService(serviceRepo)
 	eventSvc := service.NewEventService(eventRepo)
 	alertSvc := service.NewAlertService(alertRepo)
-	aiSvc := service.NewAIService(aiRepo, userRepo, healthRepo, apptRepo, provider)
+	aiSvc := service.NewAIService(aiRepo, userRepo, symptomRepo, vaccineRepo, apptRepo, provider)
 	reminderSvc := service.NewReminderService(reminderRepo)
 
 	authHandler := handlers.NewAuthHandler(authSvc)
-	healthHandler := handlers.NewHealthHandler(healthSvc, reminderSvc)
+	healthHandler := handlers.NewHealthHandler(symptomSvc, vaccineSvc, reminderSvc)
 	apptHandler := handlers.NewAppointmentHandler(apptSvc, reminderSvc)
 	svcHandler := handlers.NewServiceHandler(svcSvc)
 	eventHandler := handlers.NewEventHandler(eventSvc)

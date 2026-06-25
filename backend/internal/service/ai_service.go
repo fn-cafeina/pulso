@@ -21,7 +21,8 @@ type AIService interface {
 type aiService struct {
 	aiRepo     repository.AIRepository
 	userRepo   repository.UserRepository
-	healthRepo repository.HealthRepository
+	symptomRepo repository.SymptomRepository
+	vaccineRepo repository.VaccineRepository
 	apptRepo   repository.AppointmentRepository
 	provider   ai.Provider
 }
@@ -29,16 +30,18 @@ type aiService struct {
 func NewAIService(
 	aiRepo repository.AIRepository,
 	userRepo repository.UserRepository,
-	healthRepo repository.HealthRepository,
+	symptomRepo repository.SymptomRepository,
+	vaccineRepo repository.VaccineRepository,
 	apptRepo repository.AppointmentRepository,
 	provider ai.Provider,
 ) AIService {
 	return &aiService{
-		aiRepo:     aiRepo,
-		userRepo:   userRepo,
-		healthRepo: healthRepo,
-		apptRepo:   apptRepo,
-		provider:   provider,
+		aiRepo:      aiRepo,
+		userRepo:    userRepo,
+		symptomRepo: symptomRepo,
+		vaccineRepo: vaccineRepo,
+		apptRepo:    apptRepo,
+		provider:    provider,
 	}
 }
 
@@ -53,11 +56,11 @@ func (s *aiService) Consult(userID uint, pregunta string) (*models.AIConsultatio
 	if err != nil {
 		log.Printf("warning: failed to load user %d: %v", userID, err)
 	}
-	symptoms, err := s.healthRepo.FindSymptomsByUserID(userID)
+	symptoms, err := s.symptomRepo.FindByUserID(userID)
 	if err != nil {
 		log.Printf("warning: failed to load symptoms for %d: %v", userID, err)
 	}
-	vaccines, err := s.healthRepo.FindVaccinesByUserID(userID)
+	vaccines, err := s.vaccineRepo.FindByUserID(userID)
 	if err != nil {
 		log.Printf("warning: failed to load vaccines for %d: %v", userID, err)
 	}

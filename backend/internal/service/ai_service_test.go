@@ -49,48 +49,67 @@ func (m *mockAIUserRepo) FindByID(id uint) (*models.User, error) {
 	return nil, nil
 }
 
-type mockAIHealthRepo struct {
+type mockAISymptomRepo struct {
 	symptoms []models.SymptomReport
-	vaccines []models.VaccinationRecord
 }
 
-func (m *mockAIHealthRepo) CreateSymptom(report *models.SymptomReport) error {
+func (m *mockAISymptomRepo) Create(report *models.SymptomReport) error {
 	return nil
 }
 
-func (m *mockAIHealthRepo) FindSymptomsByUserID(userID uint) ([]models.SymptomReport, error) {
+func (m *mockAISymptomRepo) FindByID(id uint) (*models.SymptomReport, error) {
+	return nil, nil
+}
+
+func (m *mockAISymptomRepo) FindByUserID(userID uint) ([]models.SymptomReport, error) {
 	return m.symptoms, nil
 }
 
-func (m *mockAIHealthRepo) CreateVaccine(record *models.VaccinationRecord) error {
+func (m *mockAISymptomRepo) FindScoped(id, userID uint) (*models.SymptomReport, error) {
+	return nil, nil
+}
+
+func (m *mockAISymptomRepo) Update(report *models.SymptomReport) error {
 	return nil
 }
 
-func (m *mockAIHealthRepo) FindVaccinesByUserID(userID uint) ([]models.VaccinationRecord, error) {
+func (m *mockAISymptomRepo) Delete(id uint) error {
+	return nil
+}
+
+func (m *mockAISymptomRepo) DeleteScoped(id, userID uint) error {
+	return nil
+}
+
+type mockAIVaccineRepo struct {
+	vaccines []models.VaccinationRecord
+}
+
+func (m *mockAIVaccineRepo) Create(record *models.VaccinationRecord) error {
+	return nil
+}
+
+func (m *mockAIVaccineRepo) FindByID(id uint) (*models.VaccinationRecord, error) {
+	return nil, nil
+}
+
+func (m *mockAIVaccineRepo) FindByUserID(userID uint) ([]models.VaccinationRecord, error) {
 	return m.vaccines, nil
 }
 
-func (m *mockAIHealthRepo) FindSymptomByID(id, userID uint) (*models.SymptomReport, error) {
+func (m *mockAIVaccineRepo) FindScoped(id, userID uint) (*models.VaccinationRecord, error) {
 	return nil, nil
 }
 
-func (m *mockAIHealthRepo) UpdateSymptom(report *models.SymptomReport) error {
+func (m *mockAIVaccineRepo) Update(record *models.VaccinationRecord) error {
 	return nil
 }
 
-func (m *mockAIHealthRepo) DeleteSymptom(id, userID uint) error {
+func (m *mockAIVaccineRepo) Delete(id uint) error {
 	return nil
 }
 
-func (m *mockAIHealthRepo) FindVaccineByID(id, userID uint) (*models.VaccinationRecord, error) {
-	return nil, nil
-}
-
-func (m *mockAIHealthRepo) UpdateVaccine(record *models.VaccinationRecord) error {
-	return nil
-}
-
-func (m *mockAIHealthRepo) DeleteVaccine(id, userID uint) error {
+func (m *mockAIVaccineRepo) DeleteScoped(id, userID uint) error {
 	return nil
 }
 
@@ -122,7 +141,8 @@ func TestAIConsult_ProviderNil(t *testing.T) {
 	svc := service.NewAIService(
 		&mockAIRepo{},
 		&mockAIUserRepo{},
-		&mockAIHealthRepo{},
+		&mockAISymptomRepo{},
+		&mockAIVaccineRepo{},
 		&mockAIApptRepo{},
 		nil,
 	)
@@ -137,7 +157,8 @@ func TestAIGetHistory_Success(t *testing.T) {
 	svc := service.NewAIService(
 		aiRepo,
 		&mockAIUserRepo{},
-		&mockAIHealthRepo{},
+		&mockAISymptomRepo{},
+		&mockAIVaccineRepo{},
 		&mockAIApptRepo{},
 		nil,
 	)
@@ -159,7 +180,8 @@ func TestAIGetHistory_Empty(t *testing.T) {
 	svc := service.NewAIService(
 		&mockAIRepo{},
 		&mockAIUserRepo{},
-		&mockAIHealthRepo{},
+		&mockAISymptomRepo{},
+		&mockAIVaccineRepo{},
 		&mockAIApptRepo{},
 		nil,
 	)
