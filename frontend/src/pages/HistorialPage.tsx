@@ -4,7 +4,7 @@ import { useSymptomsStore } from "../stores/symptoms";
 import { useVaccinesStore } from "../stores/vaccines";
 import { useAppointmentsStore } from "../stores/appointments";
 import { useToastStore } from "../stores/toast";
-import { useDelayedLoading } from "../lib/useDelayedLoading";
+import { usePageLoader } from "../hooks/usePageLoader";
 import Modal from "../components/ui/Modal";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import SkeletonCard from "../components/ui/SkeletonCard";
@@ -13,9 +13,17 @@ import AlertBanner from "../components/ui/AlertBanner";
 import CreateSymptomForm from "../components/historial/CreateSymptomForm";
 import CreateVaccineForm from "../components/historial/CreateVaccineForm";
 import CreateAppointmentForm from "../components/historial/CreateAppointmentForm";
+import DetailView from "../components/historial/DetailView";
+import StatsCards from "../components/historial/StatsCards";
+import EditItemForm from "../components/historial/EditItemForm";
 import type { SymptomReport, VaccinationRecord, Appointment } from "../types";
 
 type CreateTab = "sintoma" | "vacuna" | "cita";
+
+interface DetailData {
+  type: CreateTab
+  raw: SymptomReport | VaccinationRecord | Appointment
+}
 
 const createTabs: { key: CreateTab; label: string; icon: React.ReactNode }[] = [
   { key: "sintoma", label: "Síntoma", icon: <Stethoscope className="w-4 h-4" /> },
@@ -28,11 +36,6 @@ const typeLabel: Record<CreateTab, string> = {
   vacuna: "Vacuna",
   cita: "Cita",
 };
-
-interface DetailData {
-  type: CreateTab
-  raw: SymptomReport | VaccinationRecord | Appointment
-}
 
 interface RawItem {
   id: number
@@ -106,55 +109,6 @@ function getAbsoluteDate(dateStr: string, type: CreateTab): string {
   return formatDate(dateStr);
 }
 
-function DetailView({ detail, onClose }: { detail: DetailData; onClose: () => void }) {
-  return (
-    <Modal open onClose={onClose} title={`Detalle de ${typeLabel[detail.type].toLowerCase()}`} scrollable>
-      <div className="space-y-4">
-        <div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-button text-xs font-semibold bg-primary/10 text-primary">
-            {typeLabel[detail.type]}
-          </span>
-        </div>
-
-        {"descripcion" in detail.raw && (
-          <div>
-            <label className="block text-xs font-medium text-gray mb-1">Descripción</label>
-            <p className="text-sm text-text whitespace-pre-wrap">{detail.raw.descripcion || "Sin descripción"}</p>
-          </div>
-        )}
-        {"nombre_vacuna" in detail.raw && (
-          <div>
-            <label className="block text-xs font-medium text-gray mb-1">Vacuna</label>
-            <p className="text-sm text-text font-semibold">{detail.raw.nombre_vacuna}</p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {detail.type === "vacuna" ? (
-            <div>
-              <label className="block text-xs font-medium text-gray mb-1">Fecha de aplicación</label>
-              <p className="text-sm text-text">{formatDate("fecha_aplicacion" in detail.raw ? detail.raw.fecha_aplicacion : "")}</p>
-            </div>
-          ) : (
-            <div>
-              <label className="block text-xs font-medium text-gray mb-1">Fecha</label>
-              <p className="text-sm text-text">{detail.type === "cita" ? formatDateTime((detail.raw as Appointment).fecha) : formatDate((detail.raw as SymptomReport).fecha)}</p>
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-medium text-gray mb-1">Registrado</label>
-            <p className="text-sm text-text">{formatDate(detail.raw.created_at)}</p>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray mb-1">Actualizado</label>
-            <p className="text-sm text-text">{formatDate(detail.raw.updated_at)}</p>
-          </div>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
 export default function HistorialPage() {
   const sym = useSymptomsStore();
   const vac = useVaccinesStore();
@@ -170,8 +124,7 @@ export default function HistorialPage() {
 
   const hasItems = sym.items.length > 0 || vac.items.length > 0 || appt.items.length > 0;
   const anyLoading = sym.loading || vac.loading || appt.loading;
-  const loadingInitial = anyLoading && !hasItems;
-  const showSkeleton = useDelayedLoading(loadingInitial);
+
   const errors = useMemo(() => {
     const e: { source: string; msg: string }[] = [];
     if (sym.error) e.push({ source: "síntomas", msg: sym.error });
@@ -179,7 +132,9 @@ export default function HistorialPage() {
     if (appt.error) e.push({ source: "citas", msg: appt.error });
     return e;
   }, [sym.error, vac.error, appt.error]);
-  const errorInitial = errors.length > 0 && !hasItems && !anyLoading;
+
+  const hasError = errors.length > 0;
+  const { showSkeleton, errorInitial } = usePageLoader(anyLoading, hasError ? errors[0]?.msg ?? null : null, hasItems ? 1 : 0);
 
   useEffect(() => {
     if (initialLoad.current) {
@@ -274,7 +229,7 @@ export default function HistorialPage() {
   }, [sym.items, vac.items, appt.items]);
 
   const empty = !anyLoading && items.length === 0;
-  const partialError = errors.length > 0 && hasItems && !anyLoading;
+  const partialError = hasError && hasItems && !anyLoading;
 
   const typeColors: Record<CreateTab, string> = {
     sintoma: "bg-info/10 text-info",
@@ -322,35 +277,11 @@ export default function HistorialPage() {
         <>
           <h2 className="hidden md:block text-lg font-bold text-text mb-6">Mi Historial</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
-            <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center flex-shrink-0">
-                <Stethoscope className="w-5 h-5 text-info" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-text">{sym.items.length}</p>
-                <p className="text-xs text-gray truncate">Síntomas</p>
-              </div>
-            </div>
-            <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
-                <Syringe className="w-5 h-5 text-success" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-text">{vac.items.length}</p>
-                <p className="text-xs text-gray truncate">Vacunas</p>
-              </div>
-            </div>
-            <div className="bg-surface rounded-card p-3 sm:p-4 flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <CalendarDays className="w-5 h-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl font-bold text-text">{appt.items.length}</p>
-                <p className="text-xs text-gray truncate">Citas</p>
-              </div>
-            </div>
-          </div>
+          <StatsCards
+            symptomsCount={sym.items.length}
+            vaccinesCount={vac.items.length}
+            appointmentsCount={appt.items.length}
+          />
 
           {partialError && (
             <div className="space-y-2 mb-4">
@@ -433,7 +364,7 @@ export default function HistorialPage() {
         </>
       )}
 
-      {detail && <DetailView detail={detail} onClose={() => setDetail(null)} />}
+      <DetailView detail={detail} onClose={() => setDetail(null)} />
 
       <Modal
         open={showCreate}
@@ -479,62 +410,14 @@ export default function HistorialPage() {
         )}
       </Modal>
 
-      <Modal
-        open={editing !== null}
+      <EditItemForm
+        editing={editing}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        submitting={submitting}
+        onSave={handleEditSave}
         onClose={() => setEditing(null)}
-        title={`Editar ${typeLabel[editing?.type ?? "sintoma"].toLowerCase()}`}
-        size="sm"
-      >
-        {editing && (
-          <form onSubmit={handleEditSave} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-text mb-1">
-                {editing.type === "vacuna" ? "Nombre de la vacuna" : "Descripción"} <span className="text-danger">*</span>
-              </label>
-              {editing.type === "vacuna" ? (
-                <input
-                  type="text"
-                  value={editForm.descripcion}
-                  onChange={(e) => setEditForm({ ...editForm, descripcion: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-button border bg-surface text-text text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary"
-                  required
-                />
-              ) : (
-                <textarea
-                  value={editForm.descripcion}
-                  onChange={(e) => setEditForm({ ...editForm, descripcion: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-2.5 rounded-button border bg-surface text-text placeholder:text-gray text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary resize-none"
-                  required
-                />
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text mb-1">
-                {editing.type === "cita" ? "Fecha y hora" : "Fecha"}
-              </label>
-              <input
-                type={editing.type === "cita" ? "datetime-local" : "date"}
-                value={editForm.fecha}
-                onChange={(e) => setEditForm({ ...editForm, fecha: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-button border bg-surface text-text text-sm focus:outline-none focus:ring-2 transition-all border-gray/30 focus:ring-primary/50 focus:border-primary"
-              />
-            </div>
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setEditing(null)} className="text-sm text-gray hover:text-text font-medium transition-colors cursor-pointer py-2.5 px-5">
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={submitting || !editForm.descripcion.trim()}
-                className="bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-semibold py-2.5 px-5 rounded-button transition-all cursor-pointer disabled:cursor-not-allowed"
-              >
-                {submitting ? "Guardando..." : "Guardar cambios"}
-              </button>
-            </div>
-          </form>
-        )}
-      </Modal>
+      />
 
       <ConfirmDialog
         open={confirmDelete !== null}
