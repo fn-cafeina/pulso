@@ -197,4 +197,3 @@ func (h *EventHandler) Delete(c *gin.Context) {
 
 	Msg(c, http.StatusOK, "evento eliminado")
 }
-

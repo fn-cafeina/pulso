@@ -19,12 +19,12 @@ type AIService interface {
 }
 
 type aiService struct {
-	aiRepo     repository.AIRepository
-	userRepo   repository.UserRepository
+	aiRepo      repository.AIRepository
+	userRepo    repository.UserRepository
 	symptomRepo repository.SymptomRepository
 	vaccineRepo repository.VaccineRepository
-	apptRepo   repository.AppointmentRepository
-	provider   ai.Provider
+	apptRepo    repository.AppointmentRepository
+	provider    ai.Provider
 }
 
 func NewAIService(
