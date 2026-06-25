@@ -14,15 +14,11 @@ type AppointmentRepository interface {
 }
 
 type appointmentRepository struct {
-	db *gorm.DB
+	baseRepo[models.Appointment]
 }
 
 func NewAppointmentRepository(db *gorm.DB) AppointmentRepository {
-	return &appointmentRepository{db: db}
-}
-
-func (r *appointmentRepository) Create(appt *models.Appointment) error {
-	return r.db.Create(appt).Error
+	return &appointmentRepository{baseRepo: newBaseRepo[models.Appointment](db)}
 }
 
 func (r *appointmentRepository) FindByUserID(userID uint) ([]models.Appointment, error) {
@@ -35,10 +31,6 @@ func (r *appointmentRepository) FindByID(id, userID uint) (*models.Appointment, 
 	var appt models.Appointment
 	err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&appt).Error
 	return &appt, err
-}
-
-func (r *appointmentRepository) Update(appt *models.Appointment) error {
-	return r.db.Save(appt).Error
 }
 
 func (r *appointmentRepository) Delete(id, userID uint) error {

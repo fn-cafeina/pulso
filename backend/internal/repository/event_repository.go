@@ -8,29 +8,16 @@ import (
 )
 
 type EventRepository interface {
-	Create(event *models.HealthEvent) error
-	FindByID(id uint) (*models.HealthEvent, error)
+	BaseRepository[models.HealthEvent]
 	FindAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error)
-	Update(event *models.HealthEvent) error
-	Delete(id uint) error
 }
 
 type eventRepository struct {
-	db *gorm.DB
+	baseRepo[models.HealthEvent]
 }
 
 func NewEventRepository(db *gorm.DB) EventRepository {
-	return &eventRepository{db: db}
-}
-
-func (r *eventRepository) Create(event *models.HealthEvent) error {
-	return r.db.Create(event).Error
-}
-
-func (r *eventRepository) FindByID(id uint) (*models.HealthEvent, error) {
-	var event models.HealthEvent
-	err := r.db.First(&event, id).Error
-	return &event, err
+	return &eventRepository{baseRepo: newBaseRepo[models.HealthEvent](db)}
 }
 
 func (r *eventRepository) FindAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error) {
@@ -57,12 +44,4 @@ func (r *eventRepository) FindAll(upcoming bool, page, perPage int) ([]models.He
 	}
 
 	return events, total, nil
-}
-
-func (r *eventRepository) Update(event *models.HealthEvent) error {
-	return r.db.Save(event).Error
-}
-
-func (r *eventRepository) Delete(id uint) error {
-	return r.db.Delete(&models.HealthEvent{}, id).Error
 }

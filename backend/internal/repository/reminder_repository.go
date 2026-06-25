@@ -6,31 +6,18 @@ import (
 )
 
 type ReminderRepository interface {
-	Create(reminder *models.Reminder) error
-	FindByID(id uint) (*models.Reminder, error)
+	BaseRepository[models.Reminder]
 	FindPendingByUserID(userID uint) ([]models.Reminder, error)
 	FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error)
-	Update(reminder *models.Reminder) error
 	MarkAsRead(id, userID uint) error
-	Delete(id uint) error
 }
 
 type reminderRepository struct {
-	db *gorm.DB
+	baseRepo[models.Reminder]
 }
 
 func NewReminderRepository(db *gorm.DB) ReminderRepository {
-	return &reminderRepository{db: db}
-}
-
-func (r *reminderRepository) Create(reminder *models.Reminder) error {
-	return r.db.Create(reminder).Error
-}
-
-func (r *reminderRepository) FindByID(id uint) (*models.Reminder, error) {
-	var reminder models.Reminder
-	err := r.db.First(&reminder, id).Error
-	return &reminder, err
+	return &reminderRepository{baseRepo: newBaseRepo[models.Reminder](db)}
 }
 
 func (r *reminderRepository) FindPendingByUserID(userID uint) ([]models.Reminder, error) {
@@ -64,14 +51,6 @@ func (r *reminderRepository) FindByUserID(userID uint, page, perPage int) ([]mod
 	return reminders, total, nil
 }
 
-func (r *reminderRepository) Update(reminder *models.Reminder) error {
-	return r.db.Save(reminder).Error
-}
-
 func (r *reminderRepository) MarkAsRead(id, userID uint) error {
 	return r.db.Model(&models.Reminder{}).Where("id = ? AND user_id = ?", id, userID).Update("leido", true).Error
-}
-
-func (r *reminderRepository) Delete(id uint) error {
-	return r.db.Delete(&models.Reminder{}, id).Error
 }

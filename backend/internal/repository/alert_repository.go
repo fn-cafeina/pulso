@@ -6,30 +6,17 @@ import (
 )
 
 type AlertRepository interface {
-	Create(alert *models.EpiAlert) error
-	FindByID(id uint) (*models.EpiAlert, error)
+	BaseRepository[models.EpiAlert]
 	FindAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error)
-	Update(alert *models.EpiAlert) error
-	Delete(id uint) error
 	Deactivate(id uint) error
 }
 
 type alertRepository struct {
-	db *gorm.DB
+	baseRepo[models.EpiAlert]
 }
 
 func NewAlertRepository(db *gorm.DB) AlertRepository {
-	return &alertRepository{db: db}
-}
-
-func (r *alertRepository) Create(alert *models.EpiAlert) error {
-	return r.db.Create(alert).Error
-}
-
-func (r *alertRepository) FindByID(id uint) (*models.EpiAlert, error) {
-	var alert models.EpiAlert
-	err := r.db.First(&alert, id).Error
-	return &alert, err
+	return &alertRepository{baseRepo: newBaseRepo[models.EpiAlert](db)}
 }
 
 func (r *alertRepository) FindAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error) {
@@ -62,14 +49,6 @@ func (r *alertRepository) FindAll(nivel, departamento string, soloActivas bool, 
 	}
 
 	return alerts, total, nil
-}
-
-func (r *alertRepository) Update(alert *models.EpiAlert) error {
-	return r.db.Save(alert).Error
-}
-
-func (r *alertRepository) Delete(id uint) error {
-	return r.db.Delete(&models.EpiAlert{}, id).Error
 }
 
 func (r *alertRepository) Deactivate(id uint) error {

@@ -6,29 +6,16 @@ import (
 )
 
 type ServiceRepository interface {
-	Create(svc *models.HealthService) error
-	FindByID(id uint) (*models.HealthService, error)
+	BaseRepository[models.HealthService]
 	FindAll(page, perPage int) ([]models.HealthService, int64, error)
-	Update(svc *models.HealthService) error
-	Delete(id uint) error
 }
 
 type serviceRepository struct {
-	db *gorm.DB
+	baseRepo[models.HealthService]
 }
 
 func NewServiceRepository(db *gorm.DB) ServiceRepository {
-	return &serviceRepository{db: db}
-}
-
-func (r *serviceRepository) Create(svc *models.HealthService) error {
-	return r.db.Create(svc).Error
-}
-
-func (r *serviceRepository) FindByID(id uint) (*models.HealthService, error) {
-	var svc models.HealthService
-	err := r.db.First(&svc, id).Error
-	return &svc, err
+	return &serviceRepository{baseRepo: newBaseRepo[models.HealthService](db)}
 }
 
 func (r *serviceRepository) FindAll(page, perPage int) ([]models.HealthService, int64, error) {
@@ -50,12 +37,4 @@ func (r *serviceRepository) FindAll(page, perPage int) ([]models.HealthService, 
 	}
 
 	return services, total, nil
-}
-
-func (r *serviceRepository) Update(svc *models.HealthService) error {
-	return r.db.Save(svc).Error
-}
-
-func (r *serviceRepository) Delete(id uint) error {
-	return r.db.Delete(&models.HealthService{}, id).Error
 }
