@@ -17,7 +17,6 @@ cd backend
 make dev      # hot-reload :8080 (Air)
 make build    # go build -o bin/api
 make test     # go test ./... -v
-make vet      # go vet ./...
 make lint     # golangci-lint (gofmt, govet, errcheck, staticcheck, gosimple)
 
 # Frontend (Node >= 22.12.0)
@@ -45,7 +44,7 @@ Manual DI in `cmd/api/main.go`. Interfaces at service/repo layers.
 
 - Auth: JWT Bearer (72h, HS256), roles `family` | `health_worker`
 - Geo: Haversine in Go memory, not SQL
-- AI: NVIDIA NIM (OpenAI-compatible), modelo configurable via `NVIDIA_MODEL` (default `openai/gpt-oss-120b`), 3 retries w/ backoff, 30s timeout, 503 if key missing. Parámetros: `maxTokens=4096`, `temperature=0.9`, `presencePenalty=0.5`, `reasoningEffort="high"`. Contexto incluye historial completo (pregunta + respuesta) en formato diálogo `Usuario: ... / Pulso: ...`. System prompt en `internal/ai/provider.go` con regla "no repetir intención/propósito de respuesta".
+- AI: NVIDIA NIM (OpenAI-compatible) via `openai/gpt-oss-120b`, 3 retries w/ backoff, 30s timeout, 503 if key missing. Parámetros: `maxTokens=4096`, `temperature=0.9`, `presencePenalty=0.5`, `reasoningEffort="high"`. Contexto incluye historial completo (pregunta + respuesta) en formato diálogo `Usuario: ... / Pulso: ...`. System prompt en `internal/ai/provider.go` con regla "no repetir intención/propósito de respuesta".
 - TTS: Edge TTS (Microsoft neural voices) via `foresturquhart/edge-tts`, cache SHA256 en disco, voice `es-NI-YolandaNeural`, rate `+30%`
 - DB: SQLite via `glebarez/sqlite` (pure-Go), WAL mode, AutoMigrate on startup
 - CORS: `CORS_ORIGIN` env (default `http://localhost:5173`)

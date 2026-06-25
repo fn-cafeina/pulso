@@ -13,7 +13,6 @@ type Config struct {
 	Port               string
 	DBPath             string
 	NVIDIAAPIKey       string
-	NVIDIAModel        string
 	HealthWorkerSecret string
 	CORSOrigin         string
 	TTSCachePath       string
@@ -40,7 +39,6 @@ func Load() *Config {
 		Port:               getEnv("PORT", ":8080"),
 		DBPath:             getEnv("DB_PATH", "pulso.db"),
 		NVIDIAAPIKey:       getEnv("NVIDIA_API_KEY", ""),
-		NVIDIAModel:        getEnv("NVIDIA_MODEL", "openai/gpt-oss-120b"),
 		HealthWorkerSecret: secret,
 		CORSOrigin:         getEnv("CORS_ORIGIN", "http://localhost:5173"),
 		TTSCachePath:       getEnv("TTS_CACHE_PATH", "cache/tts"),

@@ -1,6 +1,6 @@
 BINARY_NAME=bin/api
 
-.PHONY: build run test vet lint tidy clean dev
+.PHONY: build run test lint tidy clean dev
 
 build:
 	go build -o $(BINARY_NAME) ./cmd/api/main.go
@@ -11,9 +11,6 @@ run:
 test:
 	go test ./... -v
 
-vet:
-	go vet ./...
-
 lint:
 	golangci-lint run
 
@@ -21,7 +18,7 @@ tidy:
 	go mod tidy
 
 clean:
-	rm -rf bin tmp pulso.db api
+	rm -rf bin tmp pulso.db
 
 dev:
 	air

@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	modelName       = "openai/gpt-oss-120b"
 	maxTokens       = 4096
 	temperature     = 0.9
 	presencePenalty = 0.5
@@ -18,15 +19,13 @@ const (
 
 type NVIDIAProvider struct {
 	client *openai.Client
-	model  string
 }
 
-func NewProvider(apiKey, model string) *NVIDIAProvider {
+func NewProvider(apiKey string) *NVIDIAProvider {
 	cfg := openai.DefaultConfig(apiKey)
 	cfg.BaseURL = "https://integrate.api.nvidia.com/v1"
 	return &NVIDIAProvider{
 		client: openai.NewClientWithConfig(cfg),
-		model:  model,
 	}
 }
 
@@ -36,7 +35,7 @@ func (p *NVIDIAProvider) GenerateContent(ctx context.Context, prompt string) (st
 		reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 
 		resp, err := p.client.CreateChatCompletion(reqCtx, openai.ChatCompletionRequest{
-			Model: p.model,
+			Model: modelName,
 			Messages: []openai.ChatCompletionMessage{
 				{Role: openai.ChatMessageRoleSystem, Content: SystemPrompt},
 				{Role: openai.ChatMessageRoleUser, Content: prompt},

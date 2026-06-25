@@ -37,7 +37,7 @@ func main() {
 
 	var provider ai.Provider
 	if cfg.NVIDIAAPIKey != "" {
-		provider = ai.NewProvider(cfg.NVIDIAAPIKey, cfg.NVIDIAModel)
+		provider = ai.NewProvider(cfg.NVIDIAAPIKey)
 	}
 
 	authSvc := service.NewAuthService(userRepo, cfg.JWTSecret, cfg.HealthWorkerSecret)
