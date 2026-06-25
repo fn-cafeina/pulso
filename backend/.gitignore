@@ -1,7 +1,6 @@
 bin/
 tmp/
 *.db
-.env
 
 # Edge TTS audio cache
 cache/
