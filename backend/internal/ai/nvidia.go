@@ -10,11 +10,13 @@ import (
 )
 
 const (
-	modelName       = "openai/gpt-oss-120b"
-	maxTokens       = 4096
-	temperature     = 0.9
-	presencePenalty = 0.5
-	reasoningEffort = "high"
+	modelName        = "openai/gpt-oss-120b"
+	maxTokens        = 1024
+	temperature      = 0.9
+	topP             = 0.6
+	presencePenalty  = 0.5
+	frequencyPenalty = 0.15
+	reasoningEffort  = "high"
 )
 
 type NVIDIAProvider struct {
@@ -40,10 +42,12 @@ func (p *NVIDIAProvider) GenerateContent(ctx context.Context, prompt string) (st
 				{Role: openai.ChatMessageRoleSystem, Content: SystemPrompt},
 				{Role: openai.ChatMessageRoleUser, Content: prompt},
 			},
-			MaxTokens:       maxTokens,
-			Temperature:     temperature,
-			PresencePenalty: presencePenalty,
-			ReasoningEffort: reasoningEffort,
+			MaxTokens:        maxTokens,
+			Temperature:      temperature,
+			TopP:             topP,
+			PresencePenalty:  presencePenalty,
+			FrequencyPenalty: frequencyPenalty,
+			ReasoningEffort:  reasoningEffort,
 		})
 		cancel()
 
