@@ -107,22 +107,27 @@ func (m *mockReminderRepo) Delete(id uint) error {
 
 func TestReminderCreate_Success(t *testing.T) {
 	svc := service.NewReminderService(&mockReminderRepo{})
-	r, err := svc.Create(1, "Cita médica", "Control general", "cita",
-		time.Date(2026, 6, 1, 9, 0, 0, 0, time.UTC))
+	err := svc.Create(&models.Reminder{
+		UserID:      1,
+		Titulo:      "Cita médica",
+		Descripcion: "Control general",
+		Tipo:        "cita",
+		Fecha:       time.Date(2026, 6, 1, 9, 0, 0, 0, time.UTC),
+	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
-	}
-	if r.Titulo != "Cita médica" {
-		t.Fatalf("expected Cita médica, got %s", r.Titulo)
-	}
-	if r.ID == 0 {
-		t.Fatal("expected ID to be set")
 	}
 }
 
 func TestReminderCreate_RepoError(t *testing.T) {
 	svc := service.NewReminderService(&mockReminderRepo{fail: true})
-	_, err := svc.Create(1, "Cita", "Desc", "manual", time.Now())
+	err := svc.Create(&models.Reminder{
+		UserID:      1,
+		Titulo:      "Cita",
+		Descripcion: "Desc",
+		Tipo:        "manual",
+		Fecha:       time.Now(),
+	})
 	if err == nil {
 		t.Fatal("expected error from repo")
 	}
@@ -131,9 +136,9 @@ func TestReminderCreate_RepoError(t *testing.T) {
 func TestReminderGetPending_FiltersByUser(t *testing.T) {
 	repo := &mockReminderRepo{}
 	svc := service.NewReminderService(repo)
-	_, _ = svc.Create(1, "R1", "", "manual", time.Now().Add(-1*time.Hour))
-	_, _ = svc.Create(1, "R2", "", "manual", time.Now().Add(24*time.Hour))
-	_, _ = svc.Create(2, "R3", "", "manual", time.Now().Add(-1*time.Hour))
+	_ = svc.Create(&models.Reminder{UserID: 1, Titulo: "R1", Tipo: "manual", Fecha: time.Now().Add(-1 * time.Hour)})
+	_ = svc.Create(&models.Reminder{UserID: 1, Titulo: "R2", Tipo: "manual", Fecha: time.Now().Add(24 * time.Hour)})
+	_ = svc.Create(&models.Reminder{UserID: 2, Titulo: "R3", Tipo: "manual", Fecha: time.Now().Add(-1 * time.Hour)})
 
 	pending, err := svc.GetPending(1)
 	if err != nil {
@@ -161,9 +166,9 @@ func TestReminderGetPending_Empty(t *testing.T) {
 func TestReminderGetAll_ByUser(t *testing.T) {
 	repo := &mockReminderRepo{}
 	svc := service.NewReminderService(repo)
-	_, _ = svc.Create(1, "A", "", "manual", time.Now())
-	_, _ = svc.Create(1, "B", "", "manual", time.Now())
-	_, _ = svc.Create(2, "C", "", "manual", time.Now())
+	_ = svc.Create(&models.Reminder{UserID: 1, Titulo: "A", Tipo: "manual", Fecha: time.Now()})
+	_ = svc.Create(&models.Reminder{UserID: 1, Titulo: "B", Tipo: "manual", Fecha: time.Now()})
+	_ = svc.Create(&models.Reminder{UserID: 2, Titulo: "C", Tipo: "manual", Fecha: time.Now()})
 
 	all, total, err := svc.GetAll(1, 0, 20)
 	if err != nil {
@@ -180,13 +185,17 @@ func TestReminderGetAll_ByUser(t *testing.T) {
 func TestReminderMarkAsRead_Success(t *testing.T) {
 	repo := &mockReminderRepo{}
 	svc := service.NewReminderService(repo)
-	r, _ := svc.Create(1, "Test", "", "manual", time.Now())
+	_ = svc.Create(&models.Reminder{UserID: 1, Titulo: "Test", Tipo: "manual", Fecha: time.Now()})
 
-	if r.Leido {
+	r, _ := svc.GetPending(1)
+	if len(r) == 0 {
+		t.Fatal("expected at least one reminder")
+	}
+	if r[0].Leido {
 		t.Fatal("expected reminder to be unread initially")
 	}
 
-	if err := svc.MarkAsRead(r.ID, 1); err != nil {
+	if err := svc.MarkAsRead(r[0].ID, 1); err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 }

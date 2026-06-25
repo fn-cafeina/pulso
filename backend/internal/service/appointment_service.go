@@ -1,54 +1,41 @@
 package service
 
 import (
-	"time"
-
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/repository"
 )
 
 type AppointmentService interface {
-	Create(userID uint, descripcion string, fecha time.Time) (*models.Appointment, error)
+	BaseService[models.Appointment]
 	GetByUserID(userID uint) ([]models.Appointment, error)
-	Update(id, userID uint, descripcion string, fecha time.Time) (*models.Appointment, error)
+	Update(appt *models.Appointment) (*models.Appointment, error)
 	Delete(id, userID uint) error
 }
 
 type appointmentService struct {
+	baseSvc[models.Appointment]
 	repo repository.AppointmentRepository
 }
 
 func NewAppointmentService(repo repository.AppointmentRepository) AppointmentService {
-	return &appointmentService{repo: repo}
-}
-
-func (s *appointmentService) Create(userID uint, descripcion string, fecha time.Time) (*models.Appointment, error) {
-	appt := &models.Appointment{
-		UserID:      userID,
-		Descripcion: descripcion,
-		Fecha:       fecha,
-	}
-	if err := s.repo.Create(appt); err != nil {
-		return nil, err
-	}
-	return appt, nil
+	return &appointmentService{baseSvc: newBaseSvc[models.Appointment](repo), repo: repo}
 }
 
 func (s *appointmentService) GetByUserID(userID uint) ([]models.Appointment, error) {
 	return s.repo.FindByUserID(userID)
 }
 
-func (s *appointmentService) Update(id, userID uint, descripcion string, fecha time.Time) (*models.Appointment, error) {
-	appt, err := s.repo.FindByID(id, userID)
+func (s *appointmentService) Update(appt *models.Appointment) (*models.Appointment, error) {
+	existing, err := s.repo.FindByID(appt.ID, appt.UserID)
 	if err != nil {
 		return nil, err
 	}
-	appt.Descripcion = descripcion
-	appt.Fecha = fecha
-	if err := s.repo.Update(appt); err != nil {
+	existing.Descripcion = appt.Descripcion
+	existing.Fecha = appt.Fecha
+	if err := s.repo.Update(existing); err != nil {
 		return nil, err
 	}
-	return appt, nil
+	return existing, nil
 }
 
 func (s *appointmentService) Delete(id, userID uint) error {

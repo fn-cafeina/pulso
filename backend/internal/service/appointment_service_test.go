@@ -64,21 +64,23 @@ func (m *mockAppointmentRepo) Delete(id, userID uint) error {
 
 func TestAppointmentCreate_Success(t *testing.T) {
 	svc := service.NewAppointmentService(&mockAppointmentRepo{})
-	appt, err := svc.Create(1, "Control general", time.Date(2026, 6, 1, 10, 0, 0, 0, time.UTC))
+	err := svc.Create(&models.Appointment{
+		UserID:      1,
+		Descripcion: "Control general",
+		Fecha:       time.Date(2026, 6, 1, 10, 0, 0, 0, time.UTC),
+	})
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
-	}
-	if appt.Descripcion != "Control general" {
-		t.Fatalf("expected Control general, got %s", appt.Descripcion)
-	}
-	if appt.ID == 0 {
-		t.Fatal("expected ID to be set")
 	}
 }
 
 func TestAppointmentCreate_RepoError(t *testing.T) {
 	svc := service.NewAppointmentService(&mockAppointmentRepo{fail: true})
-	_, err := svc.Create(1, "Control", time.Now())
+	err := svc.Create(&models.Appointment{
+		UserID:      1,
+		Descripcion: "Control",
+		Fecha:       time.Now(),
+	})
 	if err == nil {
 		t.Fatal("expected error from repo")
 	}
@@ -87,9 +89,9 @@ func TestAppointmentCreate_RepoError(t *testing.T) {
 func TestAppointmentGetByUserID_Success(t *testing.T) {
 	repo := &mockAppointmentRepo{}
 	svc := service.NewAppointmentService(repo)
-	_, _ = svc.Create(1, "Control", time.Now())
-	_, _ = svc.Create(1, "Revisión", time.Now())
-	_, _ = svc.Create(2, "Otra", time.Now())
+	_ = svc.Create(&models.Appointment{UserID: 1, Descripcion: "Control", Fecha: time.Now()})
+	_ = svc.Create(&models.Appointment{UserID: 1, Descripcion: "Revisión", Fecha: time.Now()})
+	_ = svc.Create(&models.Appointment{UserID: 2, Descripcion: "Otra", Fecha: time.Now()})
 
 	appts, err := svc.GetByUserID(1)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -56,7 +57,13 @@ func (h *HealthHandler) CreateVaccine(c *gin.Context) {
 
 	if !fecha.After(time.Now()) {
 		log.Printf("skip reminder for past vaccine: %s", req.NombreVacuna)
-	} else if _, err := h.reminderSvc.Create(userID.(uint), "Vacuna: "+req.NombreVacuna, "Registro de vacunación", "vacuna", fecha); err != nil {
+	} else if err := h.reminderSvc.Create(&models.Reminder{
+		UserID:      userID.(uint),
+		Titulo:      "Vacuna: " + req.NombreVacuna,
+		Descripcion: "Registro de vacunación",
+		Tipo:        "vacuna",
+		Fecha:       fecha,
+	}); err != nil {
 		log.Printf("error: failed to create reminder: %v", err)
 	}
 

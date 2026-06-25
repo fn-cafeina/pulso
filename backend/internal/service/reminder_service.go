@@ -1,15 +1,13 @@
 package service
 
 import (
-	"time"
-
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/repository"
 	"gorm.io/gorm"
 )
 
 type ReminderService interface {
-	Create(userID uint, titulo, descripcion, tipo string, fecha time.Time) (*models.Reminder, error)
+	BaseService[models.Reminder]
 	GetPending(userID uint) ([]models.Reminder, error)
 	GetAll(userID uint, page, perPage int) ([]models.Reminder, int64, error)
 	Update(reminder *models.Reminder) (*models.Reminder, error)
@@ -18,25 +16,12 @@ type ReminderService interface {
 }
 
 type reminderService struct {
+	baseSvc[models.Reminder]
 	repo repository.ReminderRepository
 }
 
 func NewReminderService(repo repository.ReminderRepository) ReminderService {
-	return &reminderService{repo: repo}
-}
-
-func (s *reminderService) Create(userID uint, titulo, descripcion, tipo string, fecha time.Time) (*models.Reminder, error) {
-	r := &models.Reminder{
-		UserID:      userID,
-		Titulo:      titulo,
-		Descripcion: descripcion,
-		Fecha:       fecha,
-		Tipo:        tipo,
-	}
-	if err := s.repo.Create(r); err != nil {
-		return nil, err
-	}
-	return r, nil
+	return &reminderService{baseSvc: newBaseSvc[models.Reminder](repo), repo: repo}
 }
 
 func (s *reminderService) GetPending(userID uint) ([]models.Reminder, error) {

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
@@ -21,7 +20,7 @@ func (h *ReminderHandler) GetPending(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	reminders, err := h.reminderSvc.GetPending(userID.(uint))
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "recordatorio")
 		return
 	}
 	Success(c, http.StatusOK, reminders)
@@ -41,9 +40,15 @@ func (h *ReminderHandler) Create(c *gin.Context) {
 	}
 
 	userID, _ := c.Get("user_id")
-	reminder, err := h.reminderSvc.Create(userID.(uint), req.Titulo, req.Descripcion, req.Tipo, fecha)
-	if err != nil {
-		InternalError(c, err)
+	reminder := &models.Reminder{
+		UserID:      userID.(uint),
+		Titulo:      req.Titulo,
+		Descripcion: req.Descripcion,
+		Fecha:       fecha,
+		Tipo:        req.Tipo,
+	}
+	if err := h.reminderSvc.Create(reminder); err != nil {
+		NotFoundOrInternal(c, err, "recordatorio")
 		return
 	}
 	SuccessMsg(c, http.StatusCreated, "recordatorio creado", reminder)
@@ -54,16 +59,15 @@ func (h *ReminderHandler) GetHistory(c *gin.Context) {
 	p := ParsePagination(c)
 	reminders, total, err := h.reminderSvc.GetAll(userID.(uint), p.Page, p.PerPage)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "recordatorio")
 		return
 	}
 	PaginatedSuccess(c, http.StatusOK, reminders, PaginationMeta{Page: p.Page, PerPage: p.PerPage, Total: total})
 }
 
 func (h *ReminderHandler) Update(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "ID inválido")
 		return
 	}
 
@@ -81,7 +85,7 @@ func (h *ReminderHandler) Update(c *gin.Context) {
 
 	userID, _ := c.Get("user_id")
 	reminder, err := h.reminderSvc.Update(&models.Reminder{
-		BaseModel:   models.BaseModel{ID: uint(id)},
+		BaseModel:   models.BaseModel{ID: id},
 		UserID:      userID.(uint),
 		Titulo:      req.Titulo,
 		Descripcion: req.Descripcion,
@@ -89,37 +93,35 @@ func (h *ReminderHandler) Update(c *gin.Context) {
 		Tipo:        req.Tipo,
 	})
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "recordatorio")
 		return
 	}
 	Success(c, http.StatusOK, reminder)
 }
 
 func (h *ReminderHandler) MarkAsRead(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "ID inválido")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	if err := h.reminderSvc.MarkAsRead(uint(id), userID.(uint)); err != nil {
-		InternalError(c, err)
+	if err := h.reminderSvc.MarkAsRead(id, userID.(uint)); err != nil {
+		NotFoundOrInternal(c, err, "recordatorio")
 		return
 	}
 	Msg(c, http.StatusOK, "recordatorio marcado como leído")
 }
 
 func (h *ReminderHandler) Delete(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "ID inválido")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	if err := h.reminderSvc.Delete(uint(id), userID.(uint)); err != nil {
-		InternalError(c, err)
+	if err := h.reminderSvc.Delete(id, userID.(uint)); err != nil {
+		NotFoundOrInternal(c, err, "recordatorio")
 		return
 	}
 	Msg(c, http.StatusOK, "recordatorio eliminado")

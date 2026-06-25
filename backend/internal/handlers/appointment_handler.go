@@ -3,11 +3,10 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
+	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type AppointmentHandler struct {
@@ -23,7 +22,7 @@ func (h *AppointmentHandler) GetAll(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	appts, err := h.apptSvc.GetByUserID(userID.(uint))
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "cita")
 		return
 	}
 	Success(c, http.StatusOK, appts)
@@ -43,13 +42,24 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 	}
 
 	userID, _ := c.Get("user_id")
-	appt, err := h.apptSvc.Create(userID.(uint), req.Descripcion, fecha)
-	if err != nil {
-		InternalError(c, err)
+	appt := &models.Appointment{
+		UserID:      userID.(uint),
+		Descripcion: req.Descripcion,
+		Fecha:       fecha,
+	}
+	if err := h.apptSvc.Create(appt); err != nil {
+		NotFoundOrInternal(c, err, "cita")
 		return
 	}
 
-	if _, err := h.reminderSvc.Create(userID.(uint), "Cita médica", req.Descripcion, "cita", fecha); err != nil {
+	reminder := &models.Reminder{
+		UserID:      userID.(uint),
+		Titulo:      "Cita médica",
+		Descripcion: req.Descripcion,
+		Tipo:        "cita",
+		Fecha:       fecha,
+	}
+	if err := h.reminderSvc.Create(reminder); err != nil {
 		log.Printf("error: failed to create reminder: %v", err)
 	}
 
@@ -57,9 +67,8 @@ func (h *AppointmentHandler) Create(c *gin.Context) {
 }
 
 func (h *AppointmentHandler) Update(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
@@ -76,13 +85,14 @@ func (h *AppointmentHandler) Update(c *gin.Context) {
 	}
 
 	userID, _ := c.Get("user_id")
-	appt, err := h.apptSvc.Update(uint(id), userID.(uint), req.Descripcion, fecha)
+	appt, err := h.apptSvc.Update(&models.Appointment{
+		BaseModel:   models.BaseModel{ID: id},
+		UserID:      userID.(uint),
+		Descripcion: req.Descripcion,
+		Fecha:       fecha,
+	})
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "cita no encontrada")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "cita")
 		return
 	}
 
@@ -90,19 +100,14 @@ func (h *AppointmentHandler) Update(c *gin.Context) {
 }
 
 func (h *AppointmentHandler) Delete(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
 	userID, _ := c.Get("user_id")
-	if err := h.apptSvc.Delete(uint(id), userID.(uint)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "cita no encontrada")
-			return
-		}
-		InternalError(c, err)
+	if err := h.apptSvc.Delete(id, userID.(uint)); err != nil {
+		NotFoundOrInternal(c, err, "cita")
 		return
 	}
 
