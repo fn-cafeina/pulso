@@ -97,6 +97,18 @@ type CreateReminderRequest struct {
 	Tipo        string `json:"tipo" binding:"required,oneof=cita vacuna manual"`
 }
 
+type RegisterRequest struct {
+	Username            string `json:"username" binding:"required,min=3"`
+	Password            string `json:"password" binding:"required,min=6"`
+	AntecedentesMedicos string `json:"antecedentes_medicos"`
+	Codigo              string `json:"codigo"`
+}
+
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 type AIConsultRequest struct {
 	Pregunta string `json:"pregunta" binding:"required"`
 }

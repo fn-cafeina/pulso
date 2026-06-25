@@ -1,12 +1,6 @@
 package handlers
 
-import (
-	"errors"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
+import "github.com/gin-gonic/gin"
 
 func Success(c *gin.Context, status int, data any) {
 	c.JSON(status, gin.H{"data": data})
@@ -26,12 +20,4 @@ func Error(c *gin.Context, status int, msg string) {
 
 func PaginatedSuccess(c *gin.Context, status int, data any, meta PaginationMeta) {
 	c.JSON(status, gin.H{"data": data, "meta": meta})
-}
-
-func InternalError(c *gin.Context, err error) {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		Error(c, http.StatusNotFound, "recurso no encontrado")
-		return
-	}
-	Error(c, http.StatusInternalServerError, "error interno del servidor")
 }

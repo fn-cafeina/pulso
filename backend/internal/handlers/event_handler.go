@@ -7,7 +7,6 @@ import (
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type EventHandler struct {
@@ -52,7 +51,7 @@ func (h *EventHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.eventSvc.Create(event); err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "evento")
 		return
 	}
 
@@ -60,19 +59,14 @@ func (h *EventHandler) Create(c *gin.Context) {
 }
 
 func (h *EventHandler) GetByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	event, err := h.eventSvc.GetByID(uint(id))
+	event, err := h.eventSvc.GetByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "evento no encontrado")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "evento")
 		return
 	}
 
@@ -96,7 +90,7 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 
 		nearby, err := h.eventSvc.GetNearby(lat, lng, radius)
 		if err != nil {
-			InternalError(c, err)
+			NotFoundOrInternal(c, err, "evento")
 			return
 		}
 
@@ -109,7 +103,7 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 
 	events, total, err := h.eventSvc.GetAll(upcoming, p.Page, p.PerPage)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "evento")
 		return
 	}
 
@@ -126,9 +120,8 @@ func (h *EventHandler) GetAll(c *gin.Context) {
 }
 
 func (h *EventHandler) Update(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
@@ -138,13 +131,9 @@ func (h *EventHandler) Update(c *gin.Context) {
 		return
 	}
 
-	existing, err := h.eventSvc.GetByID(uint(id))
+	existing, err := h.eventSvc.GetByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "evento no encontrado")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "evento")
 		return
 	}
 
@@ -188,7 +177,7 @@ func (h *EventHandler) Update(c *gin.Context) {
 
 	updated, err := h.eventSvc.Update(existing)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "evento")
 		return
 	}
 
@@ -196,20 +185,16 @@ func (h *EventHandler) Update(c *gin.Context) {
 }
 
 func (h *EventHandler) Delete(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	if err := h.eventSvc.Delete(uint(id)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "evento no encontrado")
-			return
-		}
-		InternalError(c, err)
+	if err := h.eventSvc.Delete(id); err != nil {
+		NotFoundOrInternal(c, err, "evento")
 		return
 	}
 
 	Msg(c, http.StatusOK, "evento eliminado")
 }
+

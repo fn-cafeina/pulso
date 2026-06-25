@@ -47,10 +47,7 @@ func (m *mockUserRepo) FindByID(id uint) (*models.User, error) {
 
 func TestRegister_Success(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret", "")
-	user, err := svc.Register(service.RegisterRequest{
-		Username: "testuser",
-		Password: "password123",
-	})
+	user, err := svc.Register("testuser", "password123", "", "")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -64,14 +61,8 @@ func TestRegister_Success(t *testing.T) {
 
 func TestRegister_DuplicateUsername(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret", "")
-	_, _ = svc.Register(service.RegisterRequest{
-		Username: "testuser",
-		Password: "password123",
-	})
-	_, err := svc.Register(service.RegisterRequest{
-		Username: "testuser",
-		Password: "password456",
-	})
+	_, _ = svc.Register("testuser", "password123", "", "")
+	_, err := svc.Register("testuser", "password456", "", "")
 	if err == nil {
 		t.Fatal("expected error for duplicate username")
 	}
@@ -79,14 +70,8 @@ func TestRegister_DuplicateUsername(t *testing.T) {
 
 func TestLogin_Success(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "test-secret", "")
-	_, _ = svc.Register(service.RegisterRequest{
-		Username: "testuser",
-		Password: "password123",
-	})
-	token, _, err := svc.Login(service.LoginRequest{
-		Username: "testuser",
-		Password: "password123",
-	})
+	_, _ = svc.Register("testuser", "password123", "", "")
+	token, _, err := svc.Login("testuser", "password123")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -110,14 +95,8 @@ func TestLogin_Success(t *testing.T) {
 
 func TestLogin_InvalidCredentials(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret", "")
-	_, _ = svc.Register(service.RegisterRequest{
-		Username: "testuser",
-		Password: "password123",
-	})
-	_, _, err := svc.Login(service.LoginRequest{
-		Username: "testuser",
-		Password: "wrongpassword",
-	})
+	_, _ = svc.Register("testuser", "password123", "", "")
+	_, _, err := svc.Login("testuser", "wrongpassword")
 	if err == nil {
 		t.Fatal("expected error for wrong password")
 	}
@@ -125,10 +104,7 @@ func TestLogin_InvalidCredentials(t *testing.T) {
 
 func TestLogin_UserNotFound(t *testing.T) {
 	svc := service.NewAuthService(&mockUserRepo{}, "secret", "")
-	_, _, err := svc.Login(service.LoginRequest{
-		Username: "nonexistent",
-		Password: "password123",
-	})
+	_, _, err := svc.Login("nonexistent", "password123")
 	if err == nil {
 		t.Fatal("expected error for nonexistent user")
 	}

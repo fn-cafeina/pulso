@@ -7,7 +7,6 @@ import (
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type ServiceHandler struct {
@@ -33,7 +32,7 @@ func (h *ServiceHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.svcSvc.Create(svc); err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "servicio")
 		return
 	}
 
@@ -41,19 +40,14 @@ func (h *ServiceHandler) Create(c *gin.Context) {
 }
 
 func (h *ServiceHandler) GetByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	svc, err := h.svcSvc.GetByID(uint(id))
+	svc, err := h.svcSvc.GetByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "servicio no encontrado")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "servicio")
 		return
 	}
 
@@ -77,7 +71,7 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 
 		nearby, err := h.svcSvc.GetNearby(lat, lng, radius)
 		if err != nil {
-			InternalError(c, err)
+			NotFoundOrInternal(c, err, "servicio")
 			return
 		}
 
@@ -88,7 +82,7 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 	p := ParsePagination(c)
 	services, total, err := h.svcSvc.GetAll(p.Page, p.PerPage)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "servicio")
 		return
 	}
 
@@ -105,9 +99,8 @@ func (h *ServiceHandler) GetAll(c *gin.Context) {
 }
 
 func (h *ServiceHandler) Update(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
@@ -117,13 +110,9 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 		return
 	}
 
-	existing, err := h.svcSvc.GetByID(uint(id))
+	existing, err := h.svcSvc.GetByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "servicio no encontrado")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "servicio")
 		return
 	}
 
@@ -142,7 +131,7 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 
 	updated, err := h.svcSvc.Update(existing)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "servicio")
 		return
 	}
 
@@ -150,18 +139,13 @@ func (h *ServiceHandler) Update(c *gin.Context) {
 }
 
 func (h *ServiceHandler) Delete(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	if err := h.svcSvc.Delete(uint(id)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "servicio no encontrado")
-			return
-		}
-		InternalError(c, err)
+	if err := h.svcSvc.Delete(id); err != nil {
+		NotFoundOrInternal(c, err, "servicio")
 		return
 	}
 

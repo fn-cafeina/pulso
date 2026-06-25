@@ -12,20 +12,8 @@ import (
 )
 
 type AuthService interface {
-	Register(req RegisterRequest) (*models.User, error)
-	Login(req LoginRequest) (string, string, error)
-}
-
-type RegisterRequest struct {
-	Username            string `json:"username" binding:"required,min=3"`
-	Password            string `json:"password" binding:"required,min=6"`
-	AntecedentesMedicos string `json:"antecedentes_medicos"`
-	Codigo              string `json:"codigo"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Register(username, password, antecedentes, codigo string) (*models.User, error)
+	Login(username, password string) (string, string, error)
 }
 
 type authService struct {
@@ -38,27 +26,27 @@ func NewAuthService(userRepo repository.UserRepository, jwtSecret string, health
 	return &authService{userRepo: userRepo, jwtSecret: jwtSecret, healthWorkerSecret: healthWorkerSecret}
 }
 
-func (s *authService) Register(req RegisterRequest) (*models.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+func (s *authService) Register(username, password, antecedentes, codigo string) (*models.User, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
 	rol := "family"
-	if req.Codigo != "" {
+	if codigo != "" {
 		if s.healthWorkerSecret == "" {
 			return nil, errors.New("registro de personal de salud no disponible")
 		}
-		if req.Codigo != s.healthWorkerSecret {
+		if codigo != s.healthWorkerSecret {
 			return nil, errors.New("código de health worker inválido")
 		}
 		rol = "health_worker"
 	}
 
 	user := &models.User{
-		Username:            req.Username,
+		Username:            username,
 		Password:            string(hash),
-		AntecedentesMedicos: req.AntecedentesMedicos,
+		AntecedentesMedicos: antecedentes,
 		Rol:                 rol,
 	}
 
@@ -69,8 +57,8 @@ func (s *authService) Register(req RegisterRequest) (*models.User, error) {
 	return user, nil
 }
 
-func (s *authService) Login(req LoginRequest) (string, string, error) {
-	user, err := s.userRepo.FindByUsername(req.Username)
+func (s *authService) Login(username, password string) (string, string, error) {
+	user, err := s.userRepo.FindByUsername(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", "", errors.New("usuario no encontrado")
@@ -78,7 +66,7 @@ func (s *authService) Login(req LoginRequest) (string, string, error) {
 		return "", "", err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return "", "", errors.New("contraseña incorrecta")
 	}
 

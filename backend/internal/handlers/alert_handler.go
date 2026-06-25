@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/fn-cafeina/pulso/backend/internal/models"
 	"github.com/fn-cafeina/pulso/backend/internal/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type AlertHandler struct {
@@ -35,7 +33,7 @@ func (h *AlertHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.alertSvc.Create(alert); err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 
@@ -50,7 +48,7 @@ func (h *AlertHandler) GetAll(c *gin.Context) {
 
 	alerts, total, err := h.alertSvc.GetAll(nivel, departamento, soloActivas, p.Page, p.PerPage)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 
@@ -67,19 +65,14 @@ func (h *AlertHandler) GetAll(c *gin.Context) {
 }
 
 func (h *AlertHandler) GetByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	alert, err := h.alertSvc.GetByID(uint(id))
+	alert, err := h.alertSvc.GetByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "alerta no encontrada")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 
@@ -87,9 +80,8 @@ func (h *AlertHandler) GetByID(c *gin.Context) {
 }
 
 func (h *AlertHandler) Update(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
@@ -99,13 +91,9 @@ func (h *AlertHandler) Update(c *gin.Context) {
 		return
 	}
 
-	existing, err := h.alertSvc.GetByID(uint(id))
+	existing, err := h.alertSvc.GetByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "alerta no encontrada")
-			return
-		}
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 
@@ -130,7 +118,7 @@ func (h *AlertHandler) Update(c *gin.Context) {
 
 	updated, err := h.alertSvc.Update(existing)
 	if err != nil {
-		InternalError(c, err)
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 
@@ -138,18 +126,13 @@ func (h *AlertHandler) Update(c *gin.Context) {
 }
 
 func (h *AlertHandler) Delete(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	if err := h.alertSvc.Delete(uint(id)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "alerta no encontrada")
-			return
-		}
-		InternalError(c, err)
+	if err := h.alertSvc.Delete(id); err != nil {
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 
@@ -157,18 +140,13 @@ func (h *AlertHandler) Delete(c *gin.Context) {
 }
 
 func (h *AlertHandler) Deactivate(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := ParseID(c)
 	if err != nil {
-		Error(c, http.StatusBadRequest, "id inválido")
 		return
 	}
 
-	if err := h.alertSvc.Deactivate(uint(id)); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			Error(c, http.StatusNotFound, "alerta no encontrada")
-			return
-		}
-		InternalError(c, err)
+	if err := h.alertSvc.Deactivate(id); err != nil {
+		NotFoundOrInternal(c, err, "alerta")
 		return
 	}
 

@@ -17,13 +17,13 @@ func NewAuthHandler(authSvc service.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
-	var req service.RegisterRequest
+	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		Error(c, http.StatusBadRequest, "usuario y contraseña son requeridos")
 		return
 	}
 
-	user, err := h.authSvc.Register(req)
+	user, err := h.authSvc.Register(req.Username, req.Password, req.AntecedentesMedicos, req.Codigo)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint") {
 			Error(c, http.StatusConflict, "el nombre de usuario ya está en uso")
@@ -45,13 +45,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	var req service.LoginRequest
+	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		Error(c, http.StatusBadRequest, "usuario y contraseña son requeridos")
 		return
 	}
 
-	token, rol, err := h.authSvc.Login(req)
+	token, rol, err := h.authSvc.Login(req.Username, req.Password)
 	if err != nil {
 		Error(c, http.StatusUnauthorized, err.Error())
 		return
