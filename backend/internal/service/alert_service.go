@@ -6,7 +6,7 @@ import (
 )
 
 type AlertService interface {
-	Create(alert *models.EpiAlert) error
+	BaseService[models.EpiAlert]
 	GetByID(id uint) (*models.EpiAlert, error)
 	GetAll(nivel, departamento string, soloActivas bool, page, perPage int) ([]models.EpiAlert, int64, error)
 	Update(alert *models.EpiAlert) (*models.EpiAlert, error)
@@ -15,15 +15,12 @@ type AlertService interface {
 }
 
 type alertService struct {
+	baseSvc[models.EpiAlert]
 	repo repository.AlertRepository
 }
 
 func NewAlertService(repo repository.AlertRepository) AlertService {
-	return &alertService{repo: repo}
-}
-
-func (s *alertService) Create(alert *models.EpiAlert) error {
-	return s.repo.Create(alert)
+	return &alertService{baseSvc: newBaseSvc[models.EpiAlert](repo), repo: repo}
 }
 
 func (s *alertService) GetByID(id uint) (*models.EpiAlert, error) {

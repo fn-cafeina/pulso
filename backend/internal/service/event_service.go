@@ -13,7 +13,7 @@ type NearbyEvent struct {
 }
 
 type EventService interface {
-	Create(event *models.HealthEvent) error
+	BaseService[models.HealthEvent]
 	GetByID(id uint) (*models.HealthEvent, error)
 	GetAll(upcoming bool, page, perPage int) ([]models.HealthEvent, int64, error)
 	GetNearby(lat, lng, radiusKm float64) ([]NearbyEvent, error)
@@ -22,15 +22,12 @@ type EventService interface {
 }
 
 type eventService struct {
+	baseSvc[models.HealthEvent]
 	repo repository.EventRepository
 }
 
 func NewEventService(repo repository.EventRepository) EventService {
-	return &eventService{repo: repo}
-}
-
-func (s *eventService) Create(event *models.HealthEvent) error {
-	return s.repo.Create(event)
+	return &eventService{baseSvc: newBaseSvc[models.HealthEvent](repo), repo: repo}
 }
 
 func (s *eventService) GetByID(id uint) (*models.HealthEvent, error) {

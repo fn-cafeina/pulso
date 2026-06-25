@@ -13,7 +13,7 @@ type NearbyService struct {
 }
 
 type ServiceService interface {
-	Create(svc *models.HealthService) error
+	BaseService[models.HealthService]
 	GetByID(id uint) (*models.HealthService, error)
 	GetAll(page, perPage int) ([]models.HealthService, int64, error)
 	GetNearby(lat, lng, radiusKm float64) ([]NearbyService, error)
@@ -22,15 +22,12 @@ type ServiceService interface {
 }
 
 type serviceService struct {
+	baseSvc[models.HealthService]
 	repo repository.ServiceRepository
 }
 
 func NewServiceService(repo repository.ServiceRepository) ServiceService {
-	return &serviceService{repo: repo}
-}
-
-func (s *serviceService) Create(svc *models.HealthService) error {
-	return s.repo.Create(svc)
+	return &serviceService{baseSvc: newBaseSvc[models.HealthService](repo), repo: repo}
 }
 
 func (s *serviceService) GetByID(id uint) (*models.HealthService, error) {
