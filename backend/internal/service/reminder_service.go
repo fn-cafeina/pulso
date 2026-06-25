@@ -29,7 +29,7 @@ func (s *reminderService) GetPending(userID uint) ([]models.Reminder, error) {
 }
 
 func (s *reminderService) GetAll(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
-	return s.repo.FindByUserID(userID, page, perPage)
+	return s.repo.FindHistoryByUserID(userID, page, perPage)
 }
 
 func (s *reminderService) Update(reminder *models.Reminder) (*models.Reminder, error) {

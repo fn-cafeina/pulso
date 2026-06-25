@@ -8,7 +8,7 @@ import (
 type ReminderRepository interface {
 	BaseRepository[models.Reminder]
 	FindPendingByUserID(userID uint) ([]models.Reminder, error)
-	FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error)
+	FindHistoryByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error)
 	MarkAsRead(id, userID uint) error
 }
 
@@ -28,7 +28,7 @@ func (r *reminderRepository) FindPendingByUserID(userID uint) ([]models.Reminder
 	return reminders, err
 }
 
-func (r *reminderRepository) FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
+func (r *reminderRepository) FindHistoryByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
 	var reminders []models.Reminder
 	var total int64
 

@@ -44,7 +44,7 @@ func (m *mockReminderRepo) FindPendingByUserID(userID uint) ([]models.Reminder, 
 	return result, nil
 }
 
-func (m *mockReminderRepo) FindByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
+func (m *mockReminderRepo) FindHistoryByUserID(userID uint, page, perPage int) ([]models.Reminder, int64, error) {
 	var result []models.Reminder
 	for _, r := range m.reminders {
 		if r.UserID == userID {
